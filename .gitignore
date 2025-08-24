@@ -1,0 +1,11 @@
+# modules: installed packages (modules), can be installed with npm install
+app/node_modules
+
+# output of building: build with npm build
+app/frontend/public/bundle.js
+app/frontend/public/output.css
+
+# md files
+project.md
+app/app.md
+app/frontend/ts\ files.md
