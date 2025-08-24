@@ -2,12 +2,12 @@
   "name": "pong-website",
   "version": "1.0.0",
   "description": "the best in the world",
-
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo No tests here",
-	"build": "npx esbuild frontend/frontend.ts --bundle --outfile=frontend/public/bundle.js",
-	"start": "node backend/server.ts"
+    "build": "npx esbuild frontend/frontend.ts --bundle --outfile=frontend/public/bundle.js",
+    "start": "node backend/server.ts"
   },
   "keywords": [],
   "author": "",
@@ -17,6 +17,7 @@
     "fastify": "^5.5.0"
   },
   "devDependencies": {
+    "@types/node": "^24.3.0",
     "esbuild": "^0.25.9"
   }
 }

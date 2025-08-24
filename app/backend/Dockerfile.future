@@ -1,0 +1,14 @@
+# node fastify
+
+FROM node:22-alpine
+
+WORKDIR /app
+
+# to install dependencies: fastify and it's plugins
+RUN npm install
+
+# server runs on 8080
+EXPOSE 8080
+
+# build and start for each container start
+CMD ["sh", "-c", "npm run build && npm start"]

@@ -1,41 +1,29 @@
-// this file responsible for updating the one and only index.html
+// NEW
 
-// JavaScript object
-// key values
-// key is the path, value is a function
-const routes = {
-	'/': () => {
-		document.getElementById('app')!.innerHTML = '<h1>Home Page</h1><button id="About" onclick="buttonOnclickHandler()">Go to About</button>';
-	},
-	'/about': () => {
-	  document.getElementById('app')!.innerHTML = '<h1>About Page</h1>';
-	},
-	'/contact': () => {
-	  document.getElementById('app')!.innerHTML = '<h1>Contact Page</h1>';
-	}
+var loginPage: string = '<h1>Login</h1><a href="/home" onclick="route()">Login</a>'; // a request /home
+var homePage: string = '<h1>Home Page</h1>';
+
+var routes = {
+	'/': loginPage,
+	'/home': homePage,
 };
-// mapping paths to functions
-// calling functions according to path got by: window.location.pathname
-// and we call it "routing"
 
-function router() {
-	const path = window.location.pathname;
-	const route = routes[path] || routes['/']; // default to home
-	route();
-}
+const route = (event: Event) => {
+    event = event || window.event;
+    event.preventDefault(); // this what make the browser don't send a request to the server
+    window.history.pushState({}, "", event.target.href); // href don't work without this
+    handleLocation();
+};
 
-// OLD
+const handleLocation = async () => {
+    const path = window.location.pathname;
+	type RoutePath = keyof typeof routes;
+	document.getElementById("root")!.innerHTML = routes[path as RoutePath];
+};
 
-// Run the router on page load
-window.addEventListener('DOMContentLoaded', router);
+// handle navigation
+window.onpopstate = handleLocation; // on back/forward, call handleLocation
+window.route = route; // define route to use it in HTML onclick
 
-function buttonOnclickHandler() {
-	// modify the title of the document
-	document.getElementById('app')!.innerHTML = '<h1>This is a fake About Page</h1>';
-
-	// // make button disappear
-	// document.getElementById('About')!.style.display = 'none';
-}
-
-// Attach to window for HTML button usage
-(window as any).buttonOnclickHandler = buttonOnclickHandler;
+// on DOMContentLoaded, we call handleLocation to update the index.html
+document.addEventListener('DOMContentLoaded', route);

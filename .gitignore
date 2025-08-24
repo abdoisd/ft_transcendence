@@ -8,4 +8,9 @@ app/frontend/public/output.css
 # md files
 project.md
 app/app.md
-app/frontend/ts\ files.md
+app/frontend/frontend.md
+app/backend/backend.md
+
+# for package-lock.json, we are working with an app, so we keep it
+
+# .dockerignore in the future

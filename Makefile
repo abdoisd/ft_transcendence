@@ -9,3 +9,6 @@ e:
 
 c:
 	docker rm -f project-c
+
+s:
+	npm run build && npm start
