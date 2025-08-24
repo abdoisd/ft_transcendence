@@ -28,7 +28,7 @@ server.register(fastifyStatic, {
 	root: path.join(process.cwd(), "frontend/public")
 });
 
-// when nothing found
+// when we write an invalid path in the browser, the browser send a request, that is why we have this
 server.setNotFoundHandler((request, reply) => {
 	reply.sendFile("index.html"); // it know that path from the plugin ?
 });

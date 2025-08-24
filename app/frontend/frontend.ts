@@ -1,29 +1,45 @@
-// NEW
 
-var loginPage: string = '<h1>Login</h1><a href="/home" onclick="route()">Login</a>'; // a request /home
-var homePage: string = '<h1>Home Page</h1>';
+import { loginPage, homePage, notFoundPage, gameView, chatView, friendsView, settingsView, profileView } from './views.ts';
 
+// MAPPING /URLS WITH VIEWS
 var routes = {
 	'/': loginPage,
 	'/home': homePage,
+	'/404': notFoundPage,
+	'/friends': friendsView,
+	'/game': gameView,
+	'/chat': chatView,
+	'/settings': settingsView,
+	'/default': homePage,
+	'/profile': profileView
 };
 
+// EVERY HREF CALL THIS
 const route = (event: Event) => {
     event = event || window.event;
     event.preventDefault(); // this what make the browser don't send a request to the server
+
+	// keep track of the user’s browsing history within the app
     window.history.pushState({}, "", event.target.href); // href don't work without this
     handleLocation();
 };
 
+// UPDATE THE ONE AND ONLY INDEX.HTML
 const handleLocation = async () => {
     const path = window.location.pathname;
 	type RoutePath = keyof typeof routes;
-	document.getElementById("root")!.innerHTML = routes[path as RoutePath];
+
+	console.log("Loading view: " + path);
+
+	if (path == "/" || path == "/home" || path == "/default")
+		document.getElementById("root")!.innerHTML = routes[path as RoutePath] || routes['/404'];
+	else
+		document.getElementById("main-views")!.innerHTML = routes[path as RoutePath];
 };
 
-// handle navigation
 window.onpopstate = handleLocation; // on back/forward, call handleLocation
 window.route = route; // define route to use it in HTML onclick
 
-// on DOMContentLoaded, we call handleLocation to update the index.html
+// INDEX.HTML IS LOADED -> WE CALL THE ROUT
+// this is for the first time
 document.addEventListener('DOMContentLoaded', route);
