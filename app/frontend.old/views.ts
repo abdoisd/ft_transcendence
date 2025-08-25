@@ -1,8 +1,8 @@
 import { route } from './frontend.ts';
-import { handleLocation } from './frontend.ts';
-import { clsUser } from "./classes/user.ts";
+import { clsUser } from './frontend.ts';
 
 // VIEWS
+
 
 // LOGIN FORM/VIEW
 // THIS NEVER CHANGES
@@ -16,7 +16,7 @@ export var loginPage: string = `
 <br>
 <button onclick="sendJSON()">Login</button>
 `;
-// login view handling submit
+// ACTION OF LOGIN FORM
 function sendJSON() {
 
 	// get data
@@ -41,21 +41,24 @@ function sendJSON() {
 		{
 			console.log("client-side/frontend: form action: login success");
 
-			// set cookie here for user
-			// data in url <=> encoding username and password
-			const value = encodeURIComponent(userInForm.username + ":" + userInForm.password);
-			document.cookie = `login=${value}`;
+			// // set cookie here for user
+			// // data in url <=> encoding username and password
+			// const value = encodeURIComponent(userInForm.username + ":" + userInForm.password);
+			// document.cookie = `login=${value}`;
 
-			// set logged in user
 			globalThis.clsGlobal.LoggedInUser = new clsUser(99, userInForm.username || "default username", userInForm.password || "default password");
 			console.log("user is " + clsGlobal.LoggedInUser.id, clsGlobal.LoggedInUser.username, clsGlobal.LoggedInUser.password);
 
-			route(undefined, "/home");
+			// window.location.pathname = '/home';
+			route(); // it will take window.event
 		}
     })
     .catch(error => console.error('Error:', error));
 }
 (window as any).sendJSON = sendJSON;
+
+
+
 
 // href update the window.location.pathname
 export var homePage: string = `

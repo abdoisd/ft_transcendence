@@ -13,7 +13,9 @@ import type { FastifyListenOptions } from 'fastify';
 import type { FastifyHttpOptions } from 'fastify';
 import fastifyStatic from "@fastify/static"; // plugin to serve all files in a directory without me serving them, route for each one
 import path from "path";
-import fs from "fs";
+
+// database
+import { registerDatabaseRoutes } from "./apis.ts";
 
 var loggerValue: boolean = true;
 
@@ -22,6 +24,19 @@ const fastifyOptions: FastifyHttpOptions<any> = {
 };
 
 const server: FastifyInstance = Fastify(fastifyOptions);
+
+// route for: GET /data
+// send json data
+server.get('/api/data', async (request, reply) => {
+	const users = [
+		{ id: 1, name: "Alice Johnson" },
+		{ id: 2, name: "Bob Smith" },
+		{ id: 3, name: "Charlie Brown" },
+		{ id: 4, name: "Dana White" },
+		{ id: 5, name: "Ethan Black" }
+	];
+	return users; // if you make { users }, it's completely different, you will have to change the frontend code
+});
 
 // serving static files in frontend/public
 server.register(fastifyStatic, {
@@ -57,3 +72,5 @@ const start = () =>
 };
 
 start();
+
+registerDatabaseRoutes(server);
