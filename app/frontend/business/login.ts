@@ -1,11 +1,10 @@
-import { routes, route } from "./frontend.ts";
-import { clsUser } from "./classes/user.ts";
+// this shouldn't call presentation layer
 
-// login workflow
+import { clsUser } from "../classes/user.ts";
 
-// return true if login was successful
-// else false
-export async function LoginWorkflow() {
+// return true if auto login was successful
+// else false, and you have to show login view
+export async function LoginWorkflow(): Promise<boolean> {
 
 	window.history.pushState({}, "", "/login");
 
@@ -15,9 +14,9 @@ export async function LoginWorkflow() {
 
     if (!loginCookie) {
         console.log("No cookie, showing login view");
-        document.getElementById("root")!.innerHTML = routes["/login"];
+        // document.getElementById("root")!.innerHTML = routes["/login"];
         // user will fill the form, cookie will be set
-        return;
+        return false;
     }
 
     // yes cookie -> auto login
@@ -50,10 +49,12 @@ export async function LoginWorkflow() {
             const cookieValue = encodeURIComponent(username + ":" + password);
             document.cookie = `login=${cookieValue}`;
 
-            // don't have to be here, to route when ever we want
-            route(undefined, "/home");
+			return true;
         }
+		else
+		    return false;
     } catch (error) {
         console.error('Error:', error);
+		return false;
     }
 }

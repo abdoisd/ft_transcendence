@@ -34,7 +34,7 @@ function findUserByUsername(username: string): Promise<any> {
             if (err) {
                 reject(err);
             } else {
-                resolve(row); // row is user 
+                resolve(row); // row is user
             }
         });
     });
@@ -42,17 +42,6 @@ function findUserByUsername(username: string): Promise<any> {
 
 // Function to register database routes
 export function registerDatabaseRoutes(server: FastifyInstance) {
-
-	// sends an array of users
-    server.get('/api/users', (request, reply) => {
-        db.all('SELECT * FROM users', [], (err, rows) => { // get all rows
-            if (err) {
-                reply.status(500).send({ error: 'Database error' });
-                return;
-            }
-            reply.send(rows);
-        });
-    });
 
 	// functionality:
 	// args: json data in request.body

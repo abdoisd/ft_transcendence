@@ -1,6 +1,6 @@
 
 import { loginPage, homePage, notFoundPage, gameView, chatView, friendsView, settingsView, profileView } from './views.ts';
-import { LoginWorkflow } from './login.ts';
+import { LoginWorkflow } from './business/login.ts';
 
 import { clsUser } from "./classes/user.ts"; // classes
 
@@ -65,7 +65,6 @@ function dataView() {
 export const route = async (event: Event | undefined, path: string) => {
 
 	// code
-	
 	if (path)
 	{
 		window.history.pushState({}, "", path);
@@ -74,7 +73,6 @@ export const route = async (event: Event | undefined, path: string) => {
 	}
 
 	// buttons
-	
 	event = event || window.event;
 	event!.preventDefault(); // preventDefault of <a href>
 
@@ -100,22 +98,34 @@ export const handleLocation = async () => {
 	if (!globalThis.clsGlobal.LoggedInUser)
 	{
 		console.log("user not logged in");
-		await LoginWorkflow(); // after this, give user the view he wanted, that logic, I didn't inside, that made things complicated
-		// if no cookie, login failed
+		var logged: boolean = await LoginWorkflow(); // after this, give user the view he wanted, that logic, I didn't inside, that made things complicated
+		if (logged)
+		{
+			console.log("login was successful");
+			// home, then what he wanted
+			document.getElementById("root")!.innerHTML = routes["/home"];
+			// continue to give him what he want
+		}
+		else // cookie not found or cookie invalid credentials
+		{
+			console.log("login failed, showing login view");
+			document.getElementById("root")!.innerHTML = routes["/login"];
+			return ;
+		}
 	}
-
-	if (path == "/login")
-		return ;
 
 	if (globalThis.clsGlobal.LoggedInUser)	
 		console.log("user is logged in");
 	else
+		console.log("user is NOT logged in");
+
+	if (path == "/login")
 	{
-		console.log("user is NOT logged in, I think you didn't await for server response");
-		return ; // for line: if no cookie, we should return here, tmp
+		// login is handled automatically each time
+		// and home is already served
+		return ;
 	}
 
-	// this changes the URL in the browser without reloading the page
 	window.history.replaceState({}, "", path);
 
 	if (path == "/" || path == "/home" || path == "/default")
@@ -124,9 +134,7 @@ export const handleLocation = async () => {
 		document.getElementById("main-views")!.innerHTML = routes[path as RoutePath];
 };
 
-window.onpopstate = handleLocation; // on back/forward, call handleLocation
-window.route = route; // define route to use it in HTML
+window.onpopstate = handleLocation;
+window.route = route;
 
-// INDEX.HTML IS LOADED -> WE CALL THE ROUT
-// this is for the first time
 document.addEventListener('DOMContentLoaded', route);

@@ -59,38 +59,65 @@ function sendJSON() {
 
 // href update the window.location.pathname
 export var homePage: string = `
-<nav>
-	Navigation:
-	<a href="/default" onclick="route()">Default View</a>
-	<a href="/profile" onclick="route()">Profile</a>
-	<a href="/friends" onclick="route()">Friends</a>
-	<a href="/settings" onclick="route()">Settings</a>
-</nav>
-<hr>
-<main id="main-views">
-	<a href="/game" onclick="route()">Play</a>
-	<a href="/chat" onclick="route()">Chat</a>
-	<a href="/dataView" onclick="route()">Users View</a>
-	<p id="pp">data table: </p>
-	<table id="usersTable" border="1">
-
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>UserName</th>
-        <th>PassWord</th>
-      </tr>
-    </thead>
-
-    <tbody>
-      <!-- Rows will be populated here -->
-    </tbody>
-  </table>
-</main>
-<hr>
-<footer>
-2025 — ft_transcendence Inc.
-</footer>
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<style>
+		* {
+			margin: 0;
+			padding: 0;
+		}
+		a {
+			padding: 5px 10px;
+			text-decoration: none;
+			color: #ffffff;
+			font-size: 25px;
+			margin-right: 20px;
+			margin-left: 20px;
+			font-weight: 900;
+			font-style: italic;
+		}
+		a:hover {
+			text-decoration: underline; /* Underline on hover */
+			text-decoration-color: red;
+			text-decoration-thickness: 6px;
+			text-underline-offset: 10px;
+		}
+		.block {
+			font-family: "Arial Black", Impact, sans-serif;
+			display: block;
+			margin-bottom: 10px;
+			text-align: center;
+			margin: 20px auto;
+			font-size: 100px;
+			text-transform: uppercase;
+		}
+		body {
+			background-image: url('bg.jpg');
+    		background-repeat: no-repeat;
+    		background-size: cover;        /* fills the screen, may crop */
+    		background-position: center;   /* centers the image */
+    		background-attachment: fixed;  /* optional: stays in place on scroll */
+			font-family: 'Montserrat', sans-serif;
+		}
+	</style>
+</head>
+	<body style="display: flex; flex-direction: column; min-height: 100vh;">
+		<nav style="color: white; border: solid 1px; padding: 20px; border-radius: 10px; display: flex; flex-direction: row; justify-content: center;">
+			<a href="/default" onclick="route()">Default View</a>
+			<a href="/profile" onclick="route()">Profile</a>
+			<a href="/friends" onclick="route()">Friends</a>
+			<a href="/settings" onclick="route()">Settings</a>
+		</nav>
+		<main id="main-views" style="flex: 1 1; border: solid 1px; padding: 20px; color: #ffffff;">
+			<a class="block" href="/game" onclick="route()">Play</a>
+			<a class="block" style="color: red;" href="/chat" onclick="route()">Chat</a>
+		</main>
+		<footer style="border: solid 1px; padding: 20px; border-radius: 10px; color: white;">
+			2025 — ft_transcendence Inc.
+		</footer>
+	</body>
 `;
 export var notFoundPage: string = '<h1>404 Not Found</h1><a href="/home" onclick="route()">Go to Home</a>';
 export var friendsView: string = `<p>Friends View</p>`;
