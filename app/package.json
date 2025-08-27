@@ -5,9 +5,9 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "echo No tests here",
     "build": "npx esbuild frontend/frontend.ts --bundle --outfile=frontend/public/bundle.js",
-    "start": "node backend/server.ts"
+    "start": "node backend/server.ts",
+	"dev": "nodemon --watch frontend --watch backend --ext ts,js --ignore frontend/public --exec \"npm run build && npm run start\""
   },
   "keywords": [],
   "author": "",
@@ -25,6 +25,7 @@
   "devDependencies": {
     "@types/node": "^24.3.0",
     "esbuild": "^0.25.9",
+    "nodemon": "^3.1.10",
     "tailwindcss": "^4.1.12"
   }
 }

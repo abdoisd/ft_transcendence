@@ -1,140 +1,77 @@
 
-import { loginPage, homePage, notFoundPage, gameView, chatView, friendsView, settingsView, profileView } from './views.ts';
-import { LoginWorkflow } from './business/login.ts';
+import './global.ts'; // import a file
 
-import { clsUser } from "./classes/user.ts"; // classes
+// views
+import { ProfileView } from './profile.ts';
+import { HomeView } from './home.ts';
 
-class clsGlobal {
-	// static variable
-	static greeting = "Hello, world!";
-	static LoggedInUser: clsUser = null as any; // what
-  
-	// static method
-	static sayHello(name) {
-	  console.log(`${clsGlobal.greeting} My name is ${name}.`);
-	}
-}
-
-globalThis.clsGlobal = clsGlobal;
-
-// MAPPING /URLS WITH VIEWS
+// no route for /login, we have login workflow and one login page
+type RoutePath = keyof typeof routes;
 export var routes = {
-	'/login': loginPage,
-	'/': homePage,
-	'/home': homePage,
-	'/404': notFoundPage,
-	'/friends': friendsView,
-	'/game': gameView,
-	'/chat': chatView,
-	'/settings': settingsView,
-	'/default': homePage,
-	'/profile': profileView
+	'/': HomeView, // static view
+	// '/friends': friendsView,
+	'/profile': ProfileView,
+	// '/settings': settingsView,
+	// '/game': gameView,
+	// '/chat': chatView
 };
 
-// Fetching data from the server
-function dataView() {
-	// do you have to wait ?
-	fetch('http://localhost:8080/api/users')
-	.then(res => {
-		if (!res.ok) throw new Error('Network response was not ok');
-		return res.json(); // parse JSON
-	})
-	.then(data => {
-		
-		const users = data; // getting users from data object
-		
-		// get table body from table
-		const tbody = document.getElementById("usersTable")!.getElementsByTagName("tbody")[0];
-		
-		for (let i = 0; i < users.length; i++) {
-			
-	  // create table row to hold td's
-      const row = document.createElement("tr");
-	  
-	  // create td's and fill them with data
-	  // fill the row with td's
-      row.innerHTML = "<td>" + users[i].id + "</td><td>" + users[i].username + "</td><td>" + users[i].password + "</td>";
-	  
-	  // append row to tbody
-      tbody!.appendChild(row);
-    }
-	})
-	.catch(error => console.error('Error fetching data:', error));
-}
+// for clients writing url's directly
+// or for buttons/links to prevent default
+// otherwise, I called it for a view, provide route(null, "/home") , it's me that called it
+function route (event: Event, path?: string) {
 
-export const route = async (event: Event | undefined, path: string) => {
+	var pushToHistory = event == null;;
 
-	// code
 	if (path)
 	{
-		window.history.pushState({}, "", path);
-		await handleLocation();
+		handleView();
 		return ;
 	}
 
 	// buttons
-	event = event || window.event;
-	event!.preventDefault(); // preventDefault of <a href>
+	event = event || window.event; // window.event link event, event passed by addEventListener
+	event!.preventDefault();
 
-	// adds a new entry to the browser’s history without reloading the page
-	window.history.pushState({}, "", event!.target!.href); // set window.location.pathname to href attribute of <a>
-	await handleLocation();
+	if (pushToHistory)
+	{
+		//  new location         					   old location
+		if ((new URL(event!.target!.href)).pathname != window.location.pathname)
+			window.history.pushState({}, "", event!.target!.href); // add to history
+	}
+	handleView();
 };
+window.route = route;
+document.addEventListener('DOMContentLoaded', route);
 
-// UPDATE THE ONE AND ONLY INDEX.HTML
-export const handleLocation = async () => {
+// this will make sure: login and home first
+function handleView () {
 
-    const path = window.location.pathname;
-	type RoutePath = keyof typeof routes;
+	const path = window.location.pathname;
+	// window.history.replaceState({}, "", path);
 
 	console.log("Handling route: " + path);
 
-	// if (path == '/dataView')
-	// {
-	// 	dataView();
-	// 	return ;
-	// }
-
+	// check login
 	if (!globalThis.clsGlobal.LoggedInUser)
 	{
-		console.log("user not logged in");
-		var logged: boolean = await LoginWorkflow(); // after this, give user the view he wanted, that logic, I didn't inside, that made things complicated
-		if (logged)
-		{
-			console.log("login was successful");
-			// home, then what he wanted
-			document.getElementById("root")!.innerHTML = routes["/home"];
-			// continue to give him what he want
-		}
-		else // cookie not found or cookie invalid credentials
-		{
-			console.log("login failed, showing login view");
-			document.getElementById("root")!.innerHTML = routes["/login"];
-			return ;
-		}
 	}
 
-	if (globalThis.clsGlobal.LoggedInUser)	
-		console.log("user is logged in");
-	else
-		console.log("user is NOT logged in");
+	// load dome
+	HomeView();
 
-	if (path == "/login")
+	if (path == '/') // home view is default
 	{
-		// login is handled automatically each time
-		// and home is already served
-		return ;
+		window.history.replaceState({}, "", "/");
+		return;
 	}
 
-	window.history.replaceState({}, "", path);
-
-	if (path == "/" || path == "/home" || path == "/default")
-		document.getElementById("root")!.innerHTML = routes[path as RoutePath] || routes['/404'];
-	else
-		document.getElementById("main-views")!.innerHTML = routes[path as RoutePath];
+	routes[path as RoutePath](); // calling workflow functions
 };
+window.onpopstate = handleView; // on <- / ->, call handleLocation
 
-window.onpopstate = handleLocation;
-window.route = route;
-
-document.addEventListener('DOMContentLoaded', route);
+/**
+ * Attention:
+ * any click to change view, must go through route()
+ * if something very simple, just call workflow
+ */

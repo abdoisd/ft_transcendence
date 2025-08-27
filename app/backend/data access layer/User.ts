@@ -1,13 +1,13 @@
 
 import sqlite3 from "sqlite3"; // import module
-import { server } from "../server.ts"; // import object
+import { server } from "../server.ts"; // import variable
 
 class User
 {
 	ID: number;
 	GoogleOpenID: string;
 	Username: string;
-	AvatarPath: string | null; // set it to null if there is no, so database insert null
+	AvatarPath: string | null; // set it to null if there is no, so we have null in db
 	Wins: number;
 	Losses: number;
 
