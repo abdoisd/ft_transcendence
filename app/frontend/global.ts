@@ -1,6 +1,8 @@
+import { User } from "./Business Layer/user.ts"
+
 export class ClsGlobal {
 	static greeting = "Hello, world!";
-	static LoggedInUser: string | null = null;
+	static LoggedInUser: User | null = null;
 }
 
 // declare: for TS

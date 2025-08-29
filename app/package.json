@@ -7,13 +7,15 @@
   "scripts": {
     "build": "npx esbuild frontend/frontend.ts --bundle --outfile=frontend/public/bundle.js",
     "start": "node backend/server.ts",
-	"dev": "nodemon --watch frontend --watch backend --ext ts,js --ignore frontend/public --exec \"npm run build && npm run start\""
+    "dev": "nodemon --watch frontend --watch backend --ext ts,js --ignore frontend/public --exec \"npm run build && npm run start\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@fastify/cookie": "^11.0.2",
     "@fastify/cors": "^11.1.0",
+    "@fastify/multipart": "^9.0.3",
     "@fastify/static": "^8.2.0",
     "@tailwindcss/cli": "^4.1.12",
     "ajv": "^8.17.1",

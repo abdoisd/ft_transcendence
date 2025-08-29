@@ -1,25 +1,56 @@
 
 import './global.ts'; // import a file
+import { HomeView } from './views/home.ts';
+import { ProfileView } from './views/profile.ts';
+import { ProfileEditView } from './views/profileEdit.ts';
+import { LoginWithGoogle, existingUser, NewUser } from './views/loginWithGoogle.ts';
+import { User } from './Business Layer/user.ts';
 
-// views
-import { ProfileView } from './profile.ts';
-import { HomeView } from './home.ts';
-
-// no route for /login, we have login workflow and one login page
 type RoutePath = keyof typeof routes;
 export var routes = {
-	'/': HomeView, // static view
+	'/newUser': NewUser,
+	'/existingUser': existingUser,
 	// '/friends': friendsView,
 	'/profile': ProfileView,
-	// '/settings': settingsView,
+		'/profileEdit': ProfileEditView,
+		// '/profile/matchHistory': ProfileMatchHistoryView,
 	// '/game': gameView,
-	// '/chat': chatView
+	// '/chat': chatView,
 };
+
+//?
+export async function autoLogin()
+{
+	console.debug("autoLogin()");
+
+	return fetch("/validateSession", {
+		method: "POST",
+		credentials: "include", // to send cookies
+	})
+	.then(response => {
+		if (response.ok)
+			return response.json();
+		else
+			return null;
+	})
+	.then((user) => {
+		if (!user)
+			clsGlobal.LoggedInUser = null;
+		else
+		{
+			clsGlobal.LoggedInUser = Object.assign(new User(-1, "", "", "", -1, -1, null, null), user);
+
+			console.debug("Filling User: ", clsGlobal.LoggedInUser);
+		}
+	});
+}
 
 // for clients writing url's directly
 // or for buttons/links to prevent default
 // otherwise, I called it for a view, provide route(null, "/home") , it's me that called it
 function route (event: Event, path?: string) {
+
+	console.log("route()");
 
 	var pushToHistory = event == null;;
 
@@ -44,29 +75,35 @@ function route (event: Event, path?: string) {
 window.route = route;
 document.addEventListener('DOMContentLoaded', route);
 
-// this will make sure: login and home first
 function handleView () {
 
 	const path = window.location.pathname;
-	// window.history.replaceState({}, "", path);
 
-	console.log("Handling route: " + path);
+	console.debug("Handling route: " + path);
 
-	// check login
-	if (!globalThis.clsGlobal.LoggedInUser)
-	{
-	}
-
-	// load dome
-	HomeView();
-
-	if (path == '/') // home view is default
-	{
-		window.history.replaceState({}, "", "/");
-		return;
-	}
-
-	routes[path as RoutePath](); // calling workflow functions
+	autoLogin()
+	.then( () => {
+		if (path != "/newUser" && path != "/existingUser") // tmp
+		{
+			// check login
+			if (!globalThis.clsGlobal.LoggedInUser)
+			{
+				console.debug("LoggedInUser not filled");
+				LoginWithGoogle(); // I can now wait it bc it's the last
+				return ;
+			}
+			else
+				console.debug("LoggedInUser filled");
+		}
+		// load home
+		HomeView();
+		if (path == '/') // home view is default
+		{
+			window.history.replaceState({}, "", "/");
+			return;
+		}
+		routes[path as RoutePath](); // calling workflow functions
+	});
 };
 window.onpopstate = handleView; // on <- / ->, call handleLocation
 
