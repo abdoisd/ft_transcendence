@@ -1,0 +1,34 @@
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:9.1.3 # pulls image
+    container_name: elasticsearch # for running the container
+    ports:
+      - "9200:9200"
+    networks:
+      - backend-network
+  kibana:
+    image: docker.elastic.co/kibana/kibana:9.1.3
+    container_name: kibana # for running the container
+    ports:
+      - "5601:5601"
+    networks:
+      - backend-network
+  logstash:
+    image: docker.elastic.co/logstash/logstash:9.1.3
+    container_name: logstash # for running the container
+    volumes:
+     - ~/pipeline/:/usr/share/logstash/pipeline/ # for pipeline config
+     - "/mnt/homes/aisdaoun/Desktop/learning 2/Project/app/backend/http_ca.crt:/etc/logstash/config/certs/http_ca.crt" # mounting elasticsearch certificate
+    networks:
+      - backend-network
+
+# docker exec -it elasticsearch /usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic
+# docker exec -it elasticsearch /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana
+# 1sf2ngm-=P=H9OUDJHSC
+# eyJ2ZXIiOiI4LjE0LjAiLCJhZHIiOlsiMTcyLjE5LjAuMjo5MjAwIl0sImZnciI6ImQ1NmYzZWVlZTFjMGVmYjc1OTc0OGEyYjE0N2Y2YjJlM2ZhMWM2M2U3YjY2OThlMWFlYTZkZmJjMzJhZmVjM2MiLCJrZXkiOiJWaElXLTVnQm5NNDk0VnVpNVd0YjpLcDA0UlJxRDdMTnB0MmRoLThDWFpBIn0=
+
+networks:
+  backend-network:
+    driver: bridge
+
+# ! VOLUMES: HOSTS ARE ACCORDING TO WHERE TO DOCKE COMPOSE IS RUNNED

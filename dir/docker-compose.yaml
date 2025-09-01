@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    container_name: elasticsearch
+    environment: # set them as env variables
+      - discovery.type=single-node
+      - xpack.security.enabled=true #?
+      # - ELASTIC_PASSWORD=os_8ijMP=BDR+WBVDi=h
+      - xpack.security.enrollment.enabled=true
+    ports:
+      - "9200:9200"
+    networks:
+      - backend-network
+
+  # logstash:
+  #   image: docker.elastic.co/logstash/logstash:8.11.1
+  #   container_name: logstash
+  #   depends_on:
+  #     - elasticsearch
+  #   volumes:
+  #     - ./logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+  #   ports:
+  #     - "5044:5044"   # for beats input
+  #     - "9600:9600"   # for monitoring API
+  #   networks:
+  #     - backend-network
+
+  # kibana:
+  #   image: docker.elastic.co/kibana/kibana:8.11.1
+  #   container_name: kibana
+  #   depends_on:
+  #     - elasticsearch
+  #   environment:
+  #     - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+  #   ports:
+  #     - "5601:5601"   # Kibana web UI
+  #   networks:
+  #     - backend-network
+
+networks:
+  backend-network:
+    name: backend-network
+
+# r4c23hkgA4FtSZe3SGX=
+# eyJ2ZXIiOiI4LjExLjEiLCJhZHIiOlsiMTcyLjE5LjAuMjo5MjAwIl0sImZnciI6ImM0OGQ2NzFmZGUyMWU2ZmE2NmU4MDVhNTU2MzY5NGNkYjM1NDU2NTcwOTU5MjBkY2M5MWFlZGI4YzRmNzE3MmIiLCJrZXkiOiJvWlR4OTVnQjNZTzN3Z0M1b2tocTpQSmtsSlBUV1RSbThsOXFud1RPLVNnIn0=
+
+# 
+# docker run --name kibana --net backend-network -p 5601:5601 docker.elastic.co/kibana/kibana:8.11.1
+# docker run --rm -it --net backend-network -v ~/pipeline/:/usr/share/logstash/pipeline/ -v "/mnt/homes/aisdaoun/Desktop/learning 2/Project/dir/http_ca.crt:/etc/logstash/config/certs/http_ca.crt" docker.elastic.co/logstash/logstash:8.11.1
+
+# Logstash must have a copy of the certificate authority (CA) that signed the Elasticsearch cluster’s certificates.
+# These steps are not necessary if your cluster is using public trusted certificates.
+# Therefore Logstash needs its own copy of the self-signed CA from the Elasticsearch cluster in order for Logstash to validate the certificate presented by Elasticsearch.
