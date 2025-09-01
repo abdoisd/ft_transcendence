@@ -1,6 +1,6 @@
 
 import sqlite3 from "sqlite3"; // import module
-import { server } from "../server.ts"; // import variable
+import { connectedToSqlite, server } from "../server.ts"; // import variable
 import { red, green, yellow, blue } from "../global.ts";
 
 export class User
@@ -28,13 +28,16 @@ export class User
 	}
 }
 
-// database creation
-export const db = new sqlite3.Database('ft_transcendence', (err) =>
+// database creation / connection: //? in it's own file
+export const db = new sqlite3.Database('ft_transcendence', (err) => //!
 {
 	if (err)
 		console.error(red, 'Error when creating the database', err);
 	else
+	{
+		connectedToSqlite.set(1);
 		console.log(green, 'Database opened');
+	}
 });
 
 // users table

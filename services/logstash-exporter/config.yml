@@ -1,0 +1,11 @@
+logstash:
+  instances:
+    - url: "http://logstash:9600"  # URL to your Logstash HTTP API
+      name: "local_logstash"
+  timeout: 2s
+server:
+  host: "0.0.0.0"
+  port: 9198
+logging:
+  level: "info"
+  format: "text"

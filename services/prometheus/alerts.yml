@@ -1,0 +1,8 @@
+groups:
+  - name: alert_name
+    rules:
+      - alert: HighRequestCount
+        expr: sum(increase(server_requests_total[1m])) >= 10
+        for: 0m # how much the condition must be active
+        annotations:
+          summary: "High request count in the last minute"

@@ -1,14 +1,25 @@
-b:
-	docker build -t project-i .
 
-r:
-	docker run -d --name project-c -p 8080:8080 -v /mnt/homes/aisdaoun/Desktop/learning\ 2/Project/app:/app --network backend-network project-i
+a: addresses
+	# mkdir -p ~/goinfre/snapshots
+	docker compose up -d
+	# ./services/elasticsearch/elasticsearch-init.sh
+
+# script for elasticsearch policies
+
+b:
+	docker compose build
+
+d:
+	docker compose down
 
 e:
-	docker exec -it project-c sh
+	docker exec -it app-backend sh
 
-c:
-	docker rm -f project-c
+r:
+	docker compose restart
 
-s:
-	npm run build && npm start
+addresses:
+	@echo web-app: http://localhost:8080
+	@echo prometheus: http://localhost:9090
+	@echo grafana: http://localhost:3000
+	@echo kibana: http://localhost:5601

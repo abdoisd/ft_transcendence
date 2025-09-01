@@ -1,0 +1,23 @@
+{
+	"name": "pong-website",
+	"version": "1.0.0",
+	"description": "the best in the world",
+	"type": "module",
+	"main": "index.js",
+	"scripts": {
+		"build": "npx esbuild frontend.ts --bundle --outfile=public/bundle.js",
+		"dev": "nodemon --watch . --ext ts --ignore ./public --exec \"npm run build\""
+	},
+	"keywords": [],
+	"author": "",
+	"license": "ISC",
+	"dependencies": {
+		"@tailwindcss/cli": "^4.1.12"
+	},
+	"devDependencies": {
+		"@types/node": "^24.3.0",
+		"esbuild": "^0.25.9",
+		"nodemon": "^3.1.10",
+		"tailwindcss": "^4.1.12"
+	}
+}

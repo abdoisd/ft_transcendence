@@ -151,7 +151,7 @@ export function OAuth2Routes() {
 			if (part.file) {
 				// It's a file
 				const fileName = Guid() + ".png"; // filename: date_filename, not unique but good for now
-				avatarPath = path.join(process.cwd(), "Avatars", fileName); // path in the server
+				avatarPath = path.join(process.cwd(), "Avatars", fileName); //!
 		
 				// Save the file
 				const writeStream = fs.createWriteStream(avatarPath); // does this create folder if not exists? no
