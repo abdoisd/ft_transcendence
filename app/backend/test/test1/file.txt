@@ -1,0 +1,40 @@
+# fetch vs fastify:
+
+## fetch:
+request:
+you: object to string
+you: object to query params
+
+getting response:
+response.json() // object
+
+## fastify:
+getting request:
+request.body // object directly
+request.query.ExactVarName // params directly
+
+respond:
+return user: // from type of string automatically
+
+```lua
+
+JSON.stringify(user)
+
+// user in memory
+user:  User {
+  Id: -1,
+  GoogleId: 'test',
+  Username: 'test',
+  AvatarPath: null,
+  Wins: 0,
+  Losses: 0,
+  SessionId: 'test',
+  ExpirationDate: 2025-09-01T22:03:52.523Z
+}
+
+->
+
+// string to send over the network
+{"Id":-1,"GoogleId":"test","Username":"test","AvatarPath":null,"Wins":0,"Losses":0,"SessionId":"test","ExpirationDate":"2025-09-01T22:03:52.523Z"}
+
+```

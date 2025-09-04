@@ -1,16 +1,21 @@
 
 import './global.ts'; // import a file
+// views
 import { HomeView } from './views/home.ts';
 import { ProfileView } from './views/profile.ts';
 import { ProfileEditView } from './views/profileEdit.ts';
 import { LoginWithGoogle, existingUser, NewUser } from './views/loginWithGoogle.ts';
+import { friendsView, addFriendView, listFriendsView } from './views/friends.ts';
+
 import { User } from './Business Layer/user.ts';
 
 type RoutePath = keyof typeof routes;
 export var routes = {
 	'/newUser': NewUser,
 	'/existingUser': existingUser,
-	// '/friends': friendsView,
+	'/friends': friendsView,
+		'/addFriend': addFriendView,
+		'/listFriends': listFriendsView,
 	'/profile': ProfileView,
 		'/profileEdit': ProfileEditView,
 		// '/profile/matchHistory': ProfileMatchHistoryView,
@@ -48,7 +53,7 @@ export async function autoLogin()
 // for clients writing url's directly
 // or for buttons/links to prevent default
 // otherwise, I called it for a view, provide route(null, "/home") , it's me that called it
-function route (event: Event, path?: string) {
+export function route (event: Event | null, path?: string) {
 
 	console.log("route()");
 
@@ -56,7 +61,8 @@ function route (event: Event, path?: string) {
 
 	if (path)
 	{
-		handleView();
+		// should push to history ! risky to do something now
+		handleView(null, path);
 		return ;
 	}
 
@@ -75,18 +81,19 @@ function route (event: Event, path?: string) {
 window.route = route;
 document.addEventListener('DOMContentLoaded', route);
 
-function handleView () {
+function handleView (event?, path?: string | null) {
 
-	const path = window.location.pathname;
-
+	if (!path)
+		path = window.location.pathname;
+	
 	console.debug("Handling route: " + path);
 
-	autoLogin()
+	autoLogin() // set clsGlobal.LoggedInUser or not
 	.then( () => {
 		if (path != "/newUser" && path != "/existingUser") // tmp
 		{
 			// check login
-			if (!globalThis.clsGlobal.LoggedInUser)
+			if (!clsGlobal.LoggedInUser)
 			{
 				console.debug("LoggedInUser not filled");
 				LoginWithGoogle(); // I can now wait it bc it's the last
@@ -95,6 +102,11 @@ function handleView () {
 			else
 				console.debug("LoggedInUser filled");
 		}
+
+		// login success
+		// update user last activity
+		clsGlobal.LoggedInUser?.update();
+		
 		// load home
 		HomeView();
 		if (path == '/') // home view is default

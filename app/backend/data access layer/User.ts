@@ -1,7 +1,8 @@
-
-import sqlite3 from "sqlite3"; // import module
-import { connectedToSqlite, server } from "../server.ts"; // import variable
+import { db } from "./database.ts";
 import { red, green, yellow, blue } from "../global.ts";
+import path from "path";
+import fs from "fs";
+import { connectedToSqlite, server } from "../server.ts"; // import variable
 
 export class User
 {
@@ -13,6 +14,7 @@ export class User
 	Losses: number;
 	SessionId: string | null;
 	ExpirationDate: Date | null;
+	LastActivity: Date | null;
 
 	constructor(id: number, googleOpenID: string, username: string, avatarPath: string | null,
 		wins: number, losses: number, sessionId: string | null = null, expirationDate: Date | null = null)
@@ -26,38 +28,21 @@ export class User
 		this.SessionId = sessionId;
 		this.ExpirationDate = expirationDate;
 	}
-}
 
-// database creation / connection: //? in it's own file
-export const db = new sqlite3.Database('ft_transcendence', (err) => //!
-{
-	if (err)
-		console.error(red, 'Error when creating the database', err);
-	else
+	// can be static and normal
+	// like a view
+	static getFriends(Id: number): Promise<any[] | null>
 	{
-		connectedToSqlite.set(1);
-		console.log(green, 'Database opened');
+		return new Promise((resolve, reject) => {
+			db.all('SELECT u.* FROM Users u JOIN Relationships r ON (u.Id = r.User1Id AND r.User2Id = ?) OR (u.Id = r.User2Id AND r.User1Id = ?) WHERE r.Relationship = 1', [Id, Id], (err, rows) => {
+				if (err)
+					reject(null);
+				else
+					resolve(rows);
+			});
+		});
 	}
-});
-
-// users table
-db.run(`
-	CREATE TABLE IF NOT EXISTS Users (
-	    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-	    GoogleId TEXT NOT NULL,
-	    Username TEXT NULL DEFAULT NULL,
-	    AvatarPath TEXT NULL DEFAULT NULL,
-	    Wins INTEGER NOT NULL DEFAULT 0,
-	    Losses INTEGER NOT NULL DEFAULT 0,
-	    SessionId TEXT NULL DEFAULT NULL,
-	    ExpirationDate TEXT NULL DEFAULT NULL
-	);
-`, (err) => {
-	if (err)
-		console.error(red, 'Error creating table Users', err);
-	else
-		console.log(green, 'Table Users ready');
-});
+}
 
 export function UserRoutes()
 {
@@ -89,11 +74,69 @@ export function UserRoutes()
 			{
 				if (!row) // user not found
 				{
-					console.log(red, 'get /data/user/getByUsername: User not found: ', Id);
+					console.log(red, 'get /data/user/getById: User not found: ', Id);
 					reply.status(404).send();
 				}
 				reply.send(row); // user object as in body as a stringified json
 			}
+		});
+	});
+	/**
+		response looks like:
+		{
+		  "Id": 1,
+		  "GoogleId": "123",
+		  "Username": "john",
+		  "AvatarPath": "john.png",
+		  "Wins": 10,
+		  "Losses": 5,
+		  "SessionId": null,
+		  "ExpirationDate": null,
+		  "AvatarUrl": "/uploads/avatars/john.png"
+		}
+	 */
+
+	// serving avatars
+	server.get('/data/user/getAvatarById', (request, reply) => {
+		const Id = (request.query as { Id: number }).Id; // the query string is a json object: url ? Id=${encodeURIComponent(Id)
+
+		// get the avatar path
+		db.get("SELECT AvatarPath FROM users WHERE Id = ?", [Id], (err, row) => {
+
+			const defaultAvatarPath = "./avatars/default-avatar.png";
+
+			reply.type("image/png"); // set content-type
+			
+			if (err) // database error
+			{
+				console.error('Error: /data/user/getAvatarById:', err);
+				fs.createReadStream(defaultAvatarPath).pipe(reply.raw);
+				return ;
+			}
+
+			// user not found !
+			if (!row || !row.AvatarPath) {
+				console.debug(blue, 'Not Serving the proper avatar 1');
+				fs.createReadStream(defaultAvatarPath).pipe(reply.raw);
+				return ;
+			}
+
+			// Full avatar path
+			const filePath = path.join(process.cwd(), "avatars", row.AvatarPath);
+
+			// file not found in the dir
+			if (!fs.existsSync(filePath))
+			{
+				console.debug(blue, 'Not Serving the proper avatar');
+				fs.createReadStream(defaultAvatarPath).pipe(reply.raw);
+				return ;
+			}	
+
+			// Send the image file
+			console.debug(blue, 'Serving the proper avatar');
+			fs.createReadStream(filePath).pipe(reply.raw); // Take the file and send it to the browser chunk by chunk until it’s done
+			// A file stream is a way to read or write a file piece by piece, instead of loading the entire file into memory at once
+			// in c, we use read
 		});
 	});
 
@@ -117,6 +160,7 @@ export function UserRoutes()
 		});
 	});
 
+	// username in query
 	server.get('/data/user/getByUsername', (request, reply) => {
 		const username = (request.query as { username: string }).username;
 		db.get("select * from users where username = ?", [username], (err, row) => {
@@ -138,11 +182,9 @@ export function UserRoutes()
 	});
 
 	server.post('/data/user/add', (request, reply) => { // fastify that handle domain and port
-
 		const user: User = request.body as User; // fastify request.body convert from string to json automatically
-
-		db.run("INSERT INTO Users (GoogleId, Username, AvatarPath, SessionId, ExpirationDate) VALUES (?, ?, ?, ?, ?);",
-			[user.GoogleId, user.Username, user.AvatarPath], function(err) {
+		db.run("INSERT INTO Users (GoogleId, Username, AvatarPath, SessionId, ExpirationDate, LastActivity) VALUES (?, ?, ?, ?, ?, ?);",
+			[user.GoogleId, user.Username, user.AvatarPath, null, null, new Date()], function(err) {
 			if (err)
 			{
 				console.log(red, 'Error: get /data/user/add: ', err);
@@ -160,11 +202,11 @@ export function UserRoutes()
 
 	server.post('/data/user/update', (request, reply) => {
 		const user: User = request.body as User;
-		db.run("update users set Username = ?, AvatarPath = ?, Wins = ?, Losses = ?, SessionId = ?, ExpirationDate = ? where Id = ?",
-			[user.Username, user.AvatarPath, user.Wins, user.Losses, user.SessionId, user.ExpirationDate, user.Id], function(err) {
+		db.run("update users set Username = ?, AvatarPath = ?, Wins = ?, Losses = ?, SessionId = ?, ExpirationDate = ?, LastActivity = ? where Id = ?",
+			[user.Username, user.AvatarPath, user.Wins, user.Losses, user.SessionId, user.ExpirationDate, new Date(), user.Id], function(err) {
 			if (err)
 			{
-				console.log(red, 'Error: get /data/user/update: ', err); // whyyyyyy
+				console.log(red, 'Error: get /data/user/update: ', err); // why
 				reply.status(500).send();
 			}
 			else
@@ -194,6 +236,16 @@ export function UserRoutes()
 			}
 		});
 	});
+
+	// 
+
+	// get friends
+	server.get('/data/user/getFriends', async (request, reply) => {
+		const Id = (request.query as { Id: number }).Id;
+		reply.send(await User.getFriends(Id));
+	});
+
+	// select id and username from users
 }
 
 // WHEN YOU UPDATE SOMETHING

@@ -11,6 +11,7 @@ export class User
 	Losses: number;
 	SessionId: string | null;
 	ExpirationDate: Date | null;
+	LastActivity: Date | null;
 
 	constructor(id: number, googleOpenID: string, username: string | null, avatarPath: string | null,
 		wins: number, losses: number, sessionId: string | null = null, expirationDate: Date | null = null)
@@ -39,7 +40,7 @@ export class User
 
 	static async getById(Id: number)
 	{
-		const response = await fetch(`http://localhost:8080/data/user/getById?Id=${encodeURIComponent(Id)}`);
+		const response = await fetch(`http://localhost:3000/data/user/getById?Id=${encodeURIComponent(Id)}`);
 		if (!response.ok) return null;
 		const userObject = await response.json();
 		return Object.assign(new User(-1, "", "", "", -1, -1), userObject);
@@ -47,14 +48,14 @@ export class User
 
 	static async getByUsername(username: string)
 	{
-		const response = await fetch(`http://localhost:8080/data/user/getByUsername?username=${encodeURIComponent(username)}`);
+		const response = await fetch(`http://localhost:3000/data/user/getByUsername?username=${encodeURIComponent(username)}`);
 		if (!response.ok) return null;
 		const userObject = await response.json();
 		return Object.assign(new User(-1, "", "", "", -1, -1), userObject);
 	}
 
 	async add(): Promise<boolean> {
-        const response = await fetch(`http://localhost:8080/data/user/add`, {
+        const response = await fetch(`http://localhost:3000/data/user/add`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(this),
@@ -67,8 +68,8 @@ export class User
 	async update(): Promise<boolean> {
 		if (this.Id < 0)
 			return false;
-        const response = await fetch(`http://localhost:8080/data/user/update`, {
-            method: "PUT",
+        const response = await fetch(`http://localhost:3000/data/user/update`, {
+            method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(this),
         });
@@ -78,7 +79,7 @@ export class User
 	async delete(): Promise<boolean> {
 		if (this.Id < 0)
 			return false;
-        const response = await fetch(`http://localhost:8080/data/user/delete`, {
+        const response = await fetch(`http://localhost:3000/data/user/delete`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ Id: this.Id }),
@@ -86,37 +87,15 @@ export class User
         return response.ok;
     }
 
+	getFriends()
+	{
+		return get("data/user/getFriends", { Id: this.Id })
+		.then((friendsArray) => {
+			if (friendsArray)
+				return friendsArray;
+			return [];
+		});
+	}
 }
 
-// test things out
-async function runUserOperations() {
-    // // 1️⃣ Get all users
-    // const allUsers = await User.getAllUsers();
-    // console.log("All users:", allUsers);
-
-    // 2️⃣ Get a user by username
-    const userByUsername = await User.getByUsername("Alice");
-    console.log("User by username:", userByUsername);
-
-    // // 3️⃣ Add a new user
-    // const newUser = new User(-1, "google123", "new_user", null, 0, 0);
-    // const added = await newUser.add();
-    // console.log("User added:", added, "New ID:", newUser.Id);
-
-    // // 4️⃣ Update a user
-    // newUser.Wins = 5; // change some property
-    // const updated = await newUser.update();
-    // console.log("User updated:", updated);
-
-    // // 5️⃣ Delete a user
-    // const deleted = await newUser.delete();
-    // console.log("User deleted:", deleted);
-}
-
-// Run the operations
-// runUserOperations();
-
-/**
- * object to request body: JSON.stringify(object)
- * request body to object: response.json();
- */
+import { get } from "../views/request.ts";

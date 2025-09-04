@@ -1,10 +1,8 @@
 
 a: addresses
-	# mkdir -p ~/goinfre/snapshots
+	mkdir -p ~/goinfre/prometheus
 	docker compose up -d
 	# ./services/elasticsearch/elasticsearch-init.sh
-
-# script for elasticsearch policies
 
 b:
 	docker compose build
@@ -14,12 +12,13 @@ d:
 
 e:
 	docker exec -it app-backend sh
+n:
+	docker exec -it nginx-modsecurity sh
 
 r:
 	docker compose restart
 
 addresses:
-	@echo web-app: http://localhost:8080
+	@echo web-app: http://localhost:3000
 	@echo prometheus: http://localhost:9090
 	@echo grafana: http://localhost:3000
-	@echo kibana: http://localhost:5601

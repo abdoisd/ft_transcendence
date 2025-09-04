@@ -6,7 +6,9 @@ WORKDIR /backend
 
 COPY package.json .
 
-RUN npm install
+RUN npm install \
+	&& apk add sqlite
+	# tmp
 
 # CMD ["npm","run","dev"]
 

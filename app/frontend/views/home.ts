@@ -4,7 +4,6 @@ export function HomeView()
 }
 
 const HomeViewStaticPart: string = `
-
 	<div style="display: flex; flex-direction: column; min-height: 100vh;">
 		<nav style="color: white; border: solid 1px; padding: 50px 20px 30px; display: flex; flex-direction: row; justify-content: center;">
 			<a href="/" onclick="route()">Home</a>
@@ -21,3 +20,4 @@ const HomeViewStaticPart: string = `
 		</footer>
 	</div>
 `;
+
