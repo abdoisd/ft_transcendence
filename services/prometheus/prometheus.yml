@@ -1,10 +1,10 @@
 global:
-  scrape_interval: 10s  # Set the default scrape interval to 15 seconds
+  scrape_interval: 10s  # Set the default scrape interval
 
 scrape_configs:
-  - job_name: 'app-backend'  # A unique name for your target
+  - job_name: 'app-backend'
     static_configs:
-      - targets: ['app-backend:3000']  # Address where Node.js app metrics are exposed
+      - targets: ['app-backend:3000']
   - job_name: 'elasticsearch'
     static_configs:
       - targets: ['elasticsearch-exporter:9114']
@@ -20,5 +20,3 @@ scrape_configs:
 
 rule_files:
   - "alerts.yml"
-
-# graphana has to request data from prometheus, that's it

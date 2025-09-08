@@ -7,9 +7,10 @@ WORKDIR /backend
 COPY package.json .
 
 RUN npm install \
-	&& apk add sqlite
-	# tmp
+	&& apk add sqlite tini
 
-# CMD ["npm","run","dev"]
+# ENTRYPOINT ["tini", "--"]
+CMD ["npm","run","dev"]
+# CMD ["tini","--","tail","-f","/dev/null"]
 
-CMD ["tail","-f","/dev/null"]
+# tini runs as PID 1 and forwards signals to other processes

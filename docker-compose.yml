@@ -6,8 +6,10 @@ services:
   #   ports:
   #     - "9200:9200"
   #   volumes:
+  #     # - ./services/elasticsearch/certs:/usr/share/elasticsearch/config/certs
   #     - ~/goinfre/snapshots:/usr/share/elasticsearch/snapshots/my_backup_repo
   #   environment:
+  #     - ES_JAVA_OPTS=-Xms1g -Xmx1g # tell it to use 1gb of ram
   #     - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
   #     - ES_SETTING_PATH_REPO=/usr/share/elasticsearch/snapshots/my_backup_repo
   #   networks:
@@ -39,19 +41,27 @@ services:
   #   depends_on:
   #     - elasticsearch
 
-  # app-backend: # I will enter those containers
-  #   build:
-  #     context: app/backend
-  #   container_name: app-backend
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - ./app/frontend/public:/backend/public
-  #     - ./app/backend:/backend # tmp
+  app-backend: # I will enter those containers
+    build:
+      context: app/backend
+    container_name: app-backend
+    ports:
+      - "3000:3000" # tmp
+    environment:
+      - CLIENT_ID=${CLIENT_ID}
+      # - CLIENT_SECRET=${CLIENT_SECRET}
+      - REDIRECT_URI=${REDIRECT_URI}
+      - PORT=${PORT}
+      - HOST=${HOST}
+      - WEBSITE_URL=${WEBSITE_URL}
+    volumes:
+      - ./app/frontend/public:/backend/public
+      - ./app/backend:/backend # tmp
+      - shared-data:/backend/env
     # depends_on:
-      # - logstash
-  #   networks:
-  #     - project-network
+    #   - logstash
+    networks:
+      - project-network
 
   # app-frontend:
   #   build:
@@ -59,10 +69,10 @@ services:
   #   container_name: app-frontend
   #   volumes: # tmp, we will have to mound public after we copy in dockerfile
   #     - ./app/frontend:/frontend
-    # ports: # tmp
-    #   - "4000:4000"
-    # networks: # tmp
-    #   - project-network
+  #   ports: # tmp
+  #     - "4000:4000"
+  #   networks: # tmp
+  #     - project-network
 
 #   prometheus:
 #     image: prom/prometheus
@@ -143,16 +153,34 @@ services:
       context: ./app/nginx-modsecurity
     container_name: nginx-modsecurity
     ports:
-      - "5000:5000"
+      - "443:443"
     volumes:
       - ./app/nginx-modsecurity/modsecurity.conf:/etc/nginx/modsecurity.conf
       - ./app/nginx-modsecurity/nginx.conf:/etc/nginx/nginx.conf
     networks:
       - project-network
 
+  # vault-server:
+  #   build:
+  #     context: ./services/vault
+  #   container_name: vault-server
+  #   ports:
+  #     - "8200:8200"
+  #   environment:
+  #     - VAULT_ADDR=${VAULT_ADDR}
+  #     - VAULT_SKIP_VERIFY=true
+  #   volumes:
+  #     - ./services/vault/vault.hcl:/etc/vault.d/vault.hcl
+  #     - ~/goinfre/vault:/opt/vault/data
+  #     - shared-data:/me
+  #   networks:
+  #     - project-network
+
 networks:
   project-network:
     name: project-network
 
+volumes:
+  shared-data:
+
 # docker exec -it elasticsearch /usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana
-# docker compose up app-backend && docker compose up app-frontend

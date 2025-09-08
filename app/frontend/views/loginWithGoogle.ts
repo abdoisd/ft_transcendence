@@ -2,7 +2,7 @@ import { User } from '../Business Layer/user.ts';
 import { HomeView } from './home.ts';
 
 export function LoginWithGoogle() {
-	window.history.replaceState({}, '', '/loginWithGoogle'); // not logged in and http://localhost:3000/profile
+	window.history.replaceState({}, '', '/loginWithGoogle');
 	document.getElementById("root")!.innerHTML = profileViewStaticPart;
 }
 
@@ -79,7 +79,7 @@ async function usernameAvatarFormHandleSubmit(event: Event)
 		const Id = new URLSearchParams(window.location.search).get("Id");
 		formData.append("Id", Id!);
 
-		fetch("http://localhost:3000/uploadProfile", {
+		fetch("/uploadProfile", {
     	    method: "POST",
     	    body: formData, // body as object? not string
     	})

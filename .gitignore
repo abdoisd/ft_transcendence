@@ -9,6 +9,10 @@ app/frontend/public/output.css
 # md files
 *.md
 
-# for package-lock.json, we are working with an app, so we keep it
+# .env
+.env
 
-# .dockerignore in the future
+# macos
+.DS_Store
+
+# for package-lock.json, we are working with an app, so we keep it

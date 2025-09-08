@@ -40,7 +40,7 @@ export class User
 
 	static async getById(Id: number)
 	{
-		const response = await fetch(`http://localhost:3000/data/user/getById?Id=${encodeURIComponent(Id)}`);
+		const response = await fetch(`/data/user/getById?Id=${encodeURIComponent(Id)}`);
 		if (!response.ok) return null;
 		const userObject = await response.json();
 		return Object.assign(new User(-1, "", "", "", -1, -1), userObject);
@@ -48,14 +48,14 @@ export class User
 
 	static async getByUsername(username: string)
 	{
-		const response = await fetch(`http://localhost:3000/data/user/getByUsername?username=${encodeURIComponent(username)}`);
+		const response = await fetch(`/data/user/getByUsername?username=${encodeURIComponent(username)}`);
 		if (!response.ok) return null;
 		const userObject = await response.json();
 		return Object.assign(new User(-1, "", "", "", -1, -1), userObject);
 	}
 
 	async add(): Promise<boolean> {
-        const response = await fetch(`http://localhost:3000/data/user/add`, {
+        const response = await fetch(`/data/user/add`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(this),
@@ -68,7 +68,7 @@ export class User
 	async update(): Promise<boolean> {
 		if (this.Id < 0)
 			return false;
-        const response = await fetch(`http://localhost:3000/data/user/update`, {
+        const response = await fetch(`/data/user/update`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(this),
@@ -79,7 +79,7 @@ export class User
 	async delete(): Promise<boolean> {
 		if (this.Id < 0)
 			return false;
-        const response = await fetch(`http://localhost:3000/data/user/delete`, {
+        const response = await fetch(`/data/user/delete`, {
             method: "DELETE",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ Id: this.Id }),

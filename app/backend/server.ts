@@ -4,6 +4,14 @@ import fastifyStatic from "@fastify/static";
 import multipart from "@fastify/multipart";
 import cookie from "@fastify/cookie";
 
+// dotenv
+import dotenv from 'dotenv';
+dotenv.config({path: './env/.env'});
+console.log(yellow, process.env.VAULT_TOKEN);
+
+// config
+import { config } from "./global.ts";
+
 // modules
 import path from "path";
 
@@ -53,6 +61,31 @@ connectedToSqlite.set(0);
 // import { logstash } from "./logstash.ts";
 // logstash();
 
+// vault client
+import vaultFactory from 'node-vault'; // vault client for node
+const vault = vaultFactory({
+	apiVersion: 'v1',
+	endpoint: 'https://vault-server:8200',
+	token: process.env.VAULT_TOKEN,
+	requestOptions: {
+		strictSSL: false // tells node-vault to trust vault server certificate
+	}
+});
+// to get live secret from vault
+// if we change secret in vault, we don't need to restart server
+export async function vaultGoogleClientSecret(): Promise<string>
+{
+	return vault.read('secret/data/node-app')
+	.then((result) => {
+		// console.log(yellow, result.data.data.CLIENT_SECRET);
+		return result.data.data.CLIENT_SECRET;
+	});
+}
+// usage
+// console.log(yellow, await vaultGoogleClientSecret());
+
+// ===============================================================
+
 // request, status
 server.addHook('onResponse', async (request, reply) => {
 	console.info(magenta, "Request to server: " + request.method + " " + request.url);
@@ -80,8 +113,8 @@ const start = async () =>
 		UserRoutes(); // register user routes
 		OAuth2Routes(); // register oauth2 routes
 		server.register(relationshipRoutes);
-
-        await server.listen({ port: 3000, host: "0.0.0.0" });
+		
+        await server.listen({ port: config.PORT, host: config.HOST });
     }
     catch (err)
     {

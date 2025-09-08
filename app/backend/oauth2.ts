@@ -6,17 +6,18 @@ import fs from 'fs';
 import path from 'path';
 import type { FastifyReply } from 'fastify';
 import { db } from "./data access layer/database.ts";
+import { config } from './global.ts';
+import { vaultGoogleClientSecret } from './server.ts';
 
-const CLIENT_ID = '339240449841-lh801he1b2spt5nakf92i4bd5clvuaje.apps.googleusercontent.com';
-const CLIENT_SECRET = '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';
-const REDIRECT_URI = 'http://localhost:3000/loginGoogleCallback';
+const CLIENT_ID = process.env.CLIENT_ID;
+const REDIRECT_URI = process.env.REDIRECT_URI;
 
 function setSessionId(user: User, reply: FastifyReply)
 {
 	const sessionId = Guid();
 				
 	console.debug(blue, "Setting sessionId for user");
-	fetch(`http://localhost:3000/data/user/update`, {
+	fetch(config.WEBSITE_URL + `/data/user/update`, {
 		method: "POST",
 		headers: { "Content-Type": "application/json" },
 		body: JSON.stringify(new User(user.Id, user.GoogleId, user.Username, user.AvatarPath, user.Wins, user.Losses, sessionId, new Date(Date.now() + 60000 * 60 * 24))), // expire in 1 day
@@ -57,9 +58,9 @@ export function OAuth2Routes() {
 		reply.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${queryString}`);
 	});
 	
-	// google redirect user to http://localhost:3000/loginGoogleCallback
+	// google redirect user to config.WEBSITE_URL/loginGoogleCallback
 	// and browser send request to our server
-	server.get('/loginGoogleCallback', async (req, reply) => {
+	server.get('/loginGoogleCallback', async (req, reply) => { //!
 
 		console.debug(blue, "/loginGoogleCallback");
 		
@@ -71,7 +72,7 @@ export function OAuth2Routes() {
 			body: querystring.stringify({
 				code,
 				client_id: CLIENT_ID,
-				client_secret: CLIENT_SECRET,
+				client_secret: await vaultGoogleClientSecret(),
 				redirect_uri: REDIRECT_URI,
 				grant_type: 'authorization_code'
 			})
@@ -87,7 +88,7 @@ export function OAuth2Routes() {
 	  
 		// console.log("User info:", userObjFromGoogle); // GOT USER INFO
 
-		var response = await fetch(`http://localhost:3000/data/user/getByGoogleId?GoogleId=${encodeURIComponent(userObjFromGoogle.id)}`); // full url here, bc the browser that handle that is the frontend
+		var response = await fetch(config.WEBSITE_URL + `/data/user/getByGoogleId?GoogleId=${encodeURIComponent(userObjFromGoogle.id)}`); // full url here, bc the browser that handle that is the frontend
 
 		if (response.ok)
 		{
@@ -98,7 +99,7 @@ export function OAuth2Routes() {
 			{
 				console.debug(blue, "User has not username");
 				
-				reply.redirect(`http://localhost:3000/newUser?Id=${user.Id}`);
+				reply.redirect(config.WEBSITE_URL + `/newUser?Id=${user.Id}`);
 			}
 			else
 			{
@@ -108,7 +109,7 @@ export function OAuth2Routes() {
 				setSessionId(user, reply);
 				
 				const params = querystring.stringify({ ...user });
-				reply.redirect(`http://localhost:3000/existingUser?${params}`); // redirect to home
+				reply.redirect(config.WEBSITE_URL + `/existingUser?${params}`); // redirect to home
 			}
 		}
 		else
@@ -116,7 +117,7 @@ export function OAuth2Routes() {
 			console.log(blue, "User is not in db");
 			
 			const newUser: User = new User(-1, userObjFromGoogle.id, null, "", 0, 0);
-			response = await fetch(`http://localhost:3000/data/user/add`, {
+			response = await fetch(config.WEBSITE_URL + `/data/user/add`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify(newUser), // obj literal to string
@@ -125,7 +126,7 @@ export function OAuth2Routes() {
 			{
 				console.debug(blue, "User added to db");
 
-				reply.redirect(`http://localhost:3000/newUser?Id=${(await response.json()).Id}`);
+				reply.redirect(config.WEBSITE_URL + `/newUser?Id=${(await response.json()).Id}`);
 			}
 			else
 			{
@@ -171,7 +172,7 @@ export function OAuth2Routes() {
 			console.debug(blue, "username is null");
 			// only avatar
 
-			fetch(`http://localhost:3000/data/user/getById?Id=${Id}`)
+			fetch(config.WEBSITE_URL + `/data/user/getById?Id=${Id}`)
 			.then(res => {
 				if (res.ok)
 					return res.json();
@@ -190,7 +191,7 @@ export function OAuth2Routes() {
 					fileName = Guid() + ".png";
 
 					// update user with first avatar path
-					fetch(`http://localhost:3000/data/user/update`,{
+					fetch(config.WEBSITE_URL + `/data/user/update`,{
 						method: "POST",
 						headers: { "Content-Type": "application/json" }, // is this important, for fastify I think
 						body: JSON.stringify(new User(user.Id, user.GoogleId, user.Username, fileName!, user.Wins, user.Losses)),
@@ -236,7 +237,7 @@ export function OAuth2Routes() {
 		//! keep file path when no avatar
 		if (fileName == null)
 		{
-			const response = await fetch(`http://localhost:3000/data/user/getById?Id=${Id}`);
+			const response = await fetch(config.WEBSITE_URL + `/data/user/getById?Id=${Id}`);
 			if (response.ok) // user found
 			{
 				const user: User = await response.json();
@@ -247,7 +248,7 @@ export function OAuth2Routes() {
 		// update user username and avatar path in db
 		console.debug(blue, "Updating user in db, fileName:", fileName);
 		const user: User = new User(Id!, "", username!, fileName!, 0, 0);
-		const response = await fetch(`http://localhost:3000/data/user/update`,{
+		const response = await fetch(config.WEBSITE_URL + `/data/user/update`,{
 			method: "POST",
 			headers: { "Content-Type": "application/json" }, // is this important, for fastify I think
 			body: JSON.stringify(user),

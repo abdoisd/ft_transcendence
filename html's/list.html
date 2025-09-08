@@ -1,0 +1,28 @@
+<ul id="users-list">
+	<!-- unordered list -->
+</ul>
+  
+<!-- list item -->
+<template id="user-template">
+<li>
+	<span class="user-id"></span>
+	<span class="username"></span>
+	<button>Add as Friend</button>
+</li>
+</template>
+
+<script>
+	const list = document.getElementById("users-list");
+	const template = document.getElementById("user-template");
+	const users = [
+		{ id: 123, username: "JohnDoe" },
+		{ id: 456, username: "JaneSmith" },
+		{ id: 789, username: "BobBrown" }
+	];
+	users.forEach(user => { 
+		const clone = template.content.cloneNode(true); // clone template automatically
+		clone.querySelector(".user-id").textContent = `ID: ${user.id}`;
+		clone.querySelector(".username").textContent = user.username;
+		list.appendChild(clone);
+	});
+</script>

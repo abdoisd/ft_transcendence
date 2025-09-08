@@ -56,7 +56,7 @@ function EditUser(event: Event)
 				formData.append("Id", globalThis.clsGlobal.LoggedInUser.Id.toString());
 	
 				// ask server to update profile
-				fetch("http://localhost:3000/uploadProfile", {
+				fetch("/uploadProfile", {
 					method: "POST",
 					body: formData,
 				})
@@ -98,7 +98,7 @@ function EditUser(event: Event)
 			formData.append("Id", globalThis.clsGlobal.LoggedInUser.Id.toString());
 
 			// ask server to update profile
-			fetch("http://localhost:3000/uploadProfile", {
+			fetch("/uploadProfile", {
 				method: "POST",
 				body: formData,
 			})

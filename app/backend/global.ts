@@ -9,3 +9,10 @@ export function guid()
 {
 	return crypto.randomUUID();
 }
+
+// you can add as many config here
+export const config = {
+	WEBSITE_URL: process.env.WEBSITE_URL,
+	PORT: process.env.PORT,
+	HOST: process.env.HOST
+};
