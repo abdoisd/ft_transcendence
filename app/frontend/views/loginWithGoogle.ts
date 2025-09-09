@@ -12,6 +12,15 @@ function requestBackend() {
 }
 
 export function NewUser() {
+
+	// HERE
+	const params = new URLSearchParams(window.location.search);
+
+	const jwt = params.get('jwt');
+	console.debug("setting jwt in localStorage: ", jwt);
+	localStorage.setItem("jwt", jwt);
+	console.debug("jwt in localStorage: ", localStorage.getItem("jwt"));
+	
 	document.getElementById("root")!.innerHTML = usernameAvatarForm;
 };
 
@@ -24,6 +33,12 @@ export function existingUser() {
         globalThis.clsGlobal.LoggedInUser = null;
 		return ;
     }
+
+	// HERE
+	const jwt = params.get('jwt');
+	console.debug("setting jwt in localStorage: ", jwt);
+	localStorage.setItem("jwt", jwt);
+	console.debug("jwt in localStorage: ", localStorage.getItem("jwt"));
 
 	// if invalid query, what will happen is 
 	console.debug("Filling loggedInUser");
@@ -82,6 +97,9 @@ async function usernameAvatarFormHandleSubmit(event: Event)
 		fetch("/uploadProfile", {
     	    method: "POST",
     	    body: formData, // body as object? not string
+			headers: {
+				Authorization: `Bearer ${localStorage.getItem("jwt")}`
+			}
     	})
     	.then(async response => { // is then gonna wait for this
 			if (response.ok)

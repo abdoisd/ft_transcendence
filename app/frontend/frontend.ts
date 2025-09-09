@@ -23,7 +23,6 @@ export var routes = {
 	// '/chat': chatView,
 };
 
-//?
 export async function autoLogin()
 {
 	console.debug("autoLogin()");
@@ -88,9 +87,9 @@ function handleView (event?, path?: string | null) {
 	
 	console.debug("Handling route: " + path);
 
-	autoLogin() // set clsGlobal.LoggedInUser or not
-	.then( () => {
-		if (path != "/newUser" && path != "/existingUser") // tmp
+	autoLogin() // can we login with session, set clsGlobal.LoggedInUser or not
+	.then(() => {
+		if (path != "/newUser" && path != "/existingUser")
 		{
 			// check login
 			if (!clsGlobal.LoggedInUser)
@@ -102,6 +101,9 @@ function handleView (event?, path?: string | null) {
 			else
 				console.debug("LoggedInUser filled");
 		}
+
+		// tmp
+		console.debug("jwt in localStorage: ", localStorage.getItem("jwt"));
 
 		// login success
 		// update user last activity

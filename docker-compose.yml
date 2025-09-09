@@ -63,16 +63,16 @@ services:
     networks:
       - project-network
 
-  # app-frontend:
-  #   build:
-  #     context: app/frontend
-  #   container_name: app-frontend
-  #   volumes: # tmp, we will have to mound public after we copy in dockerfile
-  #     - ./app/frontend:/frontend
-  #   ports: # tmp
-  #     - "4000:4000"
-  #   networks: # tmp
-  #     - project-network
+  app-frontend:
+    build:
+      context: app/frontend
+    container_name: app-frontend
+    volumes: # tmp, we will have to mound public after we copy in dockerfile
+      - ./app/frontend:/frontend
+    ports: # tmp
+      - "4000:4000"
+    networks: # tmp
+      - project-network
 
 #   prometheus:
 #     image: prom/prometheus
@@ -160,21 +160,21 @@ services:
     networks:
       - project-network
 
-  # vault-server:
-  #   build:
-  #     context: ./services/vault
-  #   container_name: vault-server
-  #   ports:
-  #     - "8200:8200"
-  #   environment:
-  #     - VAULT_ADDR=${VAULT_ADDR}
-  #     - VAULT_SKIP_VERIFY=true
-  #   volumes:
-  #     - ./services/vault/vault.hcl:/etc/vault.d/vault.hcl
-  #     - ~/goinfre/vault:/opt/vault/data
-  #     - shared-data:/me
-  #   networks:
-  #     - project-network
+  vault-server:
+    build:
+      context: ./services/vault
+    container_name: vault-server
+    ports:
+      - "8200:8200"
+    environment:
+      - VAULT_ADDR=${VAULT_ADDR}
+      - VAULT_SKIP_VERIFY=true
+    volumes:
+      - ./services/vault/vault.hcl:/etc/vault.d/vault.hcl
+      - ~/goinfre/vault:/opt/vault/data
+      - shared-data:/me
+    networks:
+      - project-network
 
 networks:
   project-network:

@@ -1,12 +1,12 @@
 
-// send requests to server with fetch that's it
+// TOKENS ARE NOT SET HERE
 
 export class User
 {
 	Id: number;
 	GoogleId: string;
 	Username: string | null;
-	AvatarPath: string | null; // set it to null if there is no, so we have null in db
+	AvatarPath: string | null;
 	Wins: number;
 	Losses: number;
 	SessionId: string | null;
@@ -40,18 +40,21 @@ export class User
 
 	static async getById(Id: number)
 	{
-		const response = await fetch(`/data/user/getById?Id=${encodeURIComponent(Id)}`);
-		if (!response.ok) return null;
-		const userObject = await response.json();
-		return Object.assign(new User(-1, "", "", "", -1, -1), userObject);
+		// const response = await fetch(`/data/user/getById?Id=${encodeURIComponent(Id)}`);
+		// if (!response.ok) return null;
+		// const userObject = await response.json();
+		// return Object.assign(new User(-1, "", "", "", -1, -1), userObject);
+		return await get("/data/user/getById", { Id: Id });
 	}
 
 	static async getByUsername(username: string)
 	{
-		const response = await fetch(`/data/user/getByUsername?username=${encodeURIComponent(username)}`);
-		if (!response.ok) return null;
-		const userObject = await response.json();
-		return Object.assign(new User(-1, "", "", "", -1, -1), userObject);
+		const tmp = username;
+		// const response = await fetch(`/data/user/getByUsername?username=${encodeURIComponent(username)}`);
+		// if (!response.ok) return null;
+		// const userObject = await response.json();
+		// return Object.assign(new User(-1, "", "", "", -1, -1), userObject);
+		return await get("/data/user/getByUsername", { username: tmp });
 	}
 
 	async add(): Promise<boolean> {
@@ -65,12 +68,16 @@ export class User
 		return true;
     }
 
+	//?
 	async update(): Promise<boolean> {
 		if (this.Id < 0)
 			return false;
         const response = await fetch(`/data/user/update`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
+            method: "PUT",
+            headers: {
+				"Content-Type": "application/json",
+				"Authorization": `Bearer ${localStorage.getItem("jwt")}`
+			},
             body: JSON.stringify(this),
         });
         return response.ok;

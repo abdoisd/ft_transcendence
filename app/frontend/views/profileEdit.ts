@@ -24,7 +24,11 @@ function EditUser(event: Event)
 	// check username
 	if (username && username != "")
 	{
-		fetch("/data/user/getByUsername?username=" + username)
+		// updating with username
+		
+		fetch("/data/user/getByUsername?username=" + username, {
+			headers: { Authorization: `Bearer ${localStorage.getItem("jwt")}` }
+		})
 		.then(response => {
 			if (response.ok) // user found
 			{
@@ -59,6 +63,9 @@ function EditUser(event: Event)
 				fetch("/uploadProfile", {
 					method: "POST",
 					body: formData,
+					headers: {
+						Authorization: `Bearer ${localStorage.getItem("jwt")}`
+					}
 				})
 				.then(async response => {
 					if (response.ok)
@@ -101,6 +108,9 @@ function EditUser(event: Event)
 			fetch("/uploadProfile", {
 				method: "POST",
 				body: formData,
+				headers: {
+					Authorization: `Bearer ${localStorage.getItem("jwt")}`
+				}
 			})
 			.then(async response => {
 				if (response.ok)

@@ -1,9 +1,18 @@
 
-export async function get(path, params = {})
+// response must be json
+export async function get(path: string, params = {})
 {
+	// get client token from local storage
+	const jwt = localStorage.getItem('jwt');
+
     const queryString = new URLSearchParams(params).toString();
     const url = queryString ? `${path}?${queryString}` : path;
-    return fetch(url)
+    return fetch(url, {
+		method: 'GET',
+		headers: {
+			'Authorization': 'Bearer ' + jwt
+		}
+	})
 	.then((response) => {
 		if (response.ok)
 			return response.json();
@@ -14,10 +23,13 @@ export async function get(path, params = {})
 
 export async function post(path: string, obj: any)
 {
+	const jwt = localStorage.getItem('token');
+
 	return fetch(path, {
 		method: 'POST',
 		headers: {
-			'Content-Type': 'application/json'
+			'Content-Type': 'application/json',
+			'Authorization': 'Bearer ' + jwt
 		},
 		body: JSON.stringify(obj)
 	})

@@ -54,14 +54,19 @@ async function searchUserButton(event?: Event)
 	// display user mini profile / user not found
 
 	const resultDiv = document.getElementById("result")!;
-	// request user by username
-	foundUser = await get("/data/user/getByUsername", { username: (document.getElementById("txtUsername") as HTMLInputElement).value })
+
+	//?
+	const jwt = localStorage.getItem("jwt");
+	console.debug("setting jwt to request: ", jwt);
+	
+	// get
+	foundUser = await User.getByUsername((document.getElementById("txtUsername") as HTMLInputElement).value);
+	// foundUser = await get("/data/user/getByUsername", { username: (document.getElementById("txtUsername") as HTMLInputElement).value }, jwt)
 	if (foundUser)
 		resultDiv.innerHTML = userMiniProfile(foundUser);
 	else
 		resultDiv.innerHTML = "User not found";
 }
-
 window.searchUserButton = searchUserButton;
 
 async function addFriend()
@@ -88,7 +93,6 @@ async function addFriend()
 	else
 		alert("Error adding friend");
 }
-
 window.addFriend = addFriend;
 
 // LIST FRIENDS VIEW

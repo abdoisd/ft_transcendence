@@ -117,6 +117,49 @@ export class Relationship {
 // THIS IS FASTIFY
 export function relationshipRoutes()
 {
+	server.decorate('RelationshipByEveryone', async (request, reply) => {
+		try
+		{
+			await request.jwtVerify();
+			const payload = request.user;
+
+			// console.log(yellow, 'JWT payload:', payload);
+			// console.log(yellow, request.url);
+
+			if (payload.IsRoot)
+				return ;
+		}
+		catch (err)
+		{
+			return reply.status(401).send({ error: err }); // Unauthorized
+		}
+	});
+
+	server.decorate('RelationshipByOnlyItsOwner', async (request, reply) => {
+		try
+		{
+			await request.jwtVerify();
+			const payload = request.user;
+
+			// console.log(yellow, 'JWT payload:', payload);
+			// console.log(yellow, request.url);
+
+			if (payload.IsRoot)
+				return ;
+			
+			if (request.method == "POST")
+			{
+				const user = request.body;
+				if (user.User1Id != payload.Id) // if first user is not you, Forbidden for you
+					return reply.status(403).send({ error: 'Forbidden' }); // Forbidden
+			}
+		}
+		catch (err)
+		{
+			return reply.status(401).send({ error: err }); // Unauthorized
+		}
+	});
+
 	server.get("/data/relationship/getAll", async (request, reply) => {
 		const res = await Relationship.getAll(); // fastify will await
 		if (res == null) {
@@ -125,7 +168,7 @@ export function relationshipRoutes()
 			reply.send(res);
 		}
 	});
-	
+
 	// you get Relationship auto from this
 	server.get("/data/relationship/getById", async (request, reply) => {
 		const Id = Number((request.query as any).Id);
@@ -136,8 +179,9 @@ export function relationshipRoutes()
 			reply.send(relationship);
 		}
 	});
-	
-	server.post("/data/relationship/add", async (request, reply) => {
+
+	// token
+	server.post("/data/relationship/add", { preHandler: server.RelationshipByOnlyItsOwner }, async (request, reply) => {
 		const relationship: Relationship = Object.assign(new Relationship(), request.body);
 		await relationship.add();
 		if (relationship.Id == -1) {
@@ -146,7 +190,7 @@ export function relationshipRoutes()
 			reply.send();
 		}
 	});
-	
+
 	// put for replacing
 	server.put("/data/relationship/update", async (request, reply) => {
 		const relationship: Relationship = Object.assign(new Relationship(), request.body);
@@ -168,16 +212,6 @@ export function relationshipRoutes()
 		}
 	});
 
-	// // get friends per user
-	// server.get("/data/relationship/getFriendsPerUserId", async (request, reply) => {
-	// 	const Id = Number((request.query as any).Id);
-	// 	const res = await Relationship.getFriendsPerUserId(Id); // fastify will await
-	// 	if (res == null) {
-	// 		reply.status(500).send();
-	// 	} else {
-	// 		reply.send(res);
-	// 	}
-	// });
 }
 
 // relationships

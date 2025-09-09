@@ -1,4 +1,4 @@
-import { User } from "./Business Layer/user.ts"
+import { User } from "./business layer/user.ts"
 
 export class ClsGlobal {
 	static greeting = "Hello, world!";

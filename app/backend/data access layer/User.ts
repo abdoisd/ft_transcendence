@@ -3,13 +3,14 @@ import { red, green, yellow, blue } from "../global.ts";
 import path from "path";
 import fs from "fs";
 import { connectedToSqlite, server } from "../server.ts"; // import variable
+import util from "util";
 
 export class User
 {
 	Id: number;
 	GoogleId: string;
 	Username: string;
-	AvatarPath: string | null; // set it to null if there is no, so we have null in db
+	AvatarPath: string | null;
 	Wins: number;
 	Losses: number;
 	SessionId: string | null;
@@ -46,7 +47,66 @@ export class User
 
 export function UserRoutes()
 {
-	server.get('/data/user/getAll', (request, reply) => {
+	//?
+	server.decorate('verifyJWTGetUser', async (request, reply) => {
+		try
+		{
+			await request.jwtVerify();
+			const payload = request.user;
+
+			console.log(yellow, 'JWT payload:', payload);
+			console.log(yellow, request.url);
+
+			// tmp
+			if (payload.IsRoot)
+			{
+				console.log(yellow, 'Admin access granted');
+				return ;
+			}
+		}
+		catch (err)
+		{
+			return reply.status(401).send({ error: err }); // Unauthorized
+		}
+	});
+
+	server.decorate('verifyJWTUpdateUser', async (request, reply) => {
+		try
+		{
+			await request.jwtVerify();
+			const payload = request.user;
+
+			console.log(yellow, 'JWT payload:', payload);
+			console.log(yellow, request.url);
+
+			// tmp
+			if (payload.IsRoot)
+			{
+				console.log(yellow, 'Admin access granted');
+				return ;
+			}
+			
+			// if user id and not the same in id in token, reject
+			if (request.method == "PUT")
+			{
+				const user = request.body;
+				if (user.Id !== payload.Id)
+					return reply.status(403).send({ error: 'Forbidden' }); // Forbidden
+			}
+			else if (request.method == "DELETE" || request.method == "GET") // get for friends
+			{
+				const Id = (request.query as { Id: number }).Id;
+				if (Id != payload.Id)
+					return reply.status(403).send({ error: 'Forbidden' }); // Forbidden
+			}
+		}
+		catch (err)
+		{
+			return reply.status(401).send({ error: err }); // Unauthorized
+		}
+	});
+	
+	server.get('/data/user/getAll', { preHandler: server.verifyJWTGetUser }, (request, reply) => {
 		db.all("select * from users", (err, rows) => {
 			if (err)
 			{
@@ -62,7 +122,7 @@ export function UserRoutes()
 		});
 	});
 
-	server.get('/data/user/getById', (request, reply) => {
+	server.get('/data/user/getById', { preHandler: server.verifyJWTGetUser }, (request, reply) => {
 		const Id = (request.query as { Id: number }).Id; // the query string is a json object: url ? Id=${encodeURIComponent(Id)
 		db.get("select * from users where Id = ?", [Id], (err, row) => {
 			if (err)
@@ -94,7 +154,7 @@ export function UserRoutes()
 		  "ExpirationDate": null,
 		  "AvatarUrl": "/uploads/avatars/john.png"
 		}
-	 */
+	*/
 
 	// serving avatars
 	server.get('/data/user/getAvatarById', (request, reply) => {
@@ -140,7 +200,7 @@ export function UserRoutes()
 		});
 	});
 
-	server.get('/data/user/getByGoogleId', (request, reply) => {
+	server.get('/data/user/getByGoogleId', { preHandler: server.verifyJWTGetUser }, (request, reply) => {
 		const GoogleId: number = (request.query as { GoogleId: number }).GoogleId; // the query string is a json object: url ? Id=${encodeURIComponent(Id)
 		db.get("select * from users where GoogleId = ?", [GoogleId], (err, row) => {
 			if (err)
@@ -160,8 +220,7 @@ export function UserRoutes()
 		});
 	});
 
-	// username in query
-	server.get('/data/user/getByUsername', (request, reply) => {
+	server.get('/data/user/getByUsername', { preHandler: server.verifyJWTGetUser }, (request, reply) => {
 		const username = (request.query as { username: string }).username;
 		db.get("select * from users where username = ?", [username], (err, row) => {
 			if (err)
@@ -200,7 +259,7 @@ export function UserRoutes()
 		});
 	});
 
-	server.post('/data/user/update', (request, reply) => {
+	server.put('/data/user/update', { preHandler: server.verifyJWTUpdateUser }, (request, reply) => {
 		const user: User = request.body as User;
 		db.run("update users set Username = ?, AvatarPath = ?, Wins = ?, Losses = ?, SessionId = ?, ExpirationDate = ?, LastActivity = ? where Id = ?",
 			[user.Username, user.AvatarPath, user.Wins, user.Losses, user.SessionId, user.ExpirationDate, new Date(), user.Id], function(err) {
@@ -219,7 +278,7 @@ export function UserRoutes()
 		});
 	});
 
-	server.post('/data/user/delete', (request, reply) => {
+	server.delete('/data/user/delete', { preHandler: server.verifyJWTUpdateUser }, (request, reply) => {
 		const { Id } = request.query as { Id: number };
 		db.run("delete from users where id = ?", [Id], function(err) {
 			if (err)
@@ -240,7 +299,7 @@ export function UserRoutes()
 	// 
 
 	// get friends
-	server.get('/data/user/getFriends', async (request, reply) => {
+	server.get('/data/user/getFriends', { preHandler: server.verifyJWTUpdateUser }, async (request, reply) => {
 		const Id = (request.query as { Id: number }).Id;
 		reply.send(await User.getFriends(Id));
 	});

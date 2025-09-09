@@ -12,14 +12,14 @@ import { vaultGoogleClientSecret } from './server.ts';
 const CLIENT_ID = process.env.CLIENT_ID;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 
-function setSessionId(user: User, reply: FastifyReply)
+function setSessionIdCookie(user: User, reply: FastifyReply)
 {
 	const sessionId = Guid();
-				
+
 	console.debug(blue, "Setting sessionId for user");
 	fetch(config.WEBSITE_URL + `/data/user/update`, {
-		method: "POST",
-		headers: { "Content-Type": "application/json" },
+		method: "PUT",
+		headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.ROOT_TOKEN}` },
 		body: JSON.stringify(new User(user.Id, user.GoogleId, user.Username, user.AvatarPath, user.Wins, user.Losses, sessionId, new Date(Date.now() + 60000 * 60 * 24))), // expire in 1 day
 	})
 	.then(res => {
@@ -31,18 +31,23 @@ function setSessionId(user: User, reply: FastifyReply)
 	reply.setCookie('sessionId', sessionId, {
 		httpOnly: true,       // client JS cannot access
 		path: '/',            // send cookie on all routes
-		maxAge: 60 * 60 * 24,           // 1 day
+		maxAge: 60 * 60,      // session is not valid in server after 1 hour
 		secure: false,        // set true if using HTTPS
-	}); //?
+	});
+}
+
+//!
+export function createJwt(Id: number)
+{
+	return server.jwt.sign({
+		Id: Id,
+		IsRoot: 0
+	}, { expiresIn: '1h' });
 }
 
 // you can to register routes
 export function OAuth2Routes() {
-
-
-
-
-
+	
 	server.get('/loginGoogle', (req, reply) => {
 	
 		// this is never reached
@@ -54,9 +59,17 @@ export function OAuth2Routes() {
 		  response_type: 'code',
 		  scope: 'openid email profile',
 		});
-	  
+
+		// nginx is proxying to here
+		// google only knows nginx
+		// configure google with nginx
 		reply.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${queryString}`);
 	});
+	
+
+
+
+
 	
 	// google redirect user to config.WEBSITE_URL/loginGoogleCallback
 	// and browser send request to our server
@@ -77,18 +90,18 @@ export function OAuth2Routes() {
 				grant_type: 'authorization_code'
 			})
 		});
-	
+
 		const tokens = await googleResponseForToken.json();
 	  
 		const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-		  headers: { Authorization: `Bearer ${tokens.access_token}` }
+			headers: { Authorization: `Bearer ${tokens.access_token}` }
 		});
 
 		const userObjFromGoogle = await userRes.json();
 	  
 		// console.log("User info:", userObjFromGoogle); // GOT USER INFO
 
-		var response = await fetch(config.WEBSITE_URL + `/data/user/getByGoogleId?GoogleId=${encodeURIComponent(userObjFromGoogle.id)}`); // full url here, bc the browser that handle that is the frontend
+		var response = await fetch(config.WEBSITE_URL + `/data/user/getByGoogleId?GoogleId=${encodeURIComponent(userObjFromGoogle.id)}`, { headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` } }); // full url here, bc the browser that handle that is the frontend
 
 		if (response.ok)
 		{
@@ -98,18 +111,29 @@ export function OAuth2Routes() {
 			if (user.Username == null)
 			{
 				console.debug(blue, "User has not username");
+
+				const jwt = createJwt(user.Id);
+				console.debug(yellow, );
+				console.debug(yellow, "server set jwt=" + jwt);
 				
-				reply.redirect(config.WEBSITE_URL + `/newUser?Id=${user.Id}`);
+				// telling browser to redirect user to a domain
+				//? HERE
+				reply.redirect(`https://localhost/newUser?Id=${user.Id}&jwt=${jwt}`);
 			}
 			else
 			{
 				console.debug(blue, "User has username");
 
-				//? SESSION ID
-				setSessionId(user, reply);
+				// SESSION ID
+				setSessionIdCookie(user, reply);
+
+				const jwt = createJwt(user.Id);
+				console.debug(yellow, );
+				console.debug(yellow, "server set jwt=" + jwt);
 				
+				//? HERE
 				const params = querystring.stringify({ ...user });
-				reply.redirect(config.WEBSITE_URL + `/existingUser?${params}`); // redirect to home
+				reply.redirect("https://localhost" + `/existingUser?${params}&jwt=${jwt}`); // redirect to home
 			}
 		}
 		else
@@ -119,14 +143,21 @@ export function OAuth2Routes() {
 			const newUser: User = new User(-1, userObjFromGoogle.id, null, "", 0, 0);
 			response = await fetch(config.WEBSITE_URL + `/data/user/add`, {
 				method: "POST",
-				headers: { "Content-Type": "application/json" },
+				headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.ROOT_TOKEN}` },
 				body: JSON.stringify(newUser), // obj literal to string
 			});
 			if (response.ok)
 			{
 				console.debug(blue, "User added to db");
 
-				reply.redirect(config.WEBSITE_URL + `/newUser?Id=${(await response.json()).Id}`);
+				const userId = (await response.json()).Id;
+
+				const jwt = createJwt(userId);
+				console.debug(yellow, );
+				console.debug(yellow, "server set jwt=" + jwt);
+
+				//? HERE
+				reply.redirect(`https://localhost/newUser?Id=${userId}&jwt=${jwt}`);
 			}
 			else
 			{
@@ -137,7 +168,11 @@ export function OAuth2Routes() {
 
 	});
 
-	// update user with username and avatarPath
+
+
+
+
+	// update username or avatar or both
 	server.post("/uploadProfile", async (req, reply) => {
 
 		console.debug(blue, "/uploadProfile");
@@ -167,12 +202,12 @@ export function OAuth2Routes() {
 			}
 		}
 
+		// only avatar
 		if (username == null)
 		{
 			console.debug(blue, "username is null");
-			// only avatar
 
-			fetch(config.WEBSITE_URL + `/data/user/getById?Id=${Id}`)
+			fetch(config.WEBSITE_URL + `/data/user/getById?Id=${Id}`, {headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }})
 			.then(res => {
 				if (res.ok)
 					return res.json();
@@ -192,9 +227,9 @@ export function OAuth2Routes() {
 
 					// update user with first avatar path
 					fetch(config.WEBSITE_URL + `/data/user/update`,{
-						method: "POST",
-						headers: { "Content-Type": "application/json" }, // is this important, for fastify I think
-						body: JSON.stringify(new User(user.Id, user.GoogleId, user.Username, fileName!, user.Wins, user.Losses)),
+						method: "PUT",
+						headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }, // is this important, for fastify I think
+						body: JSON.stringify(new User(user.Id, user.GoogleId, user.Username, fileName!, user.Wins, user.Losses, user.SessionId, user.ExpirationDate)), //?
 					})
 				}
 				for (const file of savedFiles) {
@@ -237,7 +272,7 @@ export function OAuth2Routes() {
 		//! keep file path when no avatar
 		if (fileName == null)
 		{
-			const response = await fetch(config.WEBSITE_URL + `/data/user/getById?Id=${Id}`);
+			const response = await fetch(config.WEBSITE_URL + `/data/user/getById?Id=${Id}`, {headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }});
 			if (response.ok) // user found
 			{
 				const user: User = await response.json();
@@ -248,16 +283,16 @@ export function OAuth2Routes() {
 		// update user username and avatar path in db
 		console.debug(blue, "Updating user in db, fileName:", fileName);
 		const user: User = new User(Id!, "", username!, fileName!, 0, 0);
-		const response = await fetch(config.WEBSITE_URL + `/data/user/update`,{
-			method: "POST",
-			headers: { "Content-Type": "application/json" }, // is this important, for fastify I think
+		const response = await fetch(config.WEBSITE_URL + `/data/user/update`,{ // server domain
+			method: "PUT",
+			headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }, // is this important, for fastify I think
 			body: JSON.stringify(user),
 		});
 
 		if (response.ok)
 		{
-			//? SESSION ID
-			setSessionId(user, reply);
+			// SESSION ID
+			setSessionIdCookie(user, reply);
 			
 			reply.send();
 		}
@@ -286,7 +321,7 @@ export function OAuth2Routes() {
 			}
 			if (row)
 			{
-				console.debug(blue, "User found by SessionId");
+				console.debug(blue, "User in db found by SessionId");
 
 				if (new Date(row.ExpirationDate) < new Date())
 				{
@@ -305,5 +340,4 @@ export function OAuth2Routes() {
 			}
 		});
 	});
-
 }

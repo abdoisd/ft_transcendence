@@ -7,7 +7,7 @@ WORKDIR /backend
 COPY package.json .
 
 RUN npm install \
-	&& apk add sqlite tini
+	&& apk add sqlite tini bash
 
 # ENTRYPOINT ["tini", "--"]
 CMD ["npm","run","dev"]
