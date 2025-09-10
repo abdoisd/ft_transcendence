@@ -92,14 +92,12 @@ export function OAuth2Routes() {
 		});
 
 		const tokens = await googleResponseForToken.json();
-	  
+
 		const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
 			headers: { Authorization: `Bearer ${tokens.access_token}` }
 		});
-
 		const userObjFromGoogle = await userRes.json();
-	  
-		// console.log("User info:", userObjFromGoogle); // GOT USER INFO
+		console.log("User info:", userObjFromGoogle); // GOT USER INFO
 
 		var response = await fetch(config.WEBSITE_URL + `/data/user/getByGoogleId?GoogleId=${encodeURIComponent(userObjFromGoogle.id)}`, { headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` } }); // full url here, bc the browser that handle that is the frontend
 

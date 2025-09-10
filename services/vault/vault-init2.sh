@@ -7,7 +7,6 @@ until curl -k -s --fail $VAULT_ADDR; do
     echo "Vault is not ready yet. Retrying..."
 done
 
-
 # if not initialized
 if ! vault status -address=$VAULT_ADDR -format=json | grep -q '"initialized": true'; then
 echo "Vault not initialized. Initializing..."

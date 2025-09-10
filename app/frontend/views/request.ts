@@ -23,7 +23,7 @@ export async function get(path: string, params = {})
 
 export async function post(path: string, obj: any)
 {
-	const jwt = localStorage.getItem('token');
+	const jwt = localStorage.getItem('jwt');
 
 	return fetch(path, {
 		method: 'POST',

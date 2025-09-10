@@ -4,26 +4,26 @@
 export class User
 {
 	Id: number;
-	GoogleId: string;
+	// GoogleId: string;
 	Username: string | null;
 	AvatarPath: string | null;
 	Wins: number;
 	Losses: number;
-	SessionId: string | null;
-	ExpirationDate: Date | null;
+	// SessionId: string | null;
+	// ExpirationDate: Date | null;
 	LastActivity: Date | null;
 
 	constructor(id: number, googleOpenID: string, username: string | null, avatarPath: string | null,
 		wins: number, losses: number, sessionId: string | null = null, expirationDate: Date | null = null)
 	{
 		this.Id = id;
-		this.GoogleId = googleOpenID;
+		// this.GoogleId = googleOpenID;
 		this.Username = username;
 		this.AvatarPath = avatarPath;
 		this.Wins = wins;
 		this.Losses = losses;
-		this.SessionId = sessionId;
-		this.ExpirationDate = expirationDate;
+		// this.SessionId = sessionId;
+		// this.ExpirationDate = expirationDate;
 	}
 	
 	static async getAllUsers()

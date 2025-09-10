@@ -37,7 +37,7 @@ export class User
 		return new Promise((resolve, reject) => {
 			db.all('SELECT u.* FROM Users u JOIN Relationships r ON (u.Id = r.User1Id AND r.User2Id = ?) OR (u.Id = r.User2Id AND r.User1Id = ?) WHERE r.Relationship = 1', [Id, Id], (err, rows) => {
 				if (err)
-					reject(null);
+					reject(null); // to test those
 				else
 					resolve(rows);
 			});

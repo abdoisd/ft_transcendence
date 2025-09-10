@@ -52,8 +52,4 @@ SELECT name FROM sqlite_master WHERE type='table';
 -- table info
 PRAGMA table_info(Relationships);
 
-
--- tmp
-
-
 ```

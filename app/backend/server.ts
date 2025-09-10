@@ -111,7 +111,9 @@ server.addHook('onSend', async (request, reply, payload) => {
 	// if (request.method == "POST" || request.method == "PUT")
 	// 	console.info(magenta, "Server response: " + reply.statusCode, payload);
 	// else
+	// console.info(magenta, "Server response: " + reply.statusCode);
 	console.info(magenta, "Server response: " + reply.statusCode);
+	console.info(magenta, payload);
 	// console.info(magenta, "Server response: " + reply);
 });
 
