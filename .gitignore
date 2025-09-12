@@ -18,7 +18,8 @@ app/frontend/public/output.css
 # for package-lock.json, we are working with an app, so we keep it
 
 # additional
-/app/backend/tests
-/app/backend/test
-/html's/
-/tmp/
+app/backend/tests
+app/backend/test
+html's/
+tmp/
+app/backend/avatars/
