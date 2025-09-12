@@ -6,20 +6,20 @@ app/backend/node_modules
 app/frontend/public/bundle.js
 app/frontend/public/output.css
 
-# md files
+# any md file
 *.md
 
 # .env
 .env
 
-# macos
-.DS_Store
+# any DS_Store file
+*.DS_Store
 
 # for package-lock.json, we are working with an app, so we keep it
 
 # additional
 app/backend/tests
 app/backend/test
-html's/
-tmp/
-app/backend/avatars/
+html's
+tmp
+app/backend/avatars
