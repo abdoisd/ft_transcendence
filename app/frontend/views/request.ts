@@ -21,6 +21,22 @@ export async function get(path: string, params = {})
 	});
 }
 
+// await this
+export async function getOnlyFetch(path: string, params = {})
+{
+	// get client token from local storage
+	const jwt = localStorage.getItem('jwt');
+
+    const queryString = new URLSearchParams(params).toString();
+    const url = queryString ? `${path}?${queryString}` : path;
+    return fetch(url, {
+		method: 'GET',
+		headers: {
+			'Authorization': 'Bearer ' + jwt
+		}
+	})
+}
+
 export async function post(path: string, obj: any)
 {
 	const jwt = localStorage.getItem('jwt');

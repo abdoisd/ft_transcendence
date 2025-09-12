@@ -2,8 +2,7 @@ import { db } from "./database.ts";
 import { red, green, yellow, blue } from "../global.ts";
 import path from "path";
 import fs from "fs";
-import { connectedToSqlite, server } from "../server.ts"; // import variable
-import util from "util";
+import { server } from "../server.ts"; // import variable
 
 export class User
 {
@@ -16,9 +15,12 @@ export class User
 	SessionId: string | null;
 	ExpirationDate: Date | null;
 	LastActivity: Date | null;
+	TOTPSecretPending: string; // not in dto
+	TOTPSecret: string; // not in dto
 
 	constructor(id: number, googleOpenID: string, username: string, avatarPath: string | null,
-		wins: number, losses: number, sessionId: string | null = null, expirationDate: Date | null = null)
+		wins: number, losses: number, sessionId: string | null = null, expirationDate: Date | null = null,
+		lastActivity?, TOTPSecretPending?, TOTPSecret?)
 	{
 		this.Id = id;
 		this.GoogleId = googleOpenID;
@@ -28,6 +30,73 @@ export class User
 		this.Losses = losses;
 		this.SessionId = sessionId;
 		this.ExpirationDate = expirationDate;
+		this.LastActivity = lastActivity;
+		this.TOTPSecretPending = TOTPSecretPending;
+		this.TOTPSecret = TOTPSecret;
+	}
+
+	static async getById(Id: number): Promise<User | null>
+	{
+		return new Promise((resolve, reject) => {
+			db.get('SELECT * FROM Users WHERE Id = ?', [Id], (err, row) => {
+				if (err)
+				{
+					console.log(red, 'Error: User.getById: ', err);
+					reject(null);
+				}
+				else
+					resolve(row ? new User(row.Id, row.GoogleId, row.Username, row.AvatarPath, row.Wins, row.Losses, row.SessionId, row.ExpirationDate, row.LastActivity, row.TOTPSecretPending, row.TOTPSecret) : null);
+			});
+		});
+	}
+
+	// get by username
+	static async getByUsername(username: string): Promise<User | null> // how to know, now found from here
+	{
+		// promise with background task
+		return new Promise((resolve, reject) => {
+			db.get('SELECT * FROM Users WHERE Username = ?', [username], (err, row) => {
+				if (err)
+				{
+					console.log(red, 'Error: User.getByUsername: ', err);
+					reject(null);
+				}
+				else
+					resolve(row ? new User(row.Id, row.GoogleId, row.Username, row.AvatarPath, row.Wins, row.Losses, row.SessionId, row.ExpirationDate, row.LastActivity) : null);
+			});
+		});
+	}
+
+	add()
+	{
+		return new Promise((resolve, reject) => {
+			db.run("INSERT INTO Users (GoogleId, Username, AvatarPath, SessionId, ExpirationDate, LastActivity) VALUES (?, ?, ?, ?, ?, ?);",
+				[this.GoogleId, this.Username, this.AvatarPath, this.SessionId, this.ExpirationDate, new Date()], function(err) {
+				if (err)
+				{
+					console.log(red, 'Error: User.add: ', err);
+					reject(null);
+				}
+				else
+					resolve(this.lastID);
+			});
+		});
+	}
+
+	update()
+	{
+		return new Promise((resolve, reject) => {
+			db.run("UPDATE Users SET GoogleId = ?, Username = ?, AvatarPath = ?, Wins = ?, Losses = ?, SessionId = ?, ExpirationDate = ?, LastActivity = ?, TOTPSecretPending = ?, TOTPSecret = ? WHERE Id = ?",
+				[this.GoogleId, this.Username, this.AvatarPath, this.Wins, this.Losses, this.SessionId, this.ExpirationDate, new Date(), this.TOTPSecretPending, this.TOTPSecret, this.Id], function(err) {
+				if (err)
+				{
+					console.log(red, 'Error: User.update: ', err);
+					reject(false);
+				}
+				else
+					resolve(this.changes > 0);
+			});
+		});
 	}
 
 	// can be static and normal
@@ -35,27 +104,74 @@ export class User
 	static getFriends(Id: number): Promise<any[] | null>
 	{
 		return new Promise((resolve, reject) => {
-			db.all('SELECT u.* FROM Users u JOIN Relationships r ON (u.Id = r.User1Id AND r.User2Id = ?) OR (u.Id = r.User2Id AND r.User1Id = ?) WHERE r.Relationship = 1', [Id, Id], (err, rows) => {
+			db.all('SELECT u.Id, u.Username, u.Wins, u.Losses, u.LastActivity FROM Users u JOIN Relationships r ON (u.Id = r.User1Id AND r.User2Id = ?) OR (u.Id = r.User2Id AND r.User1Id = ?) WHERE r.Relationship = 1', [Id, Id], (err, rows) => {
 				if (err)
+				{
+					console.log(red, 'Error: User.getById: ', err);
 					reject(null); // to test those
+				}
 				else
 					resolve(rows);
 			});
 		});
+	}
+
+	enabled2FA(): boolean
+	{
+		// has TOTPSecret in db
+		return this.TOTPSecret != null && this.TOTPSecret != '';
+	}
+}
+
+// to send user info to client
+// get all
+// get by ...
+class UserDTO
+{
+	Id: number;
+	Username: string;
+	Wins: number;
+	Losses: number;
+	LastActivity: Date | null;
+
+	constructor(fullUser: User)
+	{
+		this.Id = fullUser.Id;
+		this.Username = fullUser.Username;
+		this.Wins = fullUser.Wins;
+		this.Losses = fullUser.Losses;
+	}
+
+	// get by username
+	static async getByUsername(username: string)
+	{
+		const fullUser = await User.getByUsername(username);
+		if (!fullUser)
+			return null;
+		const userDTO = new UserDTO(fullUser);
+		return userDTO;
+	}
+
+	static async getById(Id: number)
+	{
+		const fullUser = await User.getById(Id);
+		if (!fullUser)
+			return null;
+		const userDTO = new UserDTO(fullUser);
+		return userDTO;
 	}
 }
 
 export function UserRoutes()
 {
 	//?
-	server.decorate('verifyJWTGetUser', async (request, reply) => {
+	server.decorate('mustHaveToken', async (request, reply) => {
 		try
 		{
 			await request.jwtVerify();
 			const payload = request.user;
 
-			console.log(yellow, 'JWT payload:', payload);
-			console.log(yellow, request.url);
+			// console.log(yellow, 'JWT payload:', payload);
 
 			// tmp
 			if (payload.IsRoot)
@@ -70,14 +186,13 @@ export function UserRoutes()
 		}
 	});
 
-	server.decorate('verifyJWTUpdateUser', async (request, reply) => {
+	server.decorate('byItsOwnUser', async (request, reply) => {
 		try
 		{
 			await request.jwtVerify();
 			const payload = request.user;
 
-			console.log(yellow, 'JWT payload:', payload);
-			console.log(yellow, request.url);
+			// console.log(yellow, 'JWT payload:', payload);
 
 			// tmp
 			if (payload.IsRoot)
@@ -96,8 +211,26 @@ export function UserRoutes()
 			else if (request.method == "DELETE" || request.method == "GET") // get for friends
 			{
 				const Id = (request.query as { Id: number }).Id;
-				if (Id != payload.Id)
-					return reply.status(403).send({ error: 'Forbidden' }); // Forbidden
+				if (!Id) // google id
+				{
+					const GoogleId = request.query.GoogleId;
+					if (!GoogleId)
+						return reply.status(400).send(); // Bad request
+				
+					// if (GoogleId != payload.GoogleId)
+					// 	return reply.status(403).send({ error: 'Forbidden' });
+
+					// set google id in payload or request user info here
+
+					const user = await User.getById(payload.Id);
+					if (GoogleId != user.GoogleId)
+						return reply.status(403).send({ error: 'Forbidden' });
+				}
+				else
+				{
+					if (Id != payload.Id)
+						return reply.status(403).send({ error: 'Forbidden' }); // Forbidden
+				}
 			}
 		}
 		catch (err)
@@ -105,25 +238,19 @@ export function UserRoutes()
 			return reply.status(401).send({ error: err }); // Unauthorized
 		}
 	});
-	
-	server.get('/data/user/getAll', { preHandler: server.verifyJWTGetUser }, (request, reply) => {
-		db.all("select * from users", (err, rows) => {
-			if (err)
-			{
-				console.log(red, 'Error: get /data/user/getAll: ', err);
-				reply.status(500).send();
-			}
-			else
-			{
-				if (rows.length < 1) // empty set
-					reply.status(404).send({ message: 'No users found' });
-				reply.send(rows);
-			}
-		});
-	});
 
-	server.get('/data/user/getById', { preHandler: server.verifyJWTGetUser }, (request, reply) => {
-		const Id = (request.query as { Id: number }).Id; // the query string is a json object: url ? Id=${encodeURIComponent(Id)
+	server.get('/data/user/getById2', { preHandler: server.mustHaveToken }, async (request, reply) => {
+		const Id = (request.query as { Id: number }).Id;
+		const user = await UserDTO.getById(Id);
+		if (user)
+			reply.send(user); // send dto
+		else
+			reply.status(404).send();
+		
+	});
+	
+	server.get('/data/user/getById', { preHandler: server.byItsOwnUser }, (request, reply) => {
+		const Id = (request.query as { Id: number }).Id;
 		db.get("select * from users where Id = ?", [Id], (err, row) => {
 			if (err)
 			{
@@ -169,7 +296,7 @@ export function UserRoutes()
 			
 			if (err) // database error
 			{
-				console.error('Error: /data/user/getAvatarById:', err);
+				console.error(red, 'Error: /data/user/getAvatarById:', err);
 				fs.createReadStream(defaultAvatarPath).pipe(reply.raw);
 				return ;
 			}
@@ -200,12 +327,12 @@ export function UserRoutes()
 		});
 	});
 
-	server.get('/data/user/getByGoogleId', { preHandler: server.verifyJWTGetUser }, (request, reply) => {
+	server.get('/data/user/getByGoogleId', { preHandler: server.byItsOwnUser }, (request, reply) => {
 		const GoogleId: number = (request.query as { GoogleId: number }).GoogleId; // the query string is a json object: url ? Id=${encodeURIComponent(Id)
 		db.get("select * from users where GoogleId = ?", [GoogleId], (err, row) => {
 			if (err)
 			{
-				console.error('Error: get /data/user/getByGoogleId: ', err);
+				console.error(red, 'Error: get /data/user/getByGoogleId: ', err);
 				reply.status(500).send();
 			}
 			else
@@ -214,58 +341,30 @@ export function UserRoutes()
 				{
 					console.log(red, 'get /data/user/getByGoogleId: User not found: ', GoogleId);
 					reply.status(404).send();
+					return ;
 				}
 				reply.send(row); // user object as in body as a stringified json
 			}
 		});
 	});
 
-	server.get('/data/user/getByUsername', { preHandler: server.verifyJWTGetUser }, (request, reply) => {
-		const username = (request.query as { username: string }).username;
-		db.get("select * from users where username = ?", [username], (err, row) => {
-			if (err)
-			{
-				console.error('Error: get /data/user/getByUsername: ', err);
-				reply.status(500).send();
-			}
-			else
-			{
-				if (!row) // user not found
-				{
-					console.log(red, 'get /data/user/getByUsername: User not found: ', username);
-					reply.status(404).send();
-				}
-				reply.send(row); // user object as in body as a stringified json
-			}
-		});
+	// returned 500
+	server.get('/data/user/getByUsername', { preHandler: server.mustHaveToken }, async (request, reply) => {
+		const username = request.query.username;
+		const res = await UserDTO.getByUsername(username);
+		if (res)
+			reply.send(res);
+		else
+			reply.status(404).send();
 	});
 
-	server.post('/data/user/add', (request, reply) => { // fastify that handle domain and port
-		const user: User = request.body as User; // fastify request.body convert from string to json automatically
-		db.run("INSERT INTO Users (GoogleId, Username, AvatarPath, SessionId, ExpirationDate, LastActivity) VALUES (?, ?, ?, ?, ?, ?);",
-			[user.GoogleId, user.Username, user.AvatarPath, null, null, new Date()], function(err) {
-			if (err)
-			{
-				console.log(red, 'Error: get /data/user/add: ', err);
-				reply.status(500).send();
-			}
-			else
-			{
-				if (this.changes < 1)
-					reply.status(500).send();
-				else
-					reply.send({ Id: this.lastID });
-			}
-		});
-	});
-
-	server.put('/data/user/update', { preHandler: server.verifyJWTUpdateUser }, (request, reply) => {
+	server.put('/data/user/update', { preHandler: server.byItsOwnUser }, (request, reply) => {
 		const user: User = request.body as User;
-		db.run("update users set Username = ?, AvatarPath = ?, Wins = ?, Losses = ?, SessionId = ?, ExpirationDate = ?, LastActivity = ? where Id = ?",
-			[user.Username, user.AvatarPath, user.Wins, user.Losses, user.SessionId, user.ExpirationDate, new Date(), user.Id], function(err) {
-			if (err)
+		db.run("update users set Username = ?, AvatarPath = ?, Wins = ?, Losses = ?, SessionId = ?, ExpirationDate = ?, LastActivity = ?, TOTPSecretPending = ?, TOTPSecret = ? where Id = ?",
+			[user.Username, user.AvatarPath, user.Wins, user.Losses, user.SessionId, user.ExpirationDate, new Date(), user.TOTPSecretPending, user.TOTPSecret, user.Id], function(err) {
+			if (err) // useless bc database throws to server and server return 500
 			{
-				console.log(red, 'Error: get /data/user/update: ', err); // why
+				console.log(red, 'Error: get /data/user/update: ', err);
 				reply.status(500).send();
 			}
 			else
@@ -278,7 +377,7 @@ export function UserRoutes()
 		});
 	});
 
-	server.delete('/data/user/delete', { preHandler: server.verifyJWTUpdateUser }, (request, reply) => {
+	server.delete('/data/user/delete', { preHandler: server.byItsOwnUser }, (request, reply) => {
 		const { Id } = request.query as { Id: number };
 		db.run("delete from users where id = ?", [Id], function(err) {
 			if (err)
@@ -299,12 +398,21 @@ export function UserRoutes()
 	// 
 
 	// get friends
-	server.get('/data/user/getFriends', { preHandler: server.verifyJWTUpdateUser }, async (request, reply) => {
+	server.get('/data/user/getFriends', { preHandler: server.byItsOwnUser }, async (request, reply) => {
 		const Id = (request.query as { Id: number }).Id;
 		reply.send(await User.getFriends(Id));
 	});
 
-	// select id and username from users
+	server.get('/data/user/enabled2FA', { preHandler: server.byItsOwnUser }, async (request, reply) => {
+		const Id = (request.query as { Id: number }).Id; // if id is not in query, fastify send by request
+		const user = await User.getById(Id);
+		if (!user)
+			return reply.status(404).send(); // there is a problem in the logic
+		if (user.enabled2FA())
+			reply.status(200).send();
+		else
+			reply.status(404).send();
+	});
 }
 
 // WHEN YOU UPDATE SOMETHING

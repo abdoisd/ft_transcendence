@@ -4,6 +4,7 @@
 
 import { server } from '../server.ts'
 import { db } from "./database.ts";
+import { red, yellow } from "../global.ts";
 
 export class Relationship {
 	Id: number;
@@ -55,7 +56,11 @@ export class Relationship {
 				'INSERT INTO Relationships (User1Id, User2Id, Relationship) VALUES (?, ?, ?)',
 				[this.User1Id, this.User2Id, this.Relationship],
 				function (err) {
-					if (err) reject(-1);
+					if (err)
+					{
+						console.error(red, "Relationship.add", err);
+						reject(-1);
+					}
 					else resolve(this.lastID);
 				}
 			);
@@ -69,8 +74,13 @@ export class Relationship {
 				'UPDATE Relationships SET User1Id = ?, User2Id = ?, Relationship = ? WHERE Id = ?',
 				[this.User1Id, this.User2Id, this.Relationship, this.Id],
 				function (err) {
-					if (err) reject(false);
-					else resolve(this.changes > 0);
+					if (err)
+					{
+						console.error(red, "Relationship.update", err);
+						reject(false);
+					}
+					else
+						resolve(this.changes > 0);
 				}
 			);
 		});
@@ -117,71 +127,28 @@ export class Relationship {
 // THIS IS FASTIFY
 export function relationshipRoutes()
 {
-	server.decorate('RelationshipByEveryone', async (request, reply) => {
-		try
-		{
-			await request.jwtVerify();
-			const payload = request.user;
 
-			// console.log(yellow, 'JWT payload:', payload);
-			// console.log(yellow, request.url);
+	// server.get("/data/relationship/getAll", async (request, reply) => {
+	// 	const res = await Relationship.getAll(); // fastify will await
+	// 	if (res == null) {
+	// 		reply.status(500).send();
+	// 	} else {
+	// 		reply.send(res);
+	// 	}
+	// });
 
-			if (payload.IsRoot)
-				return ;
-		}
-		catch (err)
-		{
-			return reply.status(401).send({ error: err }); // Unauthorized
-		}
-	});
+	// server.get("/data/relationship/getById", async (request, reply) => {
+	// 	const Id = Number((request.query as any).Id);
+	// 	const relationship = await Relationship.getById(Id);
+	// 	if (relationship == null) {
+	// 		reply.status(404).send();
+	// 	} else {
+	// 		reply.send(relationship);
+	// 	}
+	// });
 
-	server.decorate('RelationshipByOnlyItsOwner', async (request, reply) => {
-		try
-		{
-			await request.jwtVerify();
-			const payload = request.user;
-
-			// console.log(yellow, 'JWT payload:', payload);
-			// console.log(yellow, request.url);
-
-			if (payload.IsRoot)
-				return ;
-			
-			if (request.method == "POST")
-			{
-				const user = request.body;
-				if (user.User1Id != payload.Id) // if first user is not you, Forbidden for you
-					return reply.status(403).send({ error: 'Forbidden' }); // Forbidden
-			}
-		}
-		catch (err)
-		{
-			return reply.status(401).send({ error: err }); // Unauthorized
-		}
-	});
-
-	server.get("/data/relationship/getAll", async (request, reply) => {
-		const res = await Relationship.getAll(); // fastify will await
-		if (res == null) {
-			reply.status(500).send();
-		} else {
-			reply.send(res);
-		}
-	});
-
-	// you get Relationship auto from this
-	server.get("/data/relationship/getById", async (request, reply) => {
-		const Id = Number((request.query as any).Id);
-		const relationship = await Relationship.getById(Id);
-		if (relationship == null) {
-			reply.status(404).send();
-		} else {
-			reply.send(relationship);
-		}
-	});
-
-	// token
-	server.post("/data/relationship/add", { preHandler: server.RelationshipByOnlyItsOwner }, async (request, reply) => {
+	// ADD FRIEND, ONLY IF YOU ARE USER1
+	server.post("/data/relationship/add", { preHandler: server.byItsOwnUser }, async (request, reply) => {
 		const relationship: Relationship = Object.assign(new Relationship(), request.body);
 		await relationship.add();
 		if (relationship.Id == -1) {
@@ -191,8 +158,8 @@ export function relationshipRoutes()
 		}
 	});
 
-	// put for replacing
-	server.put("/data/relationship/update", async (request, reply) => {
+	// FOR BLOCKING, ONLY IF YOU ARE USER1
+	server.put("/data/relationship/update", { preHandler: server.byItsOwnUser }, async (request, reply) => {
 		const relationship: Relationship = Object.assign(new Relationship(), request.body);
 		const res = await relationship.update();
 		if (res == false) {
@@ -202,15 +169,16 @@ export function relationshipRoutes()
 		}
 	});
 
-	server.delete("/data/relationship/delete", async (request, reply) => {
-		const Id = Number((request.query as any).Id);
-		const res = await Relationship.deleteById(Id);
-		if (res == false) {
-			reply.status(500).send();
-		} else {
-			reply.send(res);
-		}
-	});
+	// NOT IN THE WEB APP
+	// server.delete("/data/relationship/delete", async (request, reply) => {
+	// 	const Id = Number((request.query as any).Id);
+	// 	const res = await Relationship.deleteById(Id);
+	// 	if (res == false) {
+	// 		reply.status(500).send();
+	// 	} else {
+	// 		reply.send(res);
+	// 	}
+	// });
 
 }
 

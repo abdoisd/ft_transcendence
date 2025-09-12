@@ -1,8 +1,9 @@
-import { User } from "./business layer/user.ts"
+import { UserDTO } from "./business layer/user.ts"
 
 export class ClsGlobal {
 	static greeting = "Hello, world!";
-	static LoggedInUser: User | null = null;
+	static LoggedInUser: UserDTO | null = null;
+	static userId: number; // for 2fa
 }
 
 // declare: for TS

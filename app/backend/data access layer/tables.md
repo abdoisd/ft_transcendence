@@ -9,7 +9,9 @@ CREATE TABLE IF NOT EXISTS Users (
     Losses INTEGER NOT NULL DEFAULT 0,
     SessionId TEXT NULL DEFAULT NULL,
     ExpirationDate TEXT NULL DEFAULT NULL,
-	LastActivity TEXT NULL DEFAULT NULL
+	LastActivity TEXT NULL DEFAULT NULL,
+	TOTPSecretPending TEXT NULL DEFAULT NULL, -- when ever a secret generated, stores it here
+	TOTPSecret TEXT NULL DEFAULT NULL -- first (or every) validation, store secret here
 );
 
 INSERT INTO Users (GoogleId, Username, AvatarPath, Wins, Losses) VALUES
@@ -31,7 +33,7 @@ CREATE TABLE IF NOT EXISTS Relationships (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
     User1Id INTEGER NOT NULL,
     User2Id INTEGER NOT NULL,
-    Relationship INTEGER NOT NULL CHECK (Relationship IN (0, 1)),
+    Relationship INTEGER NOT NULL CHECK (Relationship IN (0, 1)), -- sqlite constraint
     FOREIGN KEY (User1Id) REFERENCES Users(Id),
     FOREIGN KEY (User2Id) REFERENCES Users(Id)
 );

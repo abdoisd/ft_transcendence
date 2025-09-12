@@ -6,8 +6,11 @@ import { ProfileView } from './views/profile.ts';
 import { ProfileEditView } from './views/profileEdit.ts';
 import { LoginWithGoogle, existingUser, NewUser } from './views/loginWithGoogle.ts';
 import { friendsView, addFriendView, listFriendsView } from './views/friends.ts';
+import { Settings } from './views/settings.ts';
 
-import { User } from './Business Layer/user.ts';
+import { UserDTO } from './business layer/user.ts';
+
+import { post } from "./views/request.ts";
 
 type RoutePath = keyof typeof routes;
 export var routes = {
@@ -21,6 +24,7 @@ export var routes = {
 		// '/profile/matchHistory': ProfileMatchHistoryView,
 	// '/game': gameView,
 	// '/chat': chatView,
+	"/settings": Settings
 };
 
 export async function autoLogin()
@@ -42,7 +46,7 @@ export async function autoLogin()
 			clsGlobal.LoggedInUser = null;
 		else
 		{
-			clsGlobal.LoggedInUser = Object.assign(new User(-1, "", "", "", -1, -1, null, null), user);
+			clsGlobal.LoggedInUser = Object.assign(new UserDTO(-1, "", "", "", -1, -1, null, null), user);
 
 			console.debug("Filling User: ", clsGlobal.LoggedInUser);
 		}
@@ -87,28 +91,46 @@ function handleView (event?, path?: string | null) {
 	
 	console.debug("Handling route: " + path);
 
-	autoLogin() // can we login with session, set clsGlobal.LoggedInUser or not
+	autoLogin()
 	.then(() => {
+
 		if (path != "/newUser" && path != "/existingUser")
 		{
-			// check login
+			// check auto login
 			if (!clsGlobal.LoggedInUser)
 			{
 				console.debug("LoggedInUser not filled");
-				LoginWithGoogle(); // I can now wait it bc it's the last
+				LoginWithGoogle(); // this send to me to new user or existing user
 				return ;
 			}
 			else
 				console.debug("LoggedInUser filled");
 		}
+		
+		if (path == "/existingUser")
+		{
+			// just protect frontend view
+			fetch("/validateSession", {
+				method: "POST",
+				credentials: "include", // to send cookies
+			})
+			.then(response => {
+				if (!response.ok)
+				{
+					LoginWithGoogle();
+					return ;
+				}
+			})
+		}
 
 		// tmp
 		console.debug("jwt in localStorage: ", localStorage.getItem("jwt"));
 
+		// this is the one
 		// login success
 		// update user last activity
-		clsGlobal.LoggedInUser?.update();
-		
+		// clsGlobal.LoggedInUser?.update();
+
 		// load home
 		HomeView();
 		if (path == '/') // home view is default

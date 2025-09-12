@@ -22,23 +22,26 @@ import path from "path";
 import { blue, red, yellow, green, magenta, cyan } from "./global.ts";
 
 // routes
-import { UserRoutes } from "./data access layer/user.ts"; // not the same case here that made the problem
+import { UserRoutes } from "./data access layer/user.ts";
 import { OAuth2Routes } from "./oauth2.ts";
 import { relationshipRoutes } from "./data access layer/relationship.ts"
+import { Enable2faRoutes } from "./2fa.ts";
 
-export const server = Fastify({
-	// logger: true
-	// logger: {
-	// 	transport: {
-	// 		target: 'pino-pretty',   // Use pino-pretty as a transport
-	// 		options: {
-	// 	  		colorize: true,        // Add colors
-	// 	  		translateTime: 'SYS:standard', // Human-readable timestamp
-	// 	  		ignore: 'pid,hostname' // Optional: hide pid and hostname
-	// 		}
-	// 	}
-	// }
+export const server = Fastify();
+// REGISTER PLUGINS
+server.register(cookie, {});
+server.register(multipart);
+server.register(fastifyStatic, {
+	root: path.join(process.cwd(), "./public"),
 });
+server.setNotFoundHandler((request, reply) => {
+	if (request.url.split("/").length > 2)
+		return reply.status(404).send();
+	reply.sendFile("index.html");
+});
+server.register(fastifyJwt, {
+	secret: process.env.JWT_SECRET
+})
 
 // prometheus
 import client from 'prom-client';
@@ -50,13 +53,12 @@ const requestCounter = new client.Counter({
 	labelNames: ['request_method', 'requested_file', 'response_status']
 });
 register.registerMetric(requestCounter);
-server.addHook('onResponse', (request, reply, done) => { // each response have it's elapsed time
+server.addHook('onResponse', (request, reply, done) => {
 requestCounter.inc({
 	request_method: request.method,
 	requested_file: request.url,
 	response_status: reply.statusCode
 	});
-	// console.debug(blue, "onResponse");
 	done();
 });
 server.get('/metrics', async (request, reply) => {
@@ -76,76 +78,56 @@ connectedToSqlite.set(0);
 // import { logstash } from "./logstash.ts";
 // logstash();
 
-// vault client
-import vaultFactory from 'node-vault'; // vault client for node
+// vault
+import vaultFactory from 'node-vault';
 const vault = vaultFactory({
 	apiVersion: 'v1',
 	endpoint: 'https://vault-server:8200',
 	token: process.env.VAULT_TOKEN,
 	requestOptions: {
-		strictSSL: false // tells node-vault to trust vault server certificate
+		strictSSL: false
 	}
 });
-// to get live secret from vault
-// if we change secret in vault, we don't need to restart server
 export async function vaultGoogleClientSecret(): Promise<string>
 {
 	return vault.read('secret/data/node-app')
 	.then((result) => {
-		// console.log(yellow, result.data.data.CLIENT_SECRET);
 		return result.data.data.CLIENT_SECRET;
 	});
 }
-// usage
-// console.log(yellow, await vaultGoogleClientSecret());
 
 
 // ==================================================================================================
 
 
-// request, status
+// request and it's response
 server.addHook('onSend', async (request, reply, payload) => {
 	console.info(magenta, "Request to server: " + request.method + " " + request.url);
-	// if (request.body)
-	// console.info(magenta, "Request body: ", request.headers, request.body);
-	// if (request.method == "POST" || request.method == "PUT")
-	// 	console.info(magenta, "Server response: " + reply.statusCode, payload);
-	// else
-	// console.info(magenta, "Server response: " + reply.statusCode);
 	console.info(magenta, "Server response: " + reply.statusCode);
-	console.info(magenta, payload);
-	// console.info(magenta, "Server response: " + reply);
 });
 
-// REGISTER PLUGINS
-server.register(cookie, {});
-server.register(multipart);
-// serving all files in frontend/public
-server.register(fastifyStatic, {
-	root: path.join(process.cwd(), "./public"),
-});
-server.setNotFoundHandler((request, reply) => {
-	if (request.url.split("/").length > 2) // if has more that one /
-		return reply.status(404).send();
-	reply.sendFile("index.html");
-});
-server.register(fastifyJwt, {
-	secret: process.env.JWT_SECRET
-})
+// // for timing things
+// server.addHook('onRequest', async (request) => {
+// 	console.info(magenta, "Request to server: " + request.method + " " + request.url);
+// });
+// server.addHook('onResponse', async (request, reply) => {
+// 	console.info(magenta, "Server response: " + reply.statusCode);
+// });
+
 
 const start = async () =>
 {
     try
     {
 		// register routes
-		UserRoutes(); // register user routes
-		OAuth2Routes(); // register oauth2 routes
+		UserRoutes();
+		OAuth2Routes();
 		server.register(relationshipRoutes);
+		server.register(Enable2faRoutes);
 
 		server.ready(err => {
 			if (err) throw err;
 		  
-			// Print all routes
 			console.log(server.printRoutes())
 		});
 		

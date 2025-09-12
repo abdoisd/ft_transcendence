@@ -87,7 +87,7 @@ server.put('/users', async (request, reply) => {
 	// user.AvatarPath = userObj.AvatarPath;
 	// user.Wins = userObj.Wins;
 	// user.Losses = userObj.Losses;
-	
+
 	user.update();
 	reply.send();
 });

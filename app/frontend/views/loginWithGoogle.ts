@@ -1,9 +1,11 @@
-import { User } from '../Business Layer/user.ts';
+import { UserDTO } from '../business layer/user.ts';
+import { TwoFAView } from './2fa.ts';
 import { HomeView } from './home.ts';
+import { getOnlyFetch } from './request.ts';
 
 export function LoginWithGoogle() {
-	window.history.replaceState({}, '', '/loginWithGoogle');
-	document.getElementById("root")!.innerHTML = profileViewStaticPart;
+	window.history.replaceState({}, '', '/loginGoogle');
+	document.getElementById("body")!.innerHTML = profileViewStaticPart;
 }
 
 function requestBackend() {
@@ -13,18 +15,60 @@ function requestBackend() {
 
 export function NewUser() {
 
-	// HERE
 	const params = new URLSearchParams(window.location.search);
+
+	// // just protect frontend view
+	// getOnlyFetch("/data/user/getById2", {Id: params.get("Id")})
+	// .then((response) => {
+	// 	if (!response.ok)
+	// 	{
+			
+			
+	// 		LoginWithGoogle();
+	// 		return ;
+	// 	}
+	// });
+
+	// just protect frontend view
+	getOnlyFetch("/data/user/getById2", {Id: params.get("Id")})
+	.then((response) => {
+		if (!response.ok)
+		{
+
+			// validate session first
+			fetch("/validateSession", {
+				method: "POST",
+				credentials: "include", // to send cookies
+			})
+			.then(response => {
+				if (!response.ok)
+				{
+					LoginWithGoogle();
+					return ;
+				}
+				else
+				{
+					HomeView();
+					return ;
+				}
+			})
+
+		}
+	});
 
 	const jwt = params.get('jwt');
 	console.debug("setting jwt in localStorage: ", jwt);
 	localStorage.setItem("jwt", jwt);
 	console.debug("jwt in localStorage: ", localStorage.getItem("jwt"));
 	
-	document.getElementById("root")!.innerHTML = usernameAvatarForm;
+	document.getElementById("body")!.innerHTML = usernameAvatarForm;
 };
 
-export function existingUser() {
+// this shows home view
+
+//? 2FA
+export async function existingUser() { // cookie is set automatically
+
 	// get user from query string
 	const params = new URLSearchParams(window.location.search);
 
@@ -34,15 +78,30 @@ export function existingUser() {
 		return ;
     }
 
-	// HERE
+	const userId = Number(params.get('Id'));
+
+	//? 2FA
+	// ask server is user enabled 2fa
+	const response = await getOnlyFetch("/data/user/enabled2FA", { Id: userId });
+	if (response.ok)
+	{
+		console.debug("User has 2FA enabled, showing 2FA form");
+		clsGlobal.userId = userId;
+		TwoFAView();
+		return ;
+	}
+	else
+		console.debug("User has NOT 2FA enabled, access grant");
+
+	// EVERYTHING IS COOL, USER AUTHENTICATED
+	// setting jwt in localStorage
 	const jwt = params.get('jwt');
 	console.debug("setting jwt in localStorage: ", jwt);
 	localStorage.setItem("jwt", jwt);
-	console.debug("jwt in localStorage: ", localStorage.getItem("jwt"));
 
-	// if invalid query, what will happen is 
+	// if invalid query?
 	console.debug("Filling loggedInUser");
-	globalThis.clsGlobal.LoggedInUser = new User(
+	globalThis.clsGlobal.LoggedInUser = new UserDTO(
         Number(params.get('Id')),
         params.get('GoogleId') || '',
         params.get('Username') || null,
@@ -66,7 +125,7 @@ async function usernameAvatarFormHandleSubmit(event: Event)
 	const usernameElement = document.getElementById("username") as HTMLInputElement;
 	const avatarElement = document.getElementById("avatar") as HTMLInputElement;
 
-	const user: User = await User.getByUsername(usernameElement.value);
+	const user: UserDTO = await UserDTO.getByUsername(usernameElement.value);
 	if (user)
 	{
 		console.debug("Username taken");
@@ -104,10 +163,9 @@ async function usernameAvatarFormHandleSubmit(event: Event)
     	.then(async response => { // is then gonna wait for this
 			if (response.ok)
 			{
-				
-				
+
 				console.debug("Filling loggedInUser");
-				const user: User = await User.getById(Number(Id));
+				const user: UserDTO = await UserDTO.getById(Number(Id));
 				globalThis.clsGlobal.LoggedInUser = user;
 
 				HomeView();
@@ -135,13 +193,10 @@ async function usernameAvatarFormHandleSubmit(event: Event)
 window.requestBackend = requestBackend;
 window.usernameAvatarFormHandleSubmit = usernameAvatarFormHandleSubmit;
 
-// this called route
-const profileViewStaticPartOld = `
-<a href="/loginGoogle">loginWithGoogle</a> // to request from backend
-`;
-
 const profileViewStaticPart = `
-<button id="myButton" onclick="requestBackend()">Login With Google</button>
+<div style="grid-column: 1 / -1; grid-row: 1 / -1; display: flex; align-items: center; justify-content: center;">
+	<button id="myButton" onclick="requestBackend()">Login With Google</button>
+</div>
 `;
 
 // ask for username and avatar

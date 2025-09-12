@@ -1,4 +1,4 @@
-import { User } from "../Business Layer/user.ts";
+import { UserDTO } from "../business layer/user.ts";
 
 export function ProfileView()
 {
@@ -11,7 +11,7 @@ export function ProfileView()
 		// loses
 
 	// get user from global
-	const user: User = clsGlobal.LoggedInUser!;
+	const user: UserDTO = clsGlobal.LoggedInUser!;
 	if (user)
 	{
 		document.getElementById("Username")!.textContent = user.Username;
@@ -25,12 +25,9 @@ export function ProfileView()
 }
 
 const profileViewStaticPart = `
-Username: <span id="Username"></span><br>
-Avatar: <img id="Avatar" src="" style="width: 100px; height: auto;" alt="avatar"><br>
-Wins: <span id="Wins"></span><br>
-Losses: <span id="Losses"></span>
-<br>
-<a href="/profileEdit" onclick="route()">Edit</a>
-<br>
+<div><span id="Username" style="margin-right: 10px;"></span><a href="/profileEdit" onclick="route()">Edit</a></div>
+<img id="Avatar" src="" style="width: 100px; height: auto;" alt="avatar">
+<div>Wins: <span id="Wins"></span></div>
+<div>Losses: <span id="Losses"></span></div>
 <p>Match history:</p>
 `;

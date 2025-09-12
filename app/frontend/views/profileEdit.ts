@@ -1,4 +1,4 @@
-import { User } from "../business layer/user.ts";
+import { UserDTO } from "../business layer/user.ts";
 import { route } from "../frontend.ts";
 
 export function ProfileEditView()
@@ -71,11 +71,9 @@ function EditUser(event: Event)
 					if (response.ok)
 					{
 						// update global logged in user info
-						const user: User = await User.getById(Number(globalThis.clsGlobal.LoggedInUser.Id));
+						const user: UserDTO = await UserDTO.getById(Number(globalThis.clsGlobal.LoggedInUser.Id));
 						globalThis.clsGlobal.LoggedInUser = user;
 	
-						alert("Profile updated");
-						// render profile
 						route(null, "/profile");
 					}
 					else
@@ -116,11 +114,10 @@ function EditUser(event: Event)
 				if (response.ok)
 				{
 					// update global logged in user info
-					const user: User = await User.getById(Number(globalThis.clsGlobal.LoggedInUser.Id));
+					const user: UserDTO = await UserDTO.getById(Number(globalThis.clsGlobal.LoggedInUser.Id));
 					globalThis.clsGlobal.LoggedInUser = user;
 
-					alert("Profile updated");
-					route(null, "/profile");
+					route(null, "/profile"); // calling route just bc of history
 				}
 				else
 					document.write("Error uploading profile. Please try again.");
@@ -138,7 +135,6 @@ function EditUser(event: Event)
 
 
 }
-
 window.EditUser = EditUser;
 
 const profileEditViewStaticPart = `

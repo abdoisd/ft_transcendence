@@ -12,19 +12,19 @@ const { publicKey, privateKey } = crypto.generateKeyPairSync('rsa', {
   privateKeyEncoding: { type: 'pkcs8', format: 'pem' }
 });
 
-console.log("\n", publicKey);
-console.log(privateKey);
+// console.log("\n", publicKey);
+// console.log(privateKey);
 
 // Sign data
 const sign = crypto.createSign('SHA256');
 sign.update('Hello, world!');
 const signature = sign.sign(privateKey, 'hex'); // we sign data with some secret
 
-console.log('Signature:', signature, "\n");
+// console.log('Signature:', signature, "\n");
 
 // Verify signature
 const verify = crypto.createVerify('SHA256');
 verify.update('Hello, world!');
 const isVerified = verify.verify(publicKey, signature, 'hex');
 
-console.log('Signature valid:', isVerified);
+// console.log('Signature valid:', isVerified);

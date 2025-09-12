@@ -1,7 +1,7 @@
 
 // TOKENS ARE NOT SET HERE
 
-export class User
+export class UserDTO
 {
 	Id: number;
 	// GoogleId: string;
@@ -34,7 +34,7 @@ export class User
 			return [];
 		}
 		const usersArray = await response.json();
-		const users: User[] = usersArray.map((userObject: any) => Object.assign(new User(-1, "", "", "", -1, -1), userObject));
+		const users: UserDTO[] = usersArray.map((userObject: any) => Object.assign(new UserDTO(-1, "", "", "", -1, -1), userObject));
 		return users;
 	}
 
@@ -57,16 +57,16 @@ export class User
 		return await get("/data/user/getByUsername", { username: tmp });
 	}
 
-	async add(): Promise<boolean> {
-        const response = await fetch(`/data/user/add`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(this),
-        });
-        if (!response.ok) return false;
-        this.Id = (await response.json()).Id;
-		return true;
-    }
+	// async add(): Promise<boolean> {
+    //     const response = await fetch(`/data/user/add`, {
+    //         method: "POST",
+    //         headers: { "Content-Type": "application/json" },
+    //         body: JSON.stringify(this),
+    //     });
+    //     if (!response.ok) return false;
+    //     this.Id = (await response.json()).Id;
+	// 	return true;
+    // }
 
 	//?
 	async update(): Promise<boolean> {

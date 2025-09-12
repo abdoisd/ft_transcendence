@@ -16,3 +16,9 @@ app/frontend/public/output.css
 .DS_Store
 
 # for package-lock.json, we are working with an app, so we keep it
+
+# additional
+/app/backend/tests
+/app/backend/test
+/html's/
+/tmp/

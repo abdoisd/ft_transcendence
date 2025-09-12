@@ -1,6 +1,6 @@
 
 import { get } from "./request.ts"
-import { User } from "../business layer/user.ts"
+import { UserDTO } from "../business layer/user.ts"
 import { Relationship } from "../business layer/relationship.ts";
 
 export function friendsView()
@@ -39,14 +39,14 @@ const addFriendViewStaticPart: string = `
 <div id="result"></div>
 `;
 
-function userMiniProfile(user: User)
+function userMiniProfile(user: UserDTO)
 {
 	const btnAddFriend = "<button onclick='addFriend()'>add as friend</button>";
 	const divContent = "user: id: " + user.Id + " username: " + user.Username + " " + btnAddFriend;
 	return divContent;
 }
 
-var foundUser: User;
+var foundUser: UserDTO;
 
 async function searchUserButton(event?: Event)
 {
@@ -60,7 +60,7 @@ async function searchUserButton(event?: Event)
 	console.debug("setting jwt to request: ", jwt);
 	
 	// get
-	foundUser = await User.getByUsername((document.getElementById("txtUsername") as HTMLInputElement).value);
+	foundUser = await UserDTO.getByUsername((document.getElementById("txtUsername") as HTMLInputElement).value);
 	// foundUser = await get("/data/user/getByUsername", { username: (document.getElementById("txtUsername") as HTMLInputElement).value }, jwt)
 	if (foundUser)
 		resultDiv.innerHTML = userMiniProfile(foundUser);
@@ -82,7 +82,6 @@ async function addFriend()
 		if (userFriend.Id == foundUser.Id)
 		{
 			alert("You are already friends with this user");
-			throw new Error("Already friends");
 		}
 	});
 	
