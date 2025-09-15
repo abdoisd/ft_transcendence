@@ -164,7 +164,6 @@ class UserDTO
 
 export function UserRoutes()
 {
-	//?
 	server.decorate('mustHaveToken', async (request, reply) => {
 		try
 		{
@@ -190,27 +189,29 @@ export function UserRoutes()
 		try
 		{
 			await request.jwtVerify();
+
 			const payload = request.user;
 
-			// console.log(yellow, 'JWT payload:', payload);
-
-			// tmp
 			if (payload.IsRoot)
 			{
 				console.log(yellow, 'Admin access granted');
 				return ;
 			}
-			
-			// if user id and not the same in id in token, reject
+
+			// console.debug(yellow, "here 1")
+
 			if (request.method == "PUT")
 			{
 				const user = request.body;
-				if (user.Id !== payload.Id)
+				if (user.Id != payload.Id)
 					return reply.status(403).send({ error: 'Forbidden' }); // Forbidden
 			}
 			else if (request.method == "DELETE" || request.method == "GET") // get for friends
 			{
-				const Id = (request.query as { Id: number }).Id;
+
+			// console.debug(yellow, "here 2")
+
+				const Id = request.query.Id;
 				if (!Id) // google id
 				{
 					const GoogleId = request.query.GoogleId;
@@ -228,6 +229,8 @@ export function UserRoutes()
 				}
 				else
 				{
+			// console.debug(yellow, "here 3")
+
 					if (Id != payload.Id)
 						return reply.status(403).send({ error: 'Forbidden' }); // Forbidden
 				}
@@ -235,6 +238,7 @@ export function UserRoutes()
 		}
 		catch (err)
 		{
+			// console.debug(yellow, "here 4")
 			return reply.status(401).send({ error: err }); // Unauthorized
 		}
 	});
@@ -358,24 +362,29 @@ export function UserRoutes()
 			reply.status(404).send();
 	});
 
-	server.put('/data/user/update', { preHandler: server.byItsOwnUser }, (request, reply) => {
-		const user: User = request.body as User;
-		db.run("update users set Username = ?, AvatarPath = ?, Wins = ?, Losses = ?, SessionId = ?, ExpirationDate = ?, LastActivity = ?, TOTPSecretPending = ?, TOTPSecret = ? where Id = ?",
-			[user.Username, user.AvatarPath, user.Wins, user.Losses, user.SessionId, user.ExpirationDate, new Date(), user.TOTPSecretPending, user.TOTPSecret, user.Id], function(err) {
-			if (err) // useless bc database throws to server and server return 500
-			{
-				console.log(red, 'Error: get /data/user/update: ', err);
-				reply.status(500).send();
-			}
-			else
-			{
-				if (this.changes < 1)
-					reply.status(500).send();
-				else
-					reply.send();
-			}
-		});
-	});
+	// // removed, bc it updates sensitive data
+	// server.put('/data/user/update', { preHandler: server.byItsOwnUser }, (request, reply) => {
+
+	// 	console.info(green, "PUT users");
+		
+	// 	const user = request.body;
+		
+	// 	db.run("update users set Username = ?, AvatarPath = ?, Wins = ?, Losses = ?, SessionId = ?, ExpirationDate = ?, LastActivity = ?, TOTPSecretPending = ?, TOTPSecret = ? where Id = ?",
+	// 		[user.Username, user.AvatarPath, user.Wins, user.Losses, user.SessionId, user.ExpirationDate, new Date(), user.TOTPSecretPending, user.TOTPSecret, user.Id], function(err) {
+	// 		if (err) // useless bc database throws to server and server return 500
+	// 		{
+	// 			console.log(red, 'Error: get /data/user/update: ', err);
+	// 			reply.status(500).send();
+	// 		}
+	// 		else
+	// 		{
+	// 			if (this.changes < 1)
+	// 				reply.status(500).send();
+	// 			else
+	// 				reply.send();
+	// 		}
+	// 	});
+	// });
 
 	server.delete('/data/user/delete', { preHandler: server.byItsOwnUser }, (request, reply) => {
 		const { Id } = request.query as { Id: number };
@@ -403,7 +412,7 @@ export function UserRoutes()
 		reply.send(await User.getFriends(Id));
 	});
 
-	server.get('/data/user/enabled2FA', { preHandler: server.byItsOwnUser }, async (request, reply) => {
+	server.get('/data/user/enabled2FA', async (request, reply) => {
 		const Id = (request.query as { Id: number }).Id; // if id is not in query, fastify send by request
 		const user = await User.getById(Id);
 		if (!user)

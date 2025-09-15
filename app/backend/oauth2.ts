@@ -18,15 +18,6 @@ export function setSessionIdCookie(user: User, reply: FastifyReply)
 	const sessionId = Guid();
 
 	console.debug(blue, "Setting sessionId for user");
-	// fetch(config.WEBSITE_URL + `/data/user/update`, { // update user with sessionId and expiration date
-	// 	method: "PUT",
-	// 	headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.ROOT_TOKEN}` },
-	// 	body: JSON.stringify(new User(user.Id, user.GoogleId, user.Username, user.AvatarPath, user.Wins, user.Losses, sessionId, new Date(Date.now() + 60000 * 60 * 24)), null, user.TOTPSecretPending, user.TOTPSecret), // expire in 1 day
-	// })
-	// .then(res => {
-	// 	if (!res.ok)
-	// 		console.error(red, "Error setting sessionId for user");
-	// })
 	user.SessionId = sessionId;
 	user.ExpirationDate = new Date(Date.now() + 60000 * 60 * 24); // expire in 1 day
 	const user2: User = Object.assign(new User(-1, "", "", "", -1, -1), user);
@@ -101,15 +92,11 @@ export function OAuth2Routes() {
 
 		const tokens = await googleResponseForToken.json();
 
-		console.log(yellow, "HERE 1, tokens: ", tokens);
-
 		const userRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
 			headers: { Authorization: `Bearer ${tokens.access_token}` }
 		});
 		const userObjFromGoogle = await userRes.json();
-		console.log("User info:", userObjFromGoogle); // GOT USER INFO
-
-		console.log(yellow, "HERE 2, tokens.access_token: ", tokens.access_token);
+		// console.log("User info:", userObjFromGoogle); // GOT USER INFO
 
 		var response = await fetch(config.WEBSITE_URL + `/data/user/getByGoogleId?GoogleId=${encodeURIComponent(userObjFromGoogle.id)}`, { headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` } }); // full url here, bc the browser that handle that is the frontend
 
@@ -125,7 +112,7 @@ export function OAuth2Routes() {
 				const jwt = createJwt(user.Id);
 				console.debug(yellow, );
 				console.debug(yellow, "server set jwt=" + jwt);
-				
+
 				reply.redirect(`https://localhost/newUser?Id=${user.Id}&jwt=${jwt}`);
 			}
 			else
@@ -133,15 +120,29 @@ export function OAuth2Routes() {
 				console.debug(blue, "User has username");
 				// user already registered in website
 
+				// 2FA 2
+				// if user enabled 2FA
+				const userr = Object.assign(new User(-1, "", "", "", -1, -1), user);
+				if (userr.enabled2FA())
+				{
+					// console.debug(yellow, "userr.enabled2FA(), no session and no jwt");
+					
+					// no session and no jwt
+					const params = querystring.stringify({ ...user });
+					reply.redirect("https://localhost" + `/existingUser?Id=${user.Id}`); // removed all query params
+					return ;
+				}
+
 				// SESSION ID
 				setSessionIdCookie(user, reply);
 
-				//? 2FA
+				// 2FA
 				const jwt = createJwt(user.Id);
 				console.debug(yellow, "server set jwt=" + jwt); // this return jwt, hhhhhhh
 				
 				const params = querystring.stringify({ ...user });
 				reply.redirect("https://localhost" + `/existingUser?${params}&jwt=${jwt}`); // redirect to home
+				return ;
 			}
 		}
 		else
@@ -161,7 +162,7 @@ export function OAuth2Routes() {
 				console.debug(yellow, );
 				console.debug(yellow, "server set jwt=" + jwt);
 
-				//? 2FA
+				// 2FA
 				reply.redirect(`https://localhost/newUser?Id=${userId}&jwt=${jwt}`);
 			}
 			else
@@ -172,8 +173,6 @@ export function OAuth2Routes() {
 		}
 
 	});
-
-	console.log(yellow, "HERE 3");
 
 	// update username or avatar or both
 	server.post("/uploadProfile", { preHandler: server.byItsOwnUser }, async (req, reply) => {
@@ -228,12 +227,15 @@ export function OAuth2Routes() {
 					// first avatar
 					fileName = Guid() + ".png";
 
-					// update user with first avatar path
-					fetch(config.WEBSITE_URL + `/data/user/update`,{
-						method: "PUT",
-						headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }, // is this important, for fastify I think
-						body: JSON.stringify(new User(user.Id, user.GoogleId, user.Username, fileName!, user.Wins, user.Losses, user.SessionId, user.ExpirationDate)), //?
-					})
+					user.AvatarPath = fileName;
+					user.update();
+					
+					//! HERE
+					// fetch(config.WEBSITE_URL + `/data/user/update`,{
+					// 	method: "PUT",
+					// 	headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }, // is this important, for fastify I think
+					// 	body: JSON.stringify(new User(user.Id, user.GoogleId, user.Username, fileName!, user.Wins, user.Losses, user.SessionId, user.ExpirationDate)), //?
+					// })
 				}
 				for (const file of savedFiles) {
 					if (file) {
@@ -288,13 +290,16 @@ export function OAuth2Routes() {
 		// update user username and avatar path in db
 		console.debug(blue, "Updating user in db, fileName:", fileName);
 		const user: User = new User(Id!, userr.GoogleId, username!, fileName!, 0, 0);
-		const response = await fetch(config.WEBSITE_URL + `/data/user/update`,{ // server domain
-			method: "PUT",
-			headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }, // is this important, for fastify I think
-			body: JSON.stringify(user),
-		});
+		//! HERE
+		// const response = await fetch(config.WEBSITE_URL + `/data/user/update`,{ // server domain
+		// 	method: "PUT",
+		// 	headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }, // is this important, for fastify I think
+		// 	body: JSON.stringify(user),
+		// });
 
-		if (response.ok)
+		const response = await user.update();
+
+		if (response)
 		{
 			// SESSION ID
 			setSessionIdCookie(user, reply);
@@ -310,9 +315,11 @@ export function OAuth2Routes() {
 	// don't protect it bc, if he is not the user, this is not going to be valid
 	server.post("/validateSession", (request, reply) => {
 
-		console.debug(blue, "/validateSession");
+		console.debug(yellow, "/validateSession");
 
 		const { sessionId } = request.cookies;
+
+		// console.debug(yellow, "sessionId from cookie:", sessionId);
 
 		if (!sessionId)
 		{
@@ -321,7 +328,7 @@ export function OAuth2Routes() {
 		}
 
 		db.get("SELECT * FROM Users WHERE SessionId = ?", [sessionId], (err, row) => {
-			if (err) {
+			if (err) { // to check this
 				console.error(red, 'Error querying user by sessionId:', err);
 				return reply.status(500).send();
 			}
@@ -329,11 +336,11 @@ export function OAuth2Routes() {
 			{
 				console.debug(blue, "User in db found by SessionId");
 
-				if (new Date(row.ExpirationDate) < new Date())
+				if (row.ExpirationDate < (new Date()).getTime())
 				{
 					console.debug(blue, "Session expired");
 
-					return reply.status(404).send();
+					return reply.status(401).send();
 				}
 
 				reply.send(row);

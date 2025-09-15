@@ -11,7 +11,6 @@ export async function Settings()
 	.then((data) => {
 		console.log("data:", data);
 
-		// display qr code image
 		const qrCodeElement = document.getElementById("qrcode") as HTMLImageElement;
 		qrCodeElement.src = data.qrCode;
 		
@@ -25,7 +24,7 @@ const settingsViewStaticPart = `
 	<img id="qrcode" src="" style="margin: 10px 0px;" />
 	<form onsubmit="verify(event);"> <!-- verify code -->
 		<input type="text" id="2fa-code" placeholder="Enter code from app" />
-		<input type="submit" value="Validate">
+		<input type="submit" value="Enable">
 	</form>
 	<span id="result"></span>
 `;
@@ -39,7 +38,7 @@ async function verify(event)
 	const response = await getOnlyFetch("/auth/2fa/verify", { code: code, Id: clsGlobal.LoggedInUser.Id });
 	if (response.ok)
 	{
-		document.getElementById("result")!.innerText = "valid";
+		document.getElementById("result")!.innerText = "2FA Enabled Successfully";
 		const data = await response.json();
 		localStorage.setItem("jwt", data.jwt); // update jwt with new one
 	}

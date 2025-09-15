@@ -6,6 +6,7 @@ import qrcode from "qrcode";
 import { yellow } from './global.ts';
 import { User } from './data access layer/user.ts';
 import { createJwt } from './oauth2.ts';
+import { setSessionIdCookie } from './oauth2.ts';
 
 export function Enable2faRoutes()
 {
@@ -30,9 +31,11 @@ export function Enable2faRoutes()
 
 	});
 
-	// verify code with 2fa code
-	server.get("/auth/2fa/verify", { preHandler: server.byItsOwnUser }, async (request, reply) => 
+	//! where I verify with permanent secret !!!!!!!!
+	server.get("/auth/2fa/verify", async (request, reply) => 
 	{
+		console.debug(yellow, "/auth/2fa/verify");
+		
 		const userId = request.query.Id;
 		const code = request.query.code;
 
@@ -58,8 +61,11 @@ export function Enable2faRoutes()
 			user.TOTPSecret = secret;
 			user.update();
 
-			//? 2FA
+			// 2FA
 			const jwt = createJwt(user.Id);
+
+			// set session cookie here
+			setSessionIdCookie(user, reply);
 			
 			reply.send( {jwt: jwt, user: user} );
 		}

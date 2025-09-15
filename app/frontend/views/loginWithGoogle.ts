@@ -4,7 +4,7 @@ import { HomeView } from './home.ts';
 import { getOnlyFetch } from './request.ts';
 
 export function LoginWithGoogle() {
-	window.history.replaceState({}, '', '/loginGoogle');
+	window.history.replaceState({}, '', '/login');
 	document.getElementById("body")!.innerHTML = profileViewStaticPart;
 }
 
@@ -66,21 +66,24 @@ export function NewUser() {
 
 // this shows home view
 
-//? 2FA
+// 2FA
 export async function existingUser() { // cookie is set automatically
+
+	console.debug("existingUser()");
 
 	// get user from query string
 	const params = new URLSearchParams(window.location.search);
 
 	if (!params.has('Id')) {
-		console.error("Invalid user data in query");
-        globalThis.clsGlobal.LoggedInUser = null;
+		// console.error("Invalid user data in query");
+        // globalThis.clsGlobal.LoggedInUser = null;
+		LoginWithGoogle();
 		return ;
     }
 
 	const userId = Number(params.get('Id'));
 
-	//? 2FA
+	// 2FA
 	// ask server is user enabled 2fa
 	const response = await getOnlyFetch("/data/user/enabled2FA", { Id: userId });
 	if (response.ok)

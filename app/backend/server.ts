@@ -43,6 +43,10 @@ server.register(fastifyJwt, {
 	secret: process.env.JWT_SECRET
 })
 
+// game / socket.io
+import { webSocket } from "./webSocket.ts";
+webSocket();
+
 // prometheus
 import client from 'prom-client';
 const register = new client.Registry(); // Create a Registry which registers the metrics
@@ -113,7 +117,6 @@ server.addHook('onSend', async (request, reply, payload) => {
 // server.addHook('onResponse', async (request, reply) => {
 // 	console.info(magenta, "Server response: " + reply.statusCode);
 // });
-
 
 const start = async () =>
 {

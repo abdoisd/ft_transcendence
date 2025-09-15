@@ -92,8 +92,15 @@ server.put('/users', async (request, reply) => {
 	reply.send();
 });
 
+server.get("/string", (request, reply) => {
+	return "string";
+});
+server.get("/obj", (request, reply) => {
+	return {obj: "obj"};
+});
+
 try {
-	await server.listen({ host: "0.0.0.0", port: 9000 });
+	await server.listen({ host: "0.0.0.0", port: 3000 });
 }
 catch (err)
 {

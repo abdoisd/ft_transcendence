@@ -11,10 +11,11 @@ fastify.register(fastifyJwt, {
 // Start server
 fastify.listen({ host: "0.0.0.0", port: 7545 }, (err, address) => {
 	if (err) throw err;
-	console.log(`Server running at ${address}`);
 	const token = fastify.jwt.sign({
-	  Id: -1,
-	  IsRoot: 1
-	});
+	  Id: 28,
+	  IsRoot: 0
+	},
+	{ expiresIn: '1m' });
 	console.log(token);
+	fastify.close();
 });

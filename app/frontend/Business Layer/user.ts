@@ -69,19 +69,19 @@ export class UserDTO
     // }
 
 	//?
-	async update(): Promise<boolean> {
-		if (this.Id < 0)
-			return false;
-        const response = await fetch(`/data/user/update`, {
-            method: "PUT",
-            headers: {
-				"Content-Type": "application/json",
-				"Authorization": `Bearer ${localStorage.getItem("jwt")}`
-			},
-            body: JSON.stringify(this),
-        });
-        return response.ok;
-    }
+	// async update(): Promise<boolean> {
+	// 	if (this.Id < 0)
+	// 		return false;
+    //     const response = await fetch(`/data/user/update`, {
+    //         method: "PUT",
+    //         headers: {
+	// 			"Content-Type": "application/json",
+	// 			"Authorization": `Bearer ${localStorage.getItem("jwt")}`
+	// 		},
+    //         body: JSON.stringify(this),
+    //     });
+    //     return response.ok;
+    // }
 
 	async delete(): Promise<boolean> {
 		if (this.Id < 0)

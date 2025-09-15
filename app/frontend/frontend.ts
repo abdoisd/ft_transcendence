@@ -7,6 +7,9 @@ import { ProfileEditView } from './views/profileEdit.ts';
 import { LoginWithGoogle, existingUser, NewUser } from './views/loginWithGoogle.ts';
 import { friendsView, addFriendView, listFriendsView } from './views/friends.ts';
 import { Settings } from './views/settings.ts';
+import { GameRemoteView } from './views/gameRemote.ts';
+import { GameView } from './views/game.ts';
+import { Tournament } from './views/tournament.ts';
 
 import { UserDTO } from './business layer/user.ts';
 
@@ -22,7 +25,9 @@ export var routes = {
 	'/profile': ProfileView,
 		'/profileEdit': ProfileEditView,
 		// '/profile/matchHistory': ProfileMatchHistoryView,
-	// '/game': gameView,
+	'/game': GameView,
+		'/gameRemote': GameRemoteView,
+		'/tournament': Tournament,
 	// '/chat': chatView,
 	"/settings": Settings
 };
@@ -107,29 +112,23 @@ function handleView (event?, path?: string | null) {
 				console.debug("LoggedInUser filled");
 		}
 		
-		if (path == "/existingUser")
-		{
-			// just protect frontend view
-			fetch("/validateSession", {
-				method: "POST",
-				credentials: "include", // to send cookies
-			})
-			.then(response => {
-				if (!response.ok)
-				{
-					LoginWithGoogle();
-					return ;
-				}
-			})
-		}
+		// if (path == "/existingUser")
+		// {
+		// 	// just protect frontend view
+		// 	fetch("/validateSession", {
+		// 		method: "POST",
+		// 		credentials: "include", // to send cookies
+		// 	})
+		// 	.then(response => {
+		// 		if (!response.ok)
+		// 		{
+		// 			LoginWithGoogle();
+		// 			return ;
+		// 		}
+		// 	})
+		// }
 
-		// tmp
-		console.debug("jwt in localStorage: ", localStorage.getItem("jwt"));
-
-		// this is the one
-		// login success
-		// update user last activity
-		// clsGlobal.LoggedInUser?.update();
+		// clsGlobal.LoggedInUser?.update(); // what
 
 		// load home
 		HomeView();

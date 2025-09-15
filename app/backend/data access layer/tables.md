@@ -54,4 +54,28 @@ SELECT name FROM sqlite_master WHERE type='table';
 -- table info
 PRAGMA table_info(Relationships);
 
+-- GAME
+CREATE TABLE IF NOT EXISTS Games (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+    User1Id INTEGER NOT NULL,
+    User2Id INTEGER NULL, -- ai game
+    Date TEXT NOT NULL DEFAULT NULL,
+	WinnerId INTEGER NOT NULL,
+	TournamentId INTEGER NULL, -- game not in tournament
+
+	FOREIGN KEY (User1Id) REFERENCES Users(Id),
+    FOREIGN KEY (User2Id) REFERENCES Users(Id)
+);
+
+INSERT INTO Games (User1Id, User2Id, Date, WinnerId, TournamentId) VALUES
+(1, NULL, '2025-09-15 10:30:00', 1, NULL),
+(2, 3, '2025-09-15 11:00:00', 0, NULL),
+(4, 5, '2025-09-16 09:15:00', 1, 1),
+(6, 7, '2025-09-16 10:45:00', 2, 1),
+(8, NULL, '2025-09-17 14:20:00', 1, 2);
+
+CREATE TABLE IF NOT EXISTS Tournaments (
+    Id INTEGER PRIMARY KEY AUTOINCREMENT,
+);
+
 ```

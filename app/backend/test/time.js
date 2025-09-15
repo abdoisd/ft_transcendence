@@ -24,3 +24,6 @@ console.log(customFormat);
 console.log(timestamp); // prints in yellow in Node
 console.log("Hello");   // prints in green
 console.log({a:1});     // prints in cyan
+
+
+// 1757849431258
