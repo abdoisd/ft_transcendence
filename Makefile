@@ -9,3 +9,8 @@ fclean:
 
 build:
 	docker compose -f srcs/docker-compose.yml build
+
+
+
+down:
+	docker compose -f srcs/docker-compose.yml down
