@@ -1,0 +1,1 @@
+FROM logstash:9.1.3
