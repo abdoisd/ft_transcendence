@@ -32,9 +32,9 @@ export function Enable2faRoutes()
 	});
 
 	//! where I verify with permanent secret !!!!!!!!
-	server.get("/auth/2fa/verify", async (request, reply) => 
+	server.get("/auth/2fa/enable", async (request, reply) => 
 	{
-		console.debug(yellow, "/auth/2fa/verify");
+		console.debug(yellow, "/auth/2fa/enable");
 		
 		const userId = request.query.Id;
 		const code = request.query.code;
@@ -71,6 +71,67 @@ export function Enable2faRoutes()
 		}
 		else
 			reply.status(403).send();
+	});
+
+	server.get("/auth/2fa/verify", async (request, reply) => 
+	{
+		console.debug(yellow, "/auth/2fa/verify");
+		
+		const userId = request.query.Id;
+		const code = request.query.code;
+
+		// // validate with pending secret in db
+		// const user = await User.getById(userId);
+		// const secret = user.TOTPSecretPending;
+		
+		// console.debug(yellow, "secret 2: ", secret);
+
+		// const verified = speakeasy.totp.verify({
+		// 	secret: secret,
+		// 	encoding: "base32",
+		// 	token: code
+		// });
+
+		// if (verified)
+		// {
+		// 	//! STORE PERMANENT
+			
+		// 	const user = await User.getById(userId);
+		// 	user.TOTPSecret = secret;
+		// 	user.update();
+
+		// 	// 2FA
+		// 	const jwt = createJwt(user.Id);
+
+		// 	// set session cookie here
+		// 	setSessionIdCookie(user, reply);
+			
+		// 	reply.send( {jwt: jwt, user: user} );
+		// }
+		// else
+		// 	reply.status(403).send();
+
+		const user = await User.getById(userId);
+		const secret = user.TOTPSecret;
+
+		const verified = speakeasy.totp.verify({
+			secret: secret,
+			encoding: "base32",
+			token: code
+		});
+
+		if (verified)
+		{
+			// 2FA
+			const jwt = createJwt(user.Id);
+			// set session cookie here
+			setSessionIdCookie(user, reply);
+						
+			reply.send( {jwt: jwt, user: user} );
+		}
+		else
+			reply.status(403).send();
+		
 	});
 }
 

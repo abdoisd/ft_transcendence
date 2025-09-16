@@ -35,7 +35,7 @@ async function verify(event)
 
 	const code = (document.getElementById("2fa-code") as HTMLInputElement).value;
 	// send server to verify
-	const response = await getOnlyFetch("/auth/2fa/verify", { code: code, Id: clsGlobal.LoggedInUser.Id });
+	const response = await getOnlyFetch("/auth/2fa/enable", { code: code, Id: clsGlobal.LoggedInUser.Id });
 	if (response.ok)
 	{
 		document.getElementById("result")!.innerText = "2FA Enabled Successfully";

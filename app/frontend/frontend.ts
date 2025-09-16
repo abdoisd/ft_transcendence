@@ -128,7 +128,7 @@ function handleView (event?, path?: string | null) {
 		// 	})
 		// }
 
-		// clsGlobal.LoggedInUser?.update(); // what
+		clsGlobal.LoggedInUser?.update(); // what
 
 		// load home
 		HomeView();
@@ -137,7 +137,14 @@ function handleView (event?, path?: string | null) {
 			window.history.replaceState({}, "", "/");
 			return;
 		}
-		routes[path as RoutePath](); // calling workflow functions
+
+		if (routes[path])
+			routes[path]();
+		else
+		{
+			window.history.replaceState({}, "", "/");
+			HomeView();
+		}
 	});
 };
 window.onpopstate = handleView; // on <- / ->, call handleLocation

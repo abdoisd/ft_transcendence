@@ -84,7 +84,7 @@ export function OAuth2Routes() {
 			body: querystring.stringify({
 				code,
 				client_id: CLIENT_ID,
-				client_secret: await vaultGoogleClientSecret(),
+				client_secret: await vaultGoogleClientSecret(), // REQUESTING FROM VAULT, for each new vault server you must unseal
 				redirect_uri: REDIRECT_URI,
 				grant_type: 'authorization_code'
 			})
@@ -209,14 +209,47 @@ export function OAuth2Routes() {
 		{
 			console.debug(blue, "username is null");
 
-			fetch(config.WEBSITE_URL + `/data/user/getById?Id=${Id}`, {headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }})
-			.then(res => {
-				if (res.ok)
-					return res.json();
-				else
-					throw new Error("User not found");
-			})
-			.then((user: User) => {
+			// fetch(config.WEBSITE_URL + `/data/user/getById?Id=${Id}`, {headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }})
+			// .then(res => {
+			// 	if (res.ok)
+			// 		return res.json();
+			// 	else
+			// 		throw new Error("User not found");
+			// })
+			// .then((user: User) => {
+			// 	if (user.AvatarPath)
+			// 	{
+			// 		// update existing avatar
+			// 		fileName = user.AvatarPath;
+			// 	}
+			// 	else
+			// 	{
+			// 		// first avatar
+			// 		fileName = Guid() + ".png";
+
+			// 		user.AvatarPath = fileName;
+			// 		user.update(); //!
+					
+			// 		//! HERE
+			// 		// fetch(config.WEBSITE_URL + `/data/user/update`,{
+			// 		// 	method: "PUT",
+			// 		// 	headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }, // is this important, for fastify I think
+			// 		// 	body: JSON.stringify(new User(user.Id, user.GoogleId, user.Username, fileName!, user.Wins, user.Losses, user.SessionId, user.ExpirationDate)), //?
+			// 		// })
+			// 	}
+			// 	for (const file of savedFiles) {
+			// 		if (file) {
+			// 			const avatarPath = path.join(process.cwd(), "Avatars", fileName); //!
+			// 			// Save the file
+			// 			const writeStream = fs.createWriteStream(avatarPath);
+			// 			file.pipe(writeStream);
+			// 		}
+			// 	}
+			// })
+
+			const user: User = await User.getById(Id);
+			if (user)
+			{
 				if (user.AvatarPath)
 				{
 					// update existing avatar
@@ -228,7 +261,7 @@ export function OAuth2Routes() {
 					fileName = Guid() + ".png";
 
 					user.AvatarPath = fileName;
-					user.update();
+					user.update(); // Ensure update is awaited and user is an instance of a class with update method
 					
 					//! HERE
 					// fetch(config.WEBSITE_URL + `/data/user/update`,{
@@ -240,12 +273,12 @@ export function OAuth2Routes() {
 				for (const file of savedFiles) {
 					if (file) {
 						const avatarPath = path.join(process.cwd(), "Avatars", fileName); //!
-						// Save the file
+						// Save the file in server local storage
 						const writeStream = fs.createWriteStream(avatarPath);
 						file.pipe(writeStream);
 					}
 				}
-			})
+			}
 
 			return ;
 		}

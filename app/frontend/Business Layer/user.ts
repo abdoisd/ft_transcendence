@@ -50,10 +50,12 @@ export class UserDTO
 	static async getByUsername(username: string)
 	{
 		const tmp = username;
+
 		// const response = await fetch(`/data/user/getByUsername?username=${encodeURIComponent(username)}`);
 		// if (!response.ok) return null;
 		// const userObject = await response.json();
 		// return Object.assign(new User(-1, "", "", "", -1, -1), userObject);
+		
 		return await get("/data/user/getByUsername", { username: tmp });
 	}
 
@@ -68,20 +70,22 @@ export class UserDTO
 	// 	return true;
     // }
 
-	//?
-	// async update(): Promise<boolean> {
-	// 	if (this.Id < 0)
-	// 		return false;
-    //     const response = await fetch(`/data/user/update`, {
-    //         method: "PUT",
-    //         headers: {
-	// 			"Content-Type": "application/json",
-	// 			"Authorization": `Bearer ${localStorage.getItem("jwt")}`
-	// 		},
-    //         body: JSON.stringify(this),
-    //     });
-    //     return response.ok;
-    // }
+	async update(): Promise<boolean> {
+
+		console.debug("UserDTO.update");
+		
+		if (this.Id < 0)
+			return false;
+        const response = await fetch(`/data/user/update`, {
+            method: "PUT",
+            headers: {
+				"Content-Type": "application/json",
+				"Authorization": `Bearer ${localStorage.getItem("jwt")}`
+			},
+            body: JSON.stringify(this),
+        });
+        return response.ok;
+    }
 
 	async delete(): Promise<boolean> {
 		if (this.Id < 0)

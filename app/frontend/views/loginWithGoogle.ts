@@ -48,6 +48,8 @@ export function NewUser() {
 				}
 				else
 				{
+					//!
+					window.history.replaceState({}, '', '/');
 					HomeView();
 					return ;
 				}
@@ -115,6 +117,8 @@ export async function existingUser() { // cookie is set automatically
         params.get('ExpirationDate') ? new Date(params.get('ExpirationDate')!) : null
     );
 
+	//!
+	window.history.replaceState({}, '', '/');
 	HomeView();
 }
 
@@ -171,6 +175,8 @@ async function usernameAvatarFormHandleSubmit(event: Event)
 				const user: UserDTO = await UserDTO.getById(Number(Id));
 				globalThis.clsGlobal.LoggedInUser = user;
 
+				//!
+				window.history.replaceState({}, '', '/');
 				HomeView();
 				// document.write("Profile finished, redirecting to home...");
 			}

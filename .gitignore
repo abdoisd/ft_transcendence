@@ -9,11 +9,12 @@ app/frontend/public/output.css
 # any md file
 *.md
 
+# for intra push
+# ignore any .env file
 # .env
-.env
 
 # any DS_Store file
-*.DS_Store
+.DS_Store
 
 # for package-lock.json, we are working with an app, so we keep it
 
@@ -22,4 +23,7 @@ app/backend/tests
 app/backend/test
 html's
 me
-app/backend/avatars
+
+# all avatars except the default
+app/backend/avatars/*
+!app/backend/avatars/default-avatar.png
