@@ -1,3 +1,4 @@
+server.host: 0.0.0.0
 elasticsearch.hosts: [ http://elasticsearch:9200 ]
 
 monitoring.ui.container.elasticsearch.enabled: true
@@ -5,3 +6,7 @@ monitoring.ui.container.logstash.enabled: true
 
 elasticsearch.username: kibana_system
 elasticsearch.password: ${KIBANA_SYSTEM_PASSWORD}
+
+xpack.security.encryptionKey: ${ES_ENCRYPTION_KEY}
+
+xpack.fleet.agents.fleet_server.hosts: [ ]

@@ -45,6 +45,7 @@ services:
       - ./elk/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
     environment:
       - KIBANA_SYSTEM_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
+      - ES_ENCRYPTION_KEY=${ES_ENCRYPTION_KEY}
     networks:
       - app
 
