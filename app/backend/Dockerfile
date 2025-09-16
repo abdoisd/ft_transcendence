@@ -7,7 +7,7 @@ WORKDIR /backend
 COPY package.json .
 
 RUN npm install \
-	&& apk add sqlite tini bash
+	&& apk add sqlite tini bash && npm install -g nodemon
 
 # ENTRYPOINT ["tini", "--"]
 CMD ["npm","run","dev"]

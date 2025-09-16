@@ -10,7 +10,7 @@ const gameViewStaticPart = `
 <button>local 1v1</button>
 <button onclick="GameRemoteView()">remote 1v1</button>
 <button>3d local 1v1</button>
-<button>AI</button>
+<button onclick="playAgainstAI()">Play Against AI</button>
 <button onclick="JoinATournament()">Join a tournament</button>
 `;
 
@@ -21,3 +21,8 @@ function	JoinATournament()
 	});
 }
 window.JoinATournament = JoinATournament;
+
+
+function playAgainstAI() {
+	console.log("here");
+}

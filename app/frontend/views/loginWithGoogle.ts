@@ -156,6 +156,7 @@ async function usernameAvatarFormHandleSubmit(event: Event)
 		const Id = new URLSearchParams(window.location.search).get("Id");
 		formData.append("Id", Id!);
 
+		//! REQUEST
 		fetch("/uploadProfile", {
     	    method: "POST",
     	    body: formData, // body as object? not string

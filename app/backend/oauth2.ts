@@ -178,9 +178,12 @@ export function OAuth2Routes() {
 	server.post("/uploadProfile", { preHandler: server.byItsOwnUser }, async (req, reply) => {
 
 		console.debug(blue, "/uploadProfile");
+		console.debug(blue, "here");
 		
 		// Get the parts of the multipart form
 		const parts = req.parts();
+
+		console.debug(blue, "here 2");
 	  
 		let username = null;
 		let avatarPath = null;
@@ -203,6 +206,8 @@ export function OAuth2Routes() {
 				}
 			}
 		}
+
+		console.debug(blue, "here 2");
 
 		// only avatar
 		if (username == null)
@@ -262,6 +267,8 @@ export function OAuth2Routes() {
 				await file.pipe(writeStream); // write to it
 			}
 		}
+
+		console.debug(blue, "here 2");
 
 		if (Id == null || username == null) {
 			console.error(red, "Missing Id or username");

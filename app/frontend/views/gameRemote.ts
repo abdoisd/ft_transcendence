@@ -1,11 +1,16 @@
 import { io } from "socket.io-client";
 
-const WHITE = "#FFFFFF";
-const CYAN = "#00FFFF";
-const BRIGHT_YELLOW = "#FFD700";
-const OPAQUE_WHITE = "#37E07B66";
-const DARK_CYAN = "#193C4A";
+// const WHITE = "#FFFFFF";
+// const CYAN = "#00FFFF";
+// const BRIGHT_YELLOW = "#FFD700";
+// const OPAQUE_WHITE = "#37E07B66";
+// const DARK_CYAN = "#193C4A";
 const BALL_RADIUS = 9;
+const SERVER_WIDTH = 1000;
+const SERVER_HEIGHT = 800;
+const PADDLE_WIDTH = 10;
+const PADDLE_HEIGHT = 150;
+
 
 class ClientGame {
 	canvas;
@@ -14,7 +19,7 @@ class ClientGame {
 	rightId;
 	state;
 	looping;
-	
+
 	constructor(canvas, ctx, leftId, rightId) {
 		this.canvas = canvas;
 		this.ctx = ctx;
@@ -41,8 +46,8 @@ class ClientGame {
 		
 		const ctx = this.ctx;
 		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
-		const scaleX = this.canvas.width / 800;
-		const scaleY = this.canvas.height / 600;
+		const scaleX = this.canvas.width / SERVER_WIDTH;
+		const scaleY = this.canvas.height / SERVER_HEIGHT;
 
                     // draw the outline
 
@@ -65,10 +70,10 @@ class ClientGame {
 
 		// paddles 
 		ctx.fillStyle = "#ff1a1a";
-		let paddleWidth = 10 * scaleX;
-		let paddleHeight = 150 * scaleY;
-		ctx.fillRect(10*scaleX - 5, paddles[this.leftId].y*scaleY, paddleWidth, paddleHeight);
-		ctx.fillRect(this.canvas.width - 5 * scaleX - paddleWidth, paddles[this.rightId].y*scaleY, paddleWidth, paddleHeight);
+		let paddleWidth = PADDLE_WIDTH * scaleX;
+		let paddleHeight = PADDLE_HEIGHT * scaleY;
+		ctx.fillRect(0*scaleX, paddles[this.leftId].y*scaleY, paddleWidth, paddleHeight);
+		ctx.fillRect((SERVER_WIDTH - PADDLE_WIDTH)*scaleX, paddles[this.rightId].y*scaleY, paddleWidth, paddleHeight);
 
 		// ball
 		ctx.fillStyle = "red";

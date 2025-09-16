@@ -8,12 +8,7 @@ import { red, green, yellow } from "./global.ts";
 
 export function webSocket()
 {
-	const	wsServer = new Server(server.server, { // fastify.server is an http.Server
-		cors: {
-			origin: "*",
-			methods: ["GET", "POST"]
-		}
-	});
+	const	wsServer = new Server(server.server);
 
 	wsServer.on("connection", (client) => {
 		client.roomId = null;

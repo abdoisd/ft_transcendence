@@ -118,6 +118,8 @@ server.addHook('onSend', async (request, reply, payload) => {
 // 	console.info(magenta, "Server response: " + reply.statusCode);
 // });
 
+import { gameRoutes } from "./game api/game api.ts";
+
 const start = async () =>
 {
     try
@@ -127,6 +129,7 @@ const start = async () =>
 		OAuth2Routes();
 		server.register(relationshipRoutes);
 		server.register(Enable2faRoutes);
+		gameRoutes();
 
 		server.ready(err => {
 			if (err) throw err;

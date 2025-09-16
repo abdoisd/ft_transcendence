@@ -1,4 +1,4 @@
-VAULT_ADDR="https://127.0.0.1:8200"
+://127.0.VAULT_ADDR="https0.1:8200"
 INIT_FILE="vault_init.json"
 
 echo "Waiting for Vault server to be ready..."
@@ -62,7 +62,6 @@ path "secret/data/grafana" {
 EOF
 
 echo VAULT_TOKEN=$ROOT_TOKEN > /me/.env
-
 
 else
     echo "Vault is already initialized."
