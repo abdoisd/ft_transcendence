@@ -30,9 +30,14 @@ services:
     depends_on:
       - elasticsearch
     ports:
-    - 9600:9600
+    - 5044:5044
     networks:
       - app
+    volumes:
+      - ./elk/logstash/config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    environment:
+      - ELASTIC_SEARCH_USERNMAE=${ELASTIC_SEARCH_USERNMAE}
+      - ELASTIC_SEARCH_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
 
 
   kibana:
@@ -44,7 +49,8 @@ services:
     volumes:
       - ./elk/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
     environment:
-      - KIBANA_SYSTEM_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
+      - KIBANA_USERNAME=${KIBANA_USERNAME}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
       - ES_ENCRYPTION_KEY=${ES_ENCRYPTION_KEY}
     networks:
       - app
