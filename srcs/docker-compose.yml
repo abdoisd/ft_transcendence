@@ -19,8 +19,9 @@ services:
     depends_on:
       - elasticsearch
     environment:
-      - ELASTIC_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
-      - KIBANA_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
+      - ELASTIC_SEARCH_USERNMAE=${ELASTIC_SEARCH_USERNMAE}
+      - ELASTIC_SEARCH_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
     networks:
       - app
 
@@ -47,7 +48,7 @@ services:
     depends_on:
       - elasticsearch
     volumes:
-      - ./elk/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml
+      - ./elk/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
     environment:
       - KIBANA_USERNAME=${KIBANA_USERNAME}
       - KIBANA_PASSWORD=${KIBANA_PASSWORD}
@@ -57,7 +58,7 @@ services:
 
 
 volumes:
-  es_data:
+  es_data: 
 
 networks:
   app:
