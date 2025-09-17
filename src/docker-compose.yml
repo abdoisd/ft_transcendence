@@ -69,7 +69,15 @@ services:
     build: ./monitoring/grafana
     ports:
       - "3000:3000"
-
+    networks:
+      - app
+    volumes:
+      - ./monitoring/grafana/config/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml
+      - ./monitoring/grafana/config/system_metrics.json:/var/lib/grafana/dashboards/system_metrics.json
+      - ./monitoring/grafana/config/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
 
   elasticsearch-exporter:
     build: ./monitoring/es_exporter
