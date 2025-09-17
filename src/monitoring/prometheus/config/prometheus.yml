@@ -11,3 +11,6 @@ scrape_configs:
   - job_name: 'logstash'
     static_configs:
       - targets: ['logstash-exporter:9198']
+
+rule_files:
+  - "alerts.yml"

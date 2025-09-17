@@ -61,9 +61,9 @@ services:
       - "9090:9090"
     volumes:
       - ./monitoring/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/config/alerts.yml:/etc/prometheus/alerts.yml
     networks:
       - app
-
 
   grafana:
     build: ./monitoring/grafana

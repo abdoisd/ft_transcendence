@@ -1,0 +1,18 @@
+groups:
+  - name: HighRequestCount
+    rules:
+      - alert: HighRequestCount
+        expr: sum(increase(server_requests_total[1m])) >= 10
+        for: 1m
+        annotations:
+          summary: "High request count in the last minute"
+  - name: HighCPUUsage
+    rules:
+      - alert: HighCPUUsage
+        expr: avg(rate(process_cpu_seconds_total[5m])) > 0.8
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage detected"
+          description: "CPU usage is above 80% for more than 2 minutes."
