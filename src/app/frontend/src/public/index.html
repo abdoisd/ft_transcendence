@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<script defer type = "text/javascript" src = "bundle.js"></script> <!-- js -->
+	<!-- <script src="/socket.io/socket.io.js"></script> -->
+</head>
+
+<style>
+
+	* {
+		padding: 0; 
+		margin: 0;
+		color: white;
+		font-size: 22.5px;
+		font-family: sans-serif;
+	}
+
+	/* anchors */
+	a {
+		text-decoration: none;
+		cursor: pointer;
+	}
+	.nav-anchor {
+		box-shadow: none;
+		background: none;
+		padding: 0;
+		font-weight: normal;
+		border: none;
+		
+		font-size: 35px;
+		font-weight: 700;
+		font-variant: small-caps;
+	}
+	.nav-anchor:hover {
+		text-decoration: underline;
+		text-decoration-color: red;
+		font-style: italic;
+		text-decoration-thickness: 8px;
+		text-underline-offset: 10px;
+
+		background: none;
+		border: none;
+		box-shadow: none;
+	}
+	.main-anchor {
+		box-shadow: none;
+		background: none;
+		padding: 0;
+		font-weight: normal;
+		border: none;
+		
+		font-family: 'Poppins', Impact, sans-serif;
+		font-size: 120px;
+		text-transform: uppercase;
+		transform: scaleX(1.3);
+		font-style: oblique 5deg;
+	}
+	.main-anchor:hover {
+		text-decoration: none;
+		text-decoration-color: red;
+		text-decoration-thickness: 6px;
+		text-underline-offset: 10px;
+
+		background: none;
+		border: none;
+		box-shadow: none;
+	}
+	.chat {
+		width: 250px;
+		background: linear-gradient(to right, #ff1a1a, #990000); 
+      	-webkit-background-clip: text; /* let text show foreground */
+      	-webkit-text-fill-color: transparent; /* text is transparent to show gradient background */
+	}
+	.chat:hover {
+		width: 250px;
+		background: linear-gradient(to right, #ff1a1a, #990000); 
+	  	-webkit-background-clip: text;
+	  	-webkit-text-fill-color: transparent;
+	}
+
+	nav {
+		font-size: 35px;
+		font-weight: 700;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+	}
+	.flex-item {
+		margin: 0 50px;
+	}
+	
+	body {
+		height: 100vh;
+
+		display: grid;
+		grid-template-areas: 
+			"nav nav nav"
+			"main main main"
+			"footer footer footer";
+		grid-template-rows: 200px 1fr 25px;
+		/* grid-template-rows: 100px minmax(500px, 1fr) 50px; */
+		grid-template-columns: 100px 1fr;
+
+		background-image: url('bg.jpg');
+		background-repeat: no-repeat;
+		background-size: cover;
+		background-position: center;
+	}
+	
+	footer {
+		font-weight: 1;
+		text-align: center;
+	}
+
+	/* add */
+	button, input, a {
+    	font-size: 20px;
+    	font-weight: 700; /**/
+    	padding: 5px 7px 3px; /**/
+    	border-radius: 8px;
+    	background: linear-gradient(to right, #ff1a1a, #990000); 
+		border: none;
+		margin: 2px;
+    }
+
+	button:hover, input:hover, a:hover {
+		/* background: linear-gradient(to right, #990000, #ff1a1a);  */
+		box-shadow: 0 0 25px rgba(255, 0, 0, 0.8); 
+		border: 1px solid white;
+	}
+
+	input[type="text"] {
+		background: none;
+	}
+
+	/* for views */
+	.divLoginWithGoogle {
+		grid-column: 1 / -1; /* Span from first to last column */
+		grid-row: 1 / -1;    /* Span from first to last row */
+	}
+
+	.body {
+		margin: 0;
+		padding: 0;
+		background-color: #0d0d0d; /* deep black */
+		color: #fff;
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		align-items: center;
+		gap: 10px;
+		overflow: hidden;
+		font-family: 'Courier New', monospace; /* retro arcade font feel */
+	}
+
+.board {
+	width: 80vw;
+	height: 40vw;
+
+	min-width: 300px;
+	min-height: 260px;
+
+	max-width: 900px;
+	max-height: 600px;
+
+	border: 3px solid #b30000; /* glowing red border */
+	box-shadow: 0 0 25px #ff0000; /* neon effect */
+	background: radial-gradient(circle at center, #111 0%, #000 100%);
+	display: flex;
+	justify-content: center;
+	align-items: center;
+
+	margin: 20px 0 30px;
+}
+
+.scores {
+	display: flex;
+	gap: 60px;
+	margin-bottom: 10px;
+	font-family: 'Orbitron', sans-serif; /* futuristic digital look */
+	/* text-shadow: 0 0 8px #ff1a1a; glowing red text */
+}
+
+.scores div {
+	display: flex;
+	gap: 10px;
+	align-items: center;
+}
+
+.scores .p1,
+.scores .p2 {
+	color: #ff1a1a; /* red for player labels */
+	font-weight: 700;
+	font-size: 1.2rem;
+}
+
+.scores .score-p1,
+.scores .score-p2 {
+	font-weight: 900;
+	font-size: 32px;
+	color: white; /* keep scores neon green for contrast */
+}
+
+</style>
+
+<body id="body">
+	<h1>INDEX.HTML</h1>
+</body>
+</html>
