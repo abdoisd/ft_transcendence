@@ -59,6 +59,11 @@ services:
     build: ./monitoring/prometheus
     ports:
       - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - app
+
 
   grafana:
     build: ./monitoring/grafana
@@ -66,7 +71,28 @@ services:
       - "3000:3000"
 
 
+  elasticsearch-exporter:
+    build: ./monitoring/es_exporter
+    ports:
+      - "9114:9114"
+    command:
+      - --es.uri=http://${ELASTIC_SEARCH_USERNMAE}:${ELASTIC_SEARCH_PASSWORD}@elasticsearch:9200
+      - "--es.ssl-skip-verify"
+    networks:
+      - app
+    depends_on:
+      - elasticsearch
 
+  logstash-exporter:
+    build: ./monitoring/logstach_exporter
+    ports:
+      - "9198:9198"
+    volumes:
+      - ./monitoring/logstach_exporter/config/config.yml:/app/config.yml
+    networks:
+      - app
+    depends_on:
+      - logstash
 
 volumes:
   es_data: 
