@@ -62,6 +62,10 @@ services:
     volumes:
       - ./monitoring/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./monitoring/prometheus/config/alerts.yml:/etc/prometheus/alerts.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus/data"
+      - "--storage.tsdb.retention.time=30d"
     networks:
       - app
 
