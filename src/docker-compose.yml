@@ -13,7 +13,6 @@ services:
     networks:
       - app
 
-
   setup:
     build: ./elk/setup
     depends_on:
@@ -24,7 +23,6 @@ services:
       - KIBANA_PASSWORD=${KIBANA_PASSWORD}
     networks:
       - app
-
 
   logstash:
     build: ./elk/logstash
@@ -40,7 +38,6 @@ services:
       - ELASTIC_SEARCH_USERNMAE=${ELASTIC_SEARCH_USERNMAE}
       - ELASTIC_SEARCH_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
 
-
   kibana:
     build: ./elk/kibana
     ports:
@@ -55,6 +52,20 @@ services:
       - ES_ENCRYPTION_KEY=${ES_ENCRYPTION_KEY}
     networks:
       - app
+
+
+
+  prometheus:
+    build: ./monitoring/prometheus
+    ports:
+      - "9090:9090"
+
+  grafana:
+    build: ./monitoring/grafana
+    ports:
+      - "3000:3000"
+
+
 
 
 volumes:
