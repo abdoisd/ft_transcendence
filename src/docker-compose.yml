@@ -72,7 +72,7 @@ services:
   # grafana:
   #   build: ./monitoring/grafana
   #   ports:
-  #     - "3000:3000"
+  #     - "3111:3000"
   #   networks:
   #     - app
   #   volumes:
@@ -136,7 +136,7 @@ services:
     volumes:
       - ./app/backend/src:/usr/src/app
     ports: # tmp
-      - "3333:3000"
+      - "3000:3000"
     networks: # tmp
       - app
     environment:
