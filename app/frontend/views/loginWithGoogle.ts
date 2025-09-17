@@ -30,7 +30,7 @@ export function NewUser() {
 	// });
 
 	// just protect frontend view
-	getOnlyFetch("/data/user/getById2", {Id: params.get("Id")})
+	getOnlyFetch("/data/user/getById", {Id: params.get("Id")})
 	.then((response) => {
 		if (!response.ok)
 		{
@@ -210,24 +210,20 @@ const profileViewStaticPart = `
 
 // ask for username and avatar
 const usernameAvatarForm = `
-<form id="edit-profile-form" style="color: white;" onsubmit="usernameAvatarFormHandleSubmit(event)">
-
-Continue profile:
+<form id="edit-profile-form" style="color: white; grid-column: 1 / -1; grid-row: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center;" onsubmit="usernameAvatarFormHandleSubmit(event)">
+<h1>Continue profile:</h1>
 <br>
-
   <label>
     Username:
     <input type="text" id="username" name="username" required>
   </label>
   <span id="username-error" style="color: red; display: none;"></span>
-  
   <br><br>
   <label>
     Avatar:
     <input type="file" id="avatar" name="avatar" accept="image/*">
   </label>
   <br><br>
-
   <button type="submit">Submit</button>
 </form>
 `;

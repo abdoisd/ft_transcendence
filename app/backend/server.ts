@@ -40,12 +40,12 @@ server.setNotFoundHandler((request, reply) => {
 	reply.sendFile("index.html");
 });
 server.register(fastifyJwt, {
-	secret: process.env.JWT_SECRET
+	secret: process.env.JWT_SECRET || 'defaultSecret'
 })
 
 // game / socket.io
 import { webSocket } from "./webSocket.ts";
-webSocket();
+// webSocket(); //!
 
 // prometheus
 import client from 'prom-client';
@@ -87,7 +87,7 @@ import vaultFactory from 'node-vault';
 const vault = vaultFactory({
 	apiVersion: 'v1',
 	endpoint: 'https://vault-server:8200',
-	token: process.env.VAULT_TOKEN,
+	token: process.env.VAULT_TOKEN || '', //*
 	requestOptions: {
 		strictSSL: false
 	}
@@ -122,6 +122,9 @@ const start = async () =>
 {
     try
     {
+
+		console.log("Starting server...");
+		
 		// register routes
 		UserRoutes();
 		OAuth2Routes();
@@ -134,7 +137,9 @@ const start = async () =>
 			console.log(server.printRoutes())
 		});
 		
-        await server.listen({host: config.HOST, port: config.PORT});
+        const host = config.HOST || 'localhost'; //*
+        const port = config.PORT ? Number(config.PORT) : 3000; //*
+        await server.listen({port, host});
     }
     catch (err)
     {

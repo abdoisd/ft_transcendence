@@ -1,6 +1,15 @@
 
 // TOKENS ARE NOT SET HERE
 
+class clsGame {
+	Id;
+	User1Id;
+	User2Id;
+	Date: Date;
+	WinnerId;
+	TournamentId;
+}
+
 export class UserDTO
 {
 	Id: number;
@@ -40,11 +49,7 @@ export class UserDTO
 
 	static async getById(Id: number)
 	{
-		// const response = await fetch(`/data/user/getById?Id=${encodeURIComponent(Id)}`);
-		// if (!response.ok) return null;
-		// const userObject = await response.json();
-		// return Object.assign(new User(-1, "", "", "", -1, -1), userObject);
-		return await get("/data/user/getById", { Id: Id });
+		return get("/data/user/getById", { Id: Id }); //? changed this to 2
 	}
 
 	static async getByUsername(username: string)
@@ -106,6 +111,12 @@ export class UserDTO
 				return friendsArray;
 			return [];
 		});
+	}
+
+	//?
+	getMatchHistory(): Promise<clsGame[]>
+	{
+		return get("/users/" + this.Id + "/games");
 	}
 }
 

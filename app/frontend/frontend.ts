@@ -64,7 +64,7 @@ export async function autoLogin()
 export function route (event: Event | null, path?: string) {
 
 	console.log("route()");
-
+	
 	var pushToHistory = event == null;;
 
 	if (path)
@@ -94,7 +94,7 @@ function handleView (event?, path?: string | null) {
 	if (!path)
 		path = window.location.pathname;
 	
-	console.debug("Handling route: " + path);
+	console.log("Handling route: " + path);
 
 	autoLogin()
 	.then(() => {

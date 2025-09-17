@@ -14,6 +14,7 @@
 
 import { db } from "./database.ts";
 import { green, red, yellow } from "../global.ts";
+import { server } from "../server.ts";
 
 // db stuff
 db.run(`
@@ -42,7 +43,7 @@ export class clsGame {
 	User2Id;
 	Date: Date;
 	WinnerId;
-	TournamentId;
+	TournamentId; // if games in tournaments are saved
 
 	constructor(obj)
 	{
@@ -82,7 +83,7 @@ export class clsGame {
 		});	
 	}
 
-	static getByUserId(Id)
+	static getByUserId(Id): Promise<clsGame[]>
 	{
 		console.log(green, 'Game.getByUserId');
 		console.debug(yellow, 'UserId: ', Id);
@@ -153,13 +154,20 @@ export class clsGame {
 				}
 				else
 				{
-					resolve(row.LastId);
+					resolve((row as any).LastId);
 					// if no rows
 				}
 			});
 		});
 	}
 }
+
+// function gameRoutes()
+// {
+// 	server.get("/games/:userId",  (req, res) => {
+		
+// 	});
+// }
 
 // // usage
 // const obj = {

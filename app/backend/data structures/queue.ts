@@ -1,5 +1,5 @@
 export class Queue {
-	items: [];
+	items: any[];
 	
     constructor() {
         this.items = [];

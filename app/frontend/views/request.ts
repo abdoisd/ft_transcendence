@@ -37,6 +37,7 @@ export async function getOnlyFetch(path: string, params = {})
 	})
 }
 
+// option to post multipart form data
 export async function post(path: string, obj: any)
 {
 	const jwt = localStorage.getItem('jwt');

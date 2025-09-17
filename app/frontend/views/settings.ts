@@ -23,7 +23,7 @@ const settingsViewStaticPart = `
 	<h1>Enable 2FA</h1>
 	<img id="qrcode" src="" style="margin: 10px 0px;" />
 	<form onsubmit="verify(event);"> <!-- verify code -->
-		<input type="text" id="2fa-code" placeholder="Enter code from app" />
+		<input type="text" id="2fa-code" placeholder="Enter code from app" required />
 		<input type="submit" value="Enable">
 	</form>
 	<span id="result"></span>

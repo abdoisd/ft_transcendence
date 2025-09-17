@@ -7,30 +7,12 @@ import { connectedToSqlite } from "../server.ts"; // import variable
 export const db = new sqlite3.Database('ft_transcendence', (err) => //!
 {
 	if (err)
-		console.error(red, 'Error when creating the database', err);
+		console.error(red, 'Error: creating the database:', err);
 	else
 	{
 		connectedToSqlite.set(1);
 		console.log(green, 'Database opened');
 	}
-});
-
-db.run(`
-	CREATE TABLE IF NOT EXISTS Users (
-	    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-	    GoogleId TEXT NOT NULL,
-	    Username TEXT NULL DEFAULT NULL,
-	    AvatarPath TEXT NULL DEFAULT NULL,
-	    Wins INTEGER NOT NULL DEFAULT 0,
-	    Losses INTEGER NOT NULL DEFAULT 0,
-	    SessionId TEXT NULL DEFAULT NULL,
-	    ExpirationDate TEXT NULL DEFAULT NULL
-	);
-`, (err) => {
-	if (err)
-		console.error(red, 'Error creating table Users', err);
-	else
-		console.log(green, 'Table Users ready');
 });
 
 db.run(`

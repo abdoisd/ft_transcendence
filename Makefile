@@ -11,6 +11,8 @@ d:
 	docker compose down
 e:
 	docker exec -it app-backend sh
+f:
+	docker exec -it app-frontend sh
 v:
 	docker exec -it vault-server bash
 n:

@@ -1,4 +1,4 @@
-
+s
 ```sql
 CREATE TABLE IF NOT EXISTS Users (
     Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -68,10 +68,10 @@ CREATE TABLE IF NOT EXISTS Games (
 );
 
 INSERT INTO Games (User1Id, User2Id, Date, WinnerId, TournamentId) VALUES
-(1, NULL, '2025-09-15 10:30:00', 1, NULL),
-(2, 3, '2025-09-15 11:00:00', 0, NULL),
+(1, 2, '2025-09-15 10:30:00', 1, NULL),
+(2, 3, '2025-09-15 11:00:00', 2, NULL),
 (4, 5, '2025-09-16 09:15:00', 1, 1),
-(6, 7, '2025-09-16 10:45:00', 2, 1),
+(2, 1, '2025-09-16 10:45:00', 2, 1),
 (8, NULL, '2025-09-17 14:20:00', 1, 2);
 
 CREATE TABLE IF NOT EXISTS Tournaments (

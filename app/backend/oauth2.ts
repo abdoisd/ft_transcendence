@@ -19,7 +19,7 @@ export function setSessionIdCookie(user: User, reply: FastifyReply)
 
 	console.debug(blue, "Setting sessionId for user");
 	user.SessionId = sessionId;
-	user.ExpirationDate = new Date(Date.now() + 60000 * 60 * 24); // expire in 1 day
+	user.ExpirationDate = new Date(Date.now() + (60000 * 60 * 24)); // expire in 1 day
 	const user2: User = Object.assign(new User(-1, "", "", "", -1, -1), user);
 	user2.update().then(res => {
 		if (!res)
@@ -31,7 +31,7 @@ export function setSessionIdCookie(user: User, reply: FastifyReply)
 	reply.setCookie('sessionId', sessionId, {
 		httpOnly: true,       // client JS cannot access
 		path: '/',            // send cookie on all routes
-		maxAge: 60 * 60,      // session is not valid in server after 1 hour
+		maxAge: 60 * 60 * 24,      // session is not valid in server after 1 day
 		secure: false,        // set true if using HTTPS
 	});
 }
@@ -42,7 +42,7 @@ export function createJwt(Id: number)
 	return server.jwt.sign({
 		Id: Id,
 		IsRoot: 0
-	}, { expiresIn: '1h' });
+	}, { expiresIn: '1d' });
 }
 
 // you can to register routes
@@ -76,7 +76,7 @@ export function OAuth2Routes() {
 
 		console.debug(blue, "/loginGoogleCallback");
 		
-		const code = req.query.code;
+		const code = (req.query as { code?: string }).code;
 	  
 		const googleResponseForToken = await fetch('https://oauth2.googleapis.com/token', {
 			method: 'POST',
@@ -128,7 +128,14 @@ export function OAuth2Routes() {
 					// console.debug(yellow, "userr.enabled2FA(), no session and no jwt");
 					
 					// no session and no jwt
-					const params = querystring.stringify({ ...user });
+					//*
+					// const sanitizedUser = {
+					// 	...user,
+					// 	ExpirationDate: user.ExpirationDate ? user.ExpirationDate.toISOString() : null,
+					// 	LastActivity: user.LastActivity ? user.LastActivity.toISOString() : null
+					// };
+					const params = querystring.stringify({...user});
+
 					reply.redirect("https://localhost" + `/existingUser?Id=${user.Id}`); // removed all query params
 					return ;
 				}
@@ -140,7 +147,13 @@ export function OAuth2Routes() {
 				const jwt = createJwt(user.Id);
 				console.debug(yellow, "server set jwt=" + jwt); // this return jwt, hhhhhhh
 				
-				const params = querystring.stringify({ ...user });
+				//*
+				// const sanitizedUser = {
+				// 	...user,
+				// 	ExpirationDate: user.ExpirationDate ? user.ExpirationDate.toISOString() : null,
+				// 	LastActivity: user.LastActivity ? user.LastActivity.toISOString() : null
+				// };
+				const params = querystring.stringify({...user});
 				reply.redirect("https://localhost" + `/existingUser?${params}&jwt=${jwt}`); // redirect to home
 				return ;
 			}
@@ -175,7 +188,7 @@ export function OAuth2Routes() {
 	});
 
 	// update username or avatar or both
-	server.post("/uploadProfile", { preHandler: server.byItsOwnUser }, async (req, reply) => {
+	server.post("/uploadProfile", { preHandler: (server as any).byItsOwnUser }, async (req, reply) => {
 
 		console.debug(blue, "/uploadProfile");
 		
@@ -191,15 +204,15 @@ export function OAuth2Routes() {
 		const savedFiles: string[] = [];
 
 		for await (const part of parts) {
-			if (part.file) {
-				savedFiles.push(part.file);
+			if ((part as any).file) {
+				savedFiles.push((part as any).file);
 			} else {
 				// It's a regular field
 				if (part.fieldname === "username") {
-					username = part.value;
+					username = (part as any).value;
 				}
 				else if (part.fieldname === "Id") {
-					Id = part.value;
+					Id = (part as any).value;
 				}
 			}
 		}
@@ -208,44 +221,6 @@ export function OAuth2Routes() {
 		if (username == null)
 		{
 			console.debug(blue, "username is null");
-
-			// fetch(config.WEBSITE_URL + `/data/user/getById?Id=${Id}`, {headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }})
-			// .then(res => {
-			// 	if (res.ok)
-			// 		return res.json();
-			// 	else
-			// 		throw new Error("User not found");
-			// })
-			// .then((user: User) => {
-			// 	if (user.AvatarPath)
-			// 	{
-			// 		// update existing avatar
-			// 		fileName = user.AvatarPath;
-			// 	}
-			// 	else
-			// 	{
-			// 		// first avatar
-			// 		fileName = Guid() + ".png";
-
-			// 		user.AvatarPath = fileName;
-			// 		user.update(); //!
-					
-			// 		//! HERE
-			// 		// fetch(config.WEBSITE_URL + `/data/user/update`,{
-			// 		// 	method: "PUT",
-			// 		// 	headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }, // is this important, for fastify I think
-			// 		// 	body: JSON.stringify(new User(user.Id, user.GoogleId, user.Username, fileName!, user.Wins, user.Losses, user.SessionId, user.ExpirationDate)), //?
-			// 		// })
-			// 	}
-			// 	for (const file of savedFiles) {
-			// 		if (file) {
-			// 			const avatarPath = path.join(process.cwd(), "Avatars", fileName); //!
-			// 			// Save the file
-			// 			const writeStream = fs.createWriteStream(avatarPath);
-			// 			file.pipe(writeStream);
-			// 		}
-			// 	}
-			// })
 
 			const user: User = await User.getById(Id);
 			if (user)
@@ -275,7 +250,7 @@ export function OAuth2Routes() {
 						const avatarPath = path.join(process.cwd(), "Avatars", fileName); //!
 						// Save the file in server local storage
 						const writeStream = fs.createWriteStream(avatarPath);
-						file.pipe(writeStream);
+						(file as any).pipe(writeStream);
 					}
 				}
 			}
@@ -292,11 +267,12 @@ export function OAuth2Routes() {
 		
 				// Save the file
 				const writeStream = fs.createWriteStream(avatarPath); // open file in process and create it in disk
-				await file.pipe(writeStream); // write to it
+				await (file as any).pipe(writeStream); // write to it
+				break ;
 			}
 		}
 
-		if (Id == null || username == null) {
+		if (Id == null || (username == null || username.trim() == "")) {
 			console.error(red, "Missing Id or username");
 			reply.status(400).send("Error: Missing Id or username");
 			return ;
@@ -310,10 +286,15 @@ export function OAuth2Routes() {
 		//! keep file path when no avatar
 		if (fileName == null)
 		{
-			const response = await fetch(config.WEBSITE_URL + `/data/user/getById?Id=${Id}`, {headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }});
-			if (response.ok) // user found
+			// const response = await fetch(config.WEBSITE_URL + `/data/user/getById?Id=${Id}`, {headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }});
+			// if (response.ok) // user found
+			// {
+			// 	const user: User = await response.json();
+			// 	fileName = user.AvatarPath;
+			// }
+			const user: User = await User.getById(Id);
+			if (user)
 			{
-				const user: User = await response.json();
 				fileName = user.AvatarPath;
 			}
 		}
@@ -361,7 +342,8 @@ export function OAuth2Routes() {
 		}
 
 		db.get("SELECT * FROM Users WHERE SessionId = ?", [sessionId], (err, row) => {
-			if (err) { // to check this
+			if (err)
+			{
 				console.error(red, 'Error querying user by sessionId:', err);
 				return reply.status(500).send();
 			}
@@ -369,14 +351,17 @@ export function OAuth2Routes() {
 			{
 				console.debug(blue, "User in db found by SessionId");
 
-				if (row.ExpirationDate < (new Date()).getTime())
+				//*
+				const userRow = row as { ExpirationDate: number }; // Type assertion
+
+				if (userRow.ExpirationDate < (new Date()).getTime())
 				{
 					console.debug(blue, "Session expired");
 
 					return reply.status(401).send();
 				}
-
-				reply.send(row);
+			
+				reply.send(userRow);
 			}
 			else
 			{

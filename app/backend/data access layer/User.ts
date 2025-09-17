@@ -3,6 +3,29 @@ import { red, green, yellow, blue } from "../global.ts";
 import path from "path";
 import fs from "fs";
 import { server } from "../server.ts"; // import variable
+import { guid } from "../global.ts";
+import { clsGame } from "./game.ts";
+
+db.run(`
+	CREATE TABLE IF NOT EXISTS Users (
+		Id INTEGER PRIMARY KEY AUTOINCREMENT,
+		GoogleId TEXT NOT NULL,
+		Username TEXT NULL DEFAULT NULL,
+		AvatarPath TEXT NULL DEFAULT NULL,
+		Wins INTEGER NOT NULL DEFAULT 0,
+		Losses INTEGER NOT NULL DEFAULT 0,
+		SessionId TEXT NULL DEFAULT NULL,
+		ExpirationDate TEXT NULL DEFAULT NULL,
+		LastActivity TEXT NULL DEFAULT NULL,
+		TOTPSecretPending TEXT NULL DEFAULT NULL,
+		TOTPSecret TEXT NULL DEFAULT NULL
+	);
+`, (err) => {
+	if (err)
+		console.error(red, 'Error creating table Users', err);
+	else
+		console.log(green, 'Table Users ready');
+});
 
 export class User
 {
@@ -45,7 +68,7 @@ export class User
 					reject(null);
 				}
 				else
-					resolve(row ? new User(row.Id, row.GoogleId, row.Username, row.AvatarPath, row.Wins, row.Losses, row.SessionId, row.ExpirationDate, row.LastActivity, row.TOTPSecretPending, row.TOTPSecret) : null);
+					resolve(row ? new User((row as any).Id, (row as any).GoogleId, (row as any).Username, (row as any).AvatarPath, (row as any).Wins, (row as any).Losses, (row as any).SessionId, (row as any).ExpirationDate, (row as any).LastActivity, (row as any).TOTPSecretPending, (row as any).TOTPSecret) : null);
 			});
 		});
 	}
@@ -65,14 +88,18 @@ export class User
 					console.log(red, 'Error: User.getByUsername: ', err);
 					reject(null);
 				}
-				else
-					resolve(row ? new User(row.Id, row.GoogleId, row.Username, row.AvatarPath, row.Wins, row.Losses, row.SessionId, row.ExpirationDate, row.LastActivity) : null);
+				else //*
+					resolve(row ? new User((row as any).Id, (row as any).GoogleId, (row as any).Username, (row as any).AvatarPath, (row as any).Wins, (row as any).Losses, (row as any).SessionId, (row as any).ExpirationDate, (row as any).LastActivity) : null);
 			});
 		});
 	}
 
-	add()
+	add(): Promise<number>
 	{
+
+		console.log(green, "User.add");
+		console.debug(yellow, 'Adding: ', this);
+		
 		return new Promise((resolve, reject) => {
 			db.run("INSERT INTO Users (GoogleId, Username, AvatarPath, SessionId, ExpirationDate, LastActivity) VALUES (?, ?, ?, ?, ?, ?);",
 				[this.GoogleId, this.Username, this.AvatarPath, this.SessionId, this.ExpirationDate, new Date()], function(err) {
@@ -181,16 +208,19 @@ class UserDTO
 	async update()
 	{
 
-		console.log(green, 'UserDTO.update');
-		
-		// get full user
+		// // get full user
+		// const user: User = await User.getById(this.Id);
+		// // copy what not null to user
+		// for (const key of Object.keys(this)) {
+		// 	if (this[key] !== null && key !== "Id") {
+		// 		user[key] = this[key];
+		// 	}
+		// }
+
+		// only safe dto data
 		const user: User = await User.getById(this.Id);
-		// copy what not null to user
-		for (const key of Object.keys(this)) {
-			if (this[key] !== null && key !== "Id") {
-				user[key] = this[key];
-			}
-		}
+		user.Username = this.Username;
+		
 		user.update();
 	}
 }
@@ -231,8 +261,6 @@ export function UserRoutes()
 				return ;
 			}
 
-			// console.debug(yellow, "here 1")
-
 			if (request.method == "PUT")
 			{
 				const user = request.body;
@@ -241,8 +269,6 @@ export function UserRoutes()
 			}
 			else if (request.method == "DELETE" || request.method == "GET") // get for friends
 			{
-
-			// console.debug(yellow, "here 2")
 
 				const Id = request.query.Id;
 				if (!Id) // google id
@@ -258,14 +284,12 @@ export function UserRoutes()
 
 					const user = await User.getById(payload.Id);
 					if (GoogleId != user.GoogleId)
-						return reply.status(403).send({ error: 'Forbidden' });
+						return reply.status(403).send();
 				}
 				else
 				{
-			// console.debug(yellow, "here 3")
-
 					if (Id != payload.Id)
-						return reply.status(403).send({ error: 'Forbidden' }); // Forbidden
+						return reply.status(403).send(); // Forbidden
 				}
 			}
 		}
@@ -276,7 +300,7 @@ export function UserRoutes()
 		}
 	});
 
-	server.get('/data/user/getById2', { preHandler: server.mustHaveToken }, async (request, reply) => {
+	server.get('/data/user/getById', { preHandler: (server as any).mustHaveToken }, async (request, reply) => {
 		const Id = (request.query as { Id: number }).Id;
 		const user = await UserDTO.getById(Id);
 		if (user)
@@ -286,25 +310,26 @@ export function UserRoutes()
 		
 	});
 	
-	server.get('/data/user/getById', { preHandler: server.byItsOwnUser }, (request, reply) => {
-		const Id = (request.query as { Id: number }).Id;
-		db.get("select * from users where Id = ?", [Id], (err, row) => {
-			if (err)
-			{
-				console.error('Error: get /data/user/getById: ', err);
-				reply.status(500).send();
-			}
-			else
-			{
-				if (!row) // user not found
-				{
-					console.log(red, 'get /data/user/getById: User not found: ', Id);
-					reply.status(404).send();
-				}
-				reply.send(row); // user object as in body as a stringified json
-			}
-		});
-	});
+	// why is this here
+	// server.get('/data/user/getById', { preHandler: (server as any).byItsOwnUser }, (request, reply) => {
+	// 	const Id = (request.query as { Id: number }).Id;
+	// 	db.get("select * from users where Id = ?", [Id], (err, row) => {
+	// 		if (err)
+	// 		{
+	// 			console.error('Error: get /data/user/getById: ', err);
+	// 			reply.status(500).send();
+	// 		}
+	// 		else
+	// 		{
+	// 			if (!row) // user not found
+	// 			{
+	// 				console.log(red, 'get /data/user/getById: User not found: ', Id);
+	// 				reply.status(404).send();
+	// 			}
+	// 			reply.send(row); // user object as in body as a stringified json
+	// 		}
+	// 	});
+	// });
 	/**
 		response looks like:
 		{
@@ -322,7 +347,7 @@ export function UserRoutes()
 
 	// serving avatars
 	server.get('/data/user/getAvatarById', (request, reply) => {
-		const Id = request.query.Id;
+		const Id = (request.query as { Id: number }).Id;
 
 		// get the avatar path
 		db.get("SELECT AvatarPath FROM users WHERE Id = ?", [Id], (err, row) => {
@@ -344,7 +369,7 @@ export function UserRoutes()
 			}
 
 			// user not found !
-			if (!row || !row.AvatarPath) {
+			if (!row || !(row as any).AvatarPath) {
 				console.debug(blue, 'User not found in db or no avatar for him');
 				if (!fs.existsSync(defaultAvatarPath))
 				{
@@ -356,7 +381,7 @@ export function UserRoutes()
 			}
 
 			// Full avatar path
-			const filePath = path.join(process.cwd(), "avatars", row.AvatarPath);
+			const filePath = path.join(process.cwd(), "avatars", (row as any).AvatarPath);
 
 			// if dir not found
 
@@ -381,7 +406,7 @@ export function UserRoutes()
 		});
 	});
 
-	server.get('/data/user/getByGoogleId', { preHandler: server.byItsOwnUser }, (request, reply) => {
+	server.get('/data/user/getByGoogleId', { preHandler: (server as any).byItsOwnUser }, (request, reply) => {
 		const GoogleId: number = (request.query as { GoogleId: number }).GoogleId; // the query string is a json object: url ? Id=${encodeURIComponent(Id)
 		db.get("select * from users where GoogleId = ?", [GoogleId], (err, row) => {
 			if (err)
@@ -403,11 +428,13 @@ export function UserRoutes()
 	});
 
 	// return userDTO
-	server.get('/data/user/getByUsername', { preHandler: server.mustHaveToken }, async (request, reply) => {
+	server.get('/data/user/getByUsername', { preHandler: (server as any).mustHaveToken }, async (request, reply) => {
+		const { username } = request.query as { username: string }; // Cast request.query to include username
 
+		if (!username || username.trim() == "") {
+			return reply.status(400).send();
+		}
 		
-		
-		const username = request.query.username;
 		const res = await UserDTO.getByUsername(username);
 		if (res)
 			reply.send(res);
@@ -439,9 +466,9 @@ export function UserRoutes()
 	// });
 
 	//!
-	server.put('/data/user/update', { preHandler: server.byItsOwnUser }, async (request, reply) => {
+	server.put('/data/user/update', { preHandler: (server as any).byItsOwnUser }, async (request, reply) => {
 
-		const userObj = request.body;
+		const userObj = request.body as UserDTO; // Define the type
 		// obj to userDTO
 		let user: UserDTO = new UserDTO();
 		user.Id = userObj.Id;
@@ -452,7 +479,7 @@ export function UserRoutes()
 		await user.update();
 	});
 
-	server.delete('/data/user/delete', { preHandler: server.byItsOwnUser }, (request, reply) => {
+	server.delete('/data/user/delete', { preHandler: (server as any).byItsOwnUser }, (request, reply) => {
 		const { Id } = request.query as { Id: number };
 		db.run("delete from users where id = ?", [Id], function(err) {
 			if (err)
@@ -473,7 +500,7 @@ export function UserRoutes()
 	// 
 
 	// get friends
-	server.get('/data/user/getFriends', { preHandler: server.byItsOwnUser }, async (request, reply) => {
+	server.get('/data/user/getFriends', { preHandler: (server as any).byItsOwnUser }, async (request, reply) => {
 		const Id = (request.query as { Id: number }).Id;
 		reply.send(await User.getFriends(Id));
 	});
@@ -488,6 +515,61 @@ export function UserRoutes()
 		else
 			reply.status(404).send();
 	});
+
+	// you must give it
+	// id
+	// username or avatar or both In multipart form data
+	server.post("/updateProfile/:id", async (req, reply) => {
+
+		const parts = req.parts();
+
+		let username: string | null = null;
+		let avatarPath: string | null = null;
+
+		let filename;
+	  
+		for await (const part of parts) { // we must have await for iterate
+			if (part.type === "file" && part.fieldname === "avatar") {
+
+				filename = guid() + ".png";
+				
+				avatarPath = path.join(process.cwd(), "avatars", filename);
+				const writeStream = fs.createWriteStream(avatarPath);
+				part.file.pipe(writeStream);
+
+				break ;
+			} else if (part.type === "field" && part.fieldname === "username") {
+				username = part.value as any;
+			}
+		}
+
+		if ((!username || username.trim() == "") && !avatarPath)
+		{
+			return reply.status(400).send();
+		}
+	  
+		// Here you would update your DB with the provided fields
+		// e.g. updateProfile(userId, { username, avatarPath })
+		const user: User = await User.getById((req.params as any).id); // debug this
+		user.Username = username ?? user.Username;
+		user.AvatarPath = filename ?? user.AvatarPath;
+		user.update();
+
+		reply.send();
+	});
+
+	//?
+	// get user games
+	server.get("/users/:id/games", async (req, reply) => {
+
+		console.log(green, 'GET /users/:id/games');
+		console.debug(yellow, 'User ID: ', (req.params as any).id);
+
+		const games: clsGame[] = await clsGame.getByUserId((req.params as any).id);
+		return reply.send(games);
+		
+	});
+
 }
 
 // WHEN YOU UPDATE SOMETHING

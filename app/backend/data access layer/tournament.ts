@@ -14,8 +14,6 @@ db.run(`
 
 export class clsTournament
 {
-	Id;
-
 	static getLastId(): Promise<number>
 	{
 		return new Promise((resolve, reject) => {
@@ -31,7 +29,7 @@ export class clsTournament
 				{
 					if (row)
 					{
-						resolve(row.LastId);
+						resolve((row as any).LastId);
 					}
 					else
 					{

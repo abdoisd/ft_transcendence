@@ -12,9 +12,9 @@ export function Enable2faRoutes()
 {
 
 	// enable 2fa
-	server.get("/auth/2fa", { preHandler: server.byItsOwnUser }, async (request, reply) => 
+	server.get("/auth/2fa", { preHandler: (server as any).byItsOwnUser }, async (request, reply) => 
 	{
-		const userId = request.query.Id;
+		const userId = (request.query as any).Id;
 
 		var secret = speakeasy.generateSecret({}); // Generates a random secret with the set A-Z a-z 0-9 and symbols, of any length (default 32).
 
@@ -36,8 +36,11 @@ export function Enable2faRoutes()
 	{
 		console.debug(yellow, "/auth/2fa/enable");
 		
-		const userId = request.query.Id;
-		const code = request.query.code;
+		const userId = (request.query as any).Id;
+		const code = (request.query as any).code;
+
+		if (!userId || !code || userId.length == 0 || code.length == 0)
+			return reply.status(400).send();
 
 		console.debug(yellow, "code: ", code);
 
@@ -77,8 +80,11 @@ export function Enable2faRoutes()
 	{
 		console.debug(yellow, "/auth/2fa/verify");
 		
-		const userId = request.query.Id;
-		const code = request.query.code;
+		const userId = (request.query as any).Id;
+		const code = (request.query as any).code;
+
+		if (!userId || !code || userId.length == 0 || code.length == 0)
+			return reply.status(400).send();
 
 		// // validate with pending secret in db
 		// const user = await User.getById(userId);

@@ -6,8 +6,8 @@
 	"main": "index.js",
 	"scripts": {
 		"start": "node server.ts",
-		"dev": "nodemon --watch . --ext ts --ignore ./public --exec \"npm run start\"",
-		"docs": "docco lib/*.js"
+		"tsc": "tsc -p tsconfig.json",
+		"dev": "nodemon --watch . --ext ts --ignore ./public --exec \"npm run start\""
 	},
 	"keywords": [],
 	"author": "",
@@ -30,13 +30,14 @@
 		"socket.io": "^4.8.1",
 		"speakeasy": "^2.0.0",
 		"sqlite3": "^5.1.7",
-		"tsc": "^2.0.4",
 		"tsconfig-paths": "^4.2.0",
-		"typescript": "^5.9.2",
 		"ws": "^8.18.3"
 	},
 	"devDependencies": {
+		"@types/fastify-multipart": "^0.5.0",
 		"@types/node": "^24.3.0",
-		"nodemon": "^3.1.10"
+		"@types/speakeasy": "^2.0.10",
+		"nodemon": "^3.1.10",
+		"typescript": "^5.9.2"
 	}
 }

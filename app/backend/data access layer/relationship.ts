@@ -148,7 +148,7 @@ export function relationshipRoutes()
 	// });
 
 	// ADD FRIEND, ONLY IF YOU ARE USER1
-	server.post("/data/relationship/add", { preHandler: server.byItsOwnUser }, async (request, reply) => {
+	server.post("/data/relationship/add", { preHandler: (server as any).byItsOwnUser }, async (request, reply) => {
 		const relationship: Relationship = Object.assign(new Relationship(), request.body);
 		await relationship.add();
 		if (relationship.Id == -1) {
@@ -159,7 +159,7 @@ export function relationshipRoutes()
 	});
 
 	// FOR BLOCKING, ONLY IF YOU ARE USER1
-	server.put("/data/relationship/update", { preHandler: server.byItsOwnUser }, async (request, reply) => {
+	server.put("/data/relationship/update", { preHandler: (server as any).byItsOwnUser }, async (request, reply) => {
 		const relationship: Relationship = Object.assign(new Relationship(), request.body);
 		const res = await relationship.update();
 		if (res == false) {
