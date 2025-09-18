@@ -135,6 +135,7 @@ services:
     working_dir: /usr/src/app
     volumes:
       - ./app/backend/src:/usr/src/app
+      - ./app/frontend/src/public:/usr/src/app/public
     ports: # tmp
       - "3000:3000"
     networks: # tmp
