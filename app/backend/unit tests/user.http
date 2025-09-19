@@ -1,0 +1,161 @@
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6NiwiSXNSb290IjowLCJpYXQiOjE3NTgxNDMyNzgsImV4cCI6MTc1ODIyOTY3OH0.nGCKkY8DOud6g-B8l6pax7_PJTsGQteiGOuVuD98TmE
+@userId = 14
+@notme = 3
+@googleId = 1
+@username = abdo
+
+# ### Get user by Google ID
+# GET http://localhost:3000/data/user/getByGoogleId?GoogleId={{googleId}}
+# Authorization: Bearer {{token}}
+
+# ###
+
+# ### Get user by username
+# GET http://localhost:3000/data/user/getByUsername?username={{username}}
+# Authorization: Bearer {{token}}
+
+
+### Update profile (username and avatar)
+PUT http://localhost:3000/updateProfile/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="username"
+
+dlkfjdl_
+--boundary
+Content-Disposition: form-data; name="avatar"; filename="avatar.png"
+Content-Type: image/png
+
+< ../avatars/default-avatar.png
+--boundary--
+
+
+
+
+
+
+
+### Get user by ID
+GET http://localhost:3000/data/user/getById?Id={{userId}}
+Authorization: Bearer {{token}}
+### bad request
+GET http://localhost:3000/data/user/getById
+Authorization: Bearer {{token}}
+### 403
+GET http://localhost:3000/data/user/getById?Id={{notme}}
+Authorization: Bearer {{token}}
+### 401
+GET http://localhost:3000/data/user/getById?Id={{notme}}
+
+### Get avatar by user ID
+GET http://localhost:3000/data/user/getAvatarById?Id={{userId}}
+###
+GET http://localhost:3000/data/user/getAvatarById?Id={{notme}}
+
+### Get friends of a user
+GET http://localhost:3000/data/user/getFriends?Id={{userId}}
+Authorization: Bearer {{token}}
+###
+GET http://localhost:3000/data/user/getFriends
+Authorization: Bearer {{token}}
+###
+GET http://localhost:3000/data/user/getFriends?Id={{notme}}
+Authorization: Bearer {{token}}
+
+### Get user games
+GET http://localhost:3000/users/{{userId}}/games
+Authorization: Bearer {{token}}
+### bad
+GET http://localhost:3000/users//games
+Authorization: Bearer {{token}}
+### 403
+GET http://localhost:3000/users/{{notme}}/games
+Authorization: Bearer {{token}}
+### 403
+GET http://localhost:3000/users/dfdfdf/games
+Authorization: Bearer {{token}}
+
+### Update user
+PUT http://localhost:3000/data/user/update
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Id": {{userId}},
+  "Username": "newUsername",
+  "Wins": 10,
+  "Losses": 5,
+  "LastActivity": "2023-01-01T00:00:00Z"
+}
+### bad
+PUT http://localhost:3000/data/user/update
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Id": {{userId}},
+  "Username": "aoabdoabdoaoabdoabdoaoabdoabdo"
+}
+### 403
+PUT http://localhost:3000/data/user/update
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "Id": {{notme}},
+  "Username": "newUsername",
+  "Wins": 10,
+  "Losses": 5,
+  "LastActivity": "2023-01-01T00:00:00Z"
+}
+
+### get avatar by id, require cookie
+GET http://localhost:3000/data/user/getAvatarById?Id={{userId}}
+###
+GET http://localhost:3000/data/user/getAvatarById?Id={{notme}}
+
+
+
+
+
+
+
+### oauth
+# /uploadProfile/:id
+POST http://localhost:3000/uploadProfile/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="username"
+
+dlkfjdl_
+--boundary
+Content-Disposition: form-data; name="avatar"; filename="avatar.png"
+Content-Type: image/png
+
+< ../avatars/default-avatar.png
+--boundary--
+### bad
+POST http://localhost:3000/uploadProfile/{{userId}}
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data; boundary=boundary
+
+--boundary
+Content-Disposition: form-data; name="username"
+
+_dlfjdlf
+--boundary
+Content-Disposition: form-data; name="avatar"; filename="avatar.png"
+Content-Type: image/png
+
+< ../avatars/default-avatar.png
+--boundary--
+
+
+### 2fa
+# /auth/2fa/enable
+GET http://localhost:3000/auth/2fa/enable?Id={{userId}}&code=100000
+Authorization: Bearer {{token}}

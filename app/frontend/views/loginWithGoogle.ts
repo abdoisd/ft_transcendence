@@ -160,7 +160,8 @@ async function usernameAvatarFormHandleSubmit(event: Event)
 		const Id = new URLSearchParams(window.location.search).get("Id");
 		formData.append("Id", Id!);
 
-		fetch("/uploadProfile", {
+		//?
+		fetch("/uploadProfile/" + Id, {
     	    method: "POST",
     	    body: formData, // body as object? not string
 			headers: {
@@ -181,7 +182,8 @@ async function usernameAvatarFormHandleSubmit(event: Event)
 				// document.write("Profile finished, redirecting to home...");
 			}
 			else
-				document.write("Error uploading profile. Please try again.");
+				// document.write("Error uploading profile. Please try again.");
+				alert("Error uploading profile: Invalid input.");
 		})
     	.catch(error => {
     	    console.error("Upload error:", error);
@@ -203,14 +205,14 @@ window.requestBackend = requestBackend;
 window.usernameAvatarFormHandleSubmit = usernameAvatarFormHandleSubmit;
 
 const profileViewStaticPart = `
-<div style="grid-column: 1 / -1; grid-row: 1 / -1; display: flex; align-items: center; justify-content: center;">
+<div class="full-in-grid" style="display: flex; align-items: center; justify-content: center;">
 	<button id="myButton" onclick="requestBackend()">Login With Google</button>
 </div>
 `;
 
 // ask for username and avatar
 const usernameAvatarForm = `
-<form id="edit-profile-form" style="color: white; grid-column: 1 / -1; grid-row: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center;" onsubmit="usernameAvatarFormHandleSubmit(event)">
+<form id="edit-profile-form" class="full-in-grid" style="color: white; display: flex; flex-direction: column; align-items: center; justify-content: center;" onsubmit="usernameAvatarFormHandleSubmit(event)">
 <h1>Continue profile:</h1>
 <br>
   <label>

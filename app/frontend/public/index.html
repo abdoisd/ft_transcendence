@@ -7,156 +7,113 @@
 	<script defer type = "text/javascript" src = "bundle.js"></script> <!-- js -->
 	<!-- <script src="/socket.io/socket.io.js"></script> -->
 </head>
-
 <style>
-
 	* {
-		padding: 0; 
-		margin: 0;
-		color: white;
-		font-size: 22.5px;
-		font-family: sans-serif;
-	}
+	padding: 0;
+	margin: 0;
+	color: white;
+	font-size: 20px;
+	font-family: sans-serif;
+}
 
-	/* anchors */
-	a {
-		text-decoration: none;
-		cursor: pointer;
-	}
-	.nav-anchor {
-		box-shadow: none;
-		background: none;
-		padding: 0;
-		font-weight: normal;
-		border: none;
-		
-		font-size: 35px;
-		font-weight: 700;
-		font-variant: small-caps;
-	}
-	.nav-anchor:hover {
-		text-decoration: underline;
-		text-decoration-color: red;
-		font-style: italic;
-		text-decoration-thickness: 8px;
-		text-underline-offset: 10px;
+a {
+	text-decoration: none;
+	cursor: pointer;
+}
 
-		background: none;
-		border: none;
-		box-shadow: none;
-	}
-	.main-anchor {
-		box-shadow: none;
-		background: none;
-		padding: 0;
-		font-weight: normal;
-		border: none;
-		
-		font-family: 'Poppins', Impact, sans-serif;
-		font-size: 120px;
-		text-transform: uppercase;
-		transform: scaleX(1.3);
-		font-style: oblique 5deg;
-	}
-	.main-anchor:hover {
-		text-decoration: none;
-		text-decoration-color: red;
-		text-decoration-thickness: 6px;
-		text-underline-offset: 10px;
+.anchor-nav {
+	font-size: 35px;
+	font-weight: 700;
+	font-variant: small-caps;
+}
+.anchor-nav:hover {
+	text-decoration: underline;
+	text-decoration-color: red;
+	font-style: italic;
+	text-decoration-thickness: 8px;
+	text-underline-offset: 10px;
+}
 
-		background: none;
-		border: none;
-		box-shadow: none;
-	}
-	.chat {
-		width: 250px;
-		background: linear-gradient(to right, #ff1a1a, #990000); 
-      	-webkit-background-clip: text; /* let text show foreground */
-      	-webkit-text-fill-color: transparent; /* text is transparent to show gradient background */
-	}
-	.chat:hover {
-		width: 250px;
-		background: linear-gradient(to right, #ff1a1a, #990000); 
-	  	-webkit-background-clip: text;
-	  	-webkit-text-fill-color: transparent;
-	}
+.anchor-main {
+	font-family: 'Poppins', Impact, sans-serif;
+	font-size: 120px;
+	text-transform: uppercase;
+	transform: scaleX(1.3);
+	font-style: oblique 5deg;
+}
 
-	nav {
-		font-size: 35px;
-		font-weight: 700;
-		display: flex;
-		flex-direction: row;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: center;
-	}
-	.flex-item {
-		margin: 0 50px;
-	}
-	
-	body {
-		height: 100vh;
+.anchor-chat {
+	width: 250px;
+	background: linear-gradient(to right, #ff1a1a, #990000); 
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+}
 
-		display: grid;
-		grid-template-areas: 
-			"nav nav nav"
-			"main main main"
-			"footer footer footer";
-		grid-template-rows: 200px 1fr 25px;
-		/* grid-template-rows: 100px minmax(500px, 1fr) 50px; */
-		grid-template-columns: 100px 1fr;
+nav {
+	font-weight: 700;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: center;
+}
+.flex-item {
+	margin: 0 50px;
+}
 
-		background-image: url('bg.jpg');
-		background-repeat: no-repeat;
-		background-size: cover;
-		background-position: center;
-	}
-	
-	footer {
-		font-weight: 1;
-		text-align: center;
-	}
+body {
+	height: 100vh;
 
-	/* add */
-	button, input, a {
-    	font-size: 20px;
-    	font-weight: 700; /**/
-    	padding: 5px 7px 3px; /**/
-    	border-radius: 8px;
-    	background: linear-gradient(to right, #ff1a1a, #990000); 
-		border: none;
-		margin: 2px;
-    }
+	display: grid;
+	grid-template-areas: 
+		"nav nav nav"
+		"main main main"
+		"footer footer footer";
+	grid-template-rows: 200px 1fr 25px;
+	grid-template-columns: 100px 1fr;
 
-	button:hover, input:hover, a:hover {
-		/* background: linear-gradient(to right, #990000, #ff1a1a);  */
-		box-shadow: 0 0 25px rgba(255, 0, 0, 0.8); 
-		border: 1px solid white;
-	}
+	background-image: url('bg.jpg');
+	background-repeat: no-repeat;
+	background-size: cover;
+	background-position: center;
+}
 
-	input[type="text"] {
-		background: none;
-	}
+.anchor-general, input, button {
+	font-weight: 700;
+	padding: 5px 7px 3px;
+	border-radius: 8px;
+	background: linear-gradient(to right, #ff1a1a, #990000); 
+	border: none;
+	margin: 2px;
+}
 
-	/* for views */
-	.divLoginWithGoogle {
-		grid-column: 1 / -1; /* Span from first to last column */
-		grid-row: 1 / -1;    /* Span from first to last row */
-	}
+.anchor-general:hover, input:hover, button:hover {
+	box-shadow: 0 0 25px rgba(255, 0, 0, 0.8); 
+	border: 1px solid white;
+}
 
-	.body {
-		margin: 0;
-		padding: 0;
-		background-color: #0d0d0d; /* deep black */
-		color: #fff;
-		display: flex;
-		flex-direction: column;
-		justify-content: center;
-		align-items: center;
-		gap: 10px;
-		overflow: hidden;
-		font-family: 'Courier New', monospace; /* retro arcade font feel */
-	}
+input[type="text"] {
+	background: none;
+}
+
+.full-in-grid {
+	grid-column: 1 / -1;
+	grid-row: 1 / -1;
+}
+
+/* ================================================================================ */
+
+.body {
+	margin: 0;
+	padding: 0;
+	background-color: #0d0d0d;
+	color: #fff;
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-items: center;
+	gap: 10px;
+	overflow: hidden;
+}
 
 .board {
 	width: 80vw;
@@ -182,7 +139,6 @@
 	display: flex;
 	gap: 60px;
 	margin-bottom: 10px;
-	font-family: 'Orbitron', sans-serif; /* futuristic digital look */
 	/* text-shadow: 0 0 8px #ff1a1a; glowing red text */
 }
 
@@ -207,7 +163,6 @@
 }
 
 </style>
-
 <body id="body">
 	<h1>INDEX.HTML</h1>
 </body>

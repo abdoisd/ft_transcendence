@@ -7,7 +7,7 @@ export function	TwoFAView()
 }
 
 const TwoFAViewStaticPart = `
-<div style="grid-column: 1 / -1; grid-row: 1 / -1; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+<div class="full-in-grid" style="display: flex; flex-direction: column; align-items: center; justify-content: center;">
 	<h1>You Enabled 2FA</h1><br>
 	<form id="twofa-form" onsubmit="validate2faCode(event)">
 		<input type="text" id="twofa-code" name="twofa-code" required placeholder="Enter your 2FA code">

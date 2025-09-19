@@ -13,15 +13,15 @@ app/frontend/public/output.css
 # ignore any .env file
 # .env
 
-# any DS_Store file
+# create by itself
 .DS_Store
+.vscode
 
 # for package-lock.json, we are working with an app, so we keep it
 
 # additional
 app/backend/tests
 app/backend/test
-html's
 me
 
 # all avatars except the default

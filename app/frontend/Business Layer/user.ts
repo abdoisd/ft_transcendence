@@ -4,10 +4,10 @@
 class clsGame {
 	Id;
 	User1Id;
-	User2Id;
+	User2Id: number | null;
 	Date: Date;
 	WinnerId;
-	TournamentId;
+	TournamentId: number | null;
 }
 
 export class UserDTO
@@ -34,7 +34,7 @@ export class UserDTO
 		// this.SessionId = sessionId;
 		// this.ExpirationDate = expirationDate;
 	}
-	
+
 	static async getAllUsers()
 	{
 		const response = await fetch('data/user/getAll'); // the browser use the same curr domain and port
@@ -76,9 +76,6 @@ export class UserDTO
     // }
 
 	async update(): Promise<boolean> {
-
-		console.debug("UserDTO.update");
-		
 		if (this.Id < 0)
 			return false;
         const response = await fetch(`/data/user/update`, {
@@ -114,7 +111,7 @@ export class UserDTO
 	}
 
 	//?
-	getMatchHistory(): Promise<clsGame[]>
+	getMatchHistory(): Promise<clsGame[] | null>
 	{
 		return get("/users/" + this.Id + "/games");
 	}

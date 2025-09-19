@@ -1,0 +1,33 @@
+<body>
+	<script>
+		const socket = new WebSocket("ws://localhost:3000");
+		socket.onopen = () => {
+			console.log("Connected to server");
+		};
+		socket.onmessage = (event) => {
+			console.log("Message from server:", event.data);
+
+			document.getElementById("msg").innerHTML += event.data + "<br>";
+		};
+		socket.onclose = () => {
+			console.log("Connection closed");
+		};
+	
+		function up()
+		{
+			socket.send("up");
+		}
+		function down()
+		{
+			socket.send("down");
+		}
+	</script>
+
+	<button onclick="up()">up</button>
+	<button onclick="down()">down</button>
+
+	<div id="msg">
+
+	</div>
+	
+</body>

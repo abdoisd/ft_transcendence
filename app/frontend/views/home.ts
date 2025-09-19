@@ -5,33 +5,33 @@ export function HomeView()
 
 const HomeViewStaticPart: string = `
 <nav style="grid-area: nav;">
-	<a class="flex-item nav-anchor" href="/" onclick="route()">home</a>
-	<a class="flex-item nav-anchor" href="/friends" onclick="route()">friends</a>
-	<a class="flex-item nav-anchor" href="/profile" onclick="route()">profile</a>
-	<a class="flex-item nav-anchor" href="/settings" onclick="route()">settings</a>
+	<a class="flex-item anchor-nav" href="/" onclick="route()">home</a>
+	<a class="flex-item anchor-nav" href="/friends" onclick="route()">friends</a>
+	<a class="flex-item anchor-nav" href="/profile" onclick="route()">profile</a>
+	<a class="flex-item anchor-nav" href="/settings" onclick="route()">settings</a>
 </nav>
 <main id="main-views" style="grid-area: main; display: flex; flex-direction: column; align-items: center;">
-	<a class="main-anchor" href="/game" onclick="route()">play</a>
-	<a class="main-anchor chat" href="/chat" onclick="route()">chat</a>
+	<a class="anchor-main" href="/game" onclick="route()">play</a>
+	<a class="anchor-main anchor-chat" href="/chat" onclick="route()">chat</a>
 
-	<a>Join a tournament</a>
+	<a class="anchor-general">Join a tournament</a>
 
 </main>
-<footer style="grid-area: footer;">
+<footer style="grid-area: footer; font-weight: 1; text-align: center;">
 	2025 — ft_transcendence Inc.
 </footer>
 `;
 
 // const old = `
 // <nav class="flex-container" style="grid-area: nav;">
-// 	<a class="flex-item nav-anchor" href="/" onclick="route()">home</a>
-// 	<a class="flex-item nav-anchor" href="/friends" onclick="route()">friends</a>
-// 	<a class="flex-item nav-anchor" href="/profile" onclick="route()">profile</a>
-// 	<a class="flex-item nav-anchor" href="/settings" onclick="route()">settings</a>
+// 	<a class="flex-item anchor-nav" href="/" onclick="route()">home</a>
+// 	<a class="flex-item anchor-nav" href="/friends" onclick="route()">friends</a>
+// 	<a class="flex-item anchor-nav" href="/profile" onclick="route()">profile</a>
+// 	<a class="flex-item anchor-nav" href="/settings" onclick="route()">settings</a>
 // </nav>
 // <main id="main-views" style="grid-area: main; display: flex; flex-direction: column; align-items: center;">
-// 	<a class="main-anchor" style="margin-top: 125px;" href="/game" onclick="route()">play</a>
-// 	<a class="main-anchor chat" href="/chat" onclick="route()">chat</a>
+// 	<a class="anchor-main" style="margin-top: 125px;" href="/game" onclick="route()">play</a>
+// 	<a class="anchor-main chat" href="/chat" onclick="route()">chat</a>
 
 // 	normal text
 // 	<a>link text</a>

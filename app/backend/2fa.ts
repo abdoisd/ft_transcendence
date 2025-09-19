@@ -11,7 +11,7 @@ import { setSessionIdCookie } from './oauth2.ts';
 export function Enable2faRoutes()
 {
 
-	// enable 2fa
+	// input: id
 	server.get("/auth/2fa", { preHandler: (server as any).byItsOwnUser }, async (request, reply) => 
 	{
 		const userId = (request.query as any).Id;
@@ -31,15 +31,15 @@ export function Enable2faRoutes()
 
 	});
 
-	//! where I verify with permanent secret !!!!!!!!
-	server.get("/auth/2fa/enable", async (request, reply) => 
+	// input: id, code
+	server.get("/auth/2fa/enable", { preHandler: (server as any).byItsOwnUser }, async (request, reply) => 
 	{
 		console.debug(yellow, "/auth/2fa/enable");
 		
 		const userId = (request.query as any).Id;
 		const code = (request.query as any).code;
 
-		if (!userId || !code || userId.length == 0 || code.length == 0)
+		if (!userId || !code || userId.trim() == "" || code.trim() == "")
 			return reply.status(400).send();
 
 		console.debug(yellow, "code: ", code);
@@ -73,7 +73,7 @@ export function Enable2faRoutes()
 			reply.send( {jwt: jwt, user: user} );
 		}
 		else
-			reply.status(403).send();
+			reply.status(400).send();
 	});
 
 	server.get("/auth/2fa/verify", async (request, reply) => 
@@ -83,7 +83,7 @@ export function Enable2faRoutes()
 		const userId = (request.query as any).Id;
 		const code = (request.query as any).code;
 
-		if (!userId || !code || userId.length == 0 || code.length == 0)
+		if (!userId || !code || userId.trim() == "" || code.trim() == "")
 			return reply.status(400).send();
 
 		// // validate with pending secret in db
