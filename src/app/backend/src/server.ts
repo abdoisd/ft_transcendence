@@ -27,7 +27,7 @@ import { OAuth2Routes } from "./oauth2.ts";
 import { relationshipRoutes } from "./data access layer/relationship.ts"
 import { Enable2faRoutes } from "./2fa.ts";
 
-export const server = Fastify();
+export const server = Fastify({bodyLimit: 3048576}); // 1mb
 // REGISTER PLUGINS
 server.register(cookie, {});
 server.register(multipart);
@@ -44,7 +44,7 @@ server.register(fastifyJwt, {
 })
 
 // game / socket.io
-import { webSocket } from "./webSocket.ts";
+// import { webSocket } from "./webSocket.ts";
 // webSocket(); //!
 
 // prometheus

@@ -7,17 +7,14 @@ import { ProfileEditView } from './views/profileEdit.ts';
 import { LoginWithGoogle, existingUser, NewUser } from './views/loginWithGoogle.ts';
 import { friendsView, addFriendView, listFriendsView } from './views/friends.ts';
 import { Settings } from './views/settings.ts';
-import { GameRemoteView } from './views/gameRemote.ts';
+// import { GameRemoteView } from './views/gameRemote.ts';
 import { GameView } from './views/game.ts';
-import { Tournament } from './views/tournament.ts';
 
 import { UserDTO } from './business layer/user.ts';
 
 import { post } from "./views/request.ts";
-import { Chat } from './views/chat.ts';
 
 type RoutePath = keyof typeof routes;
-
 export var routes = {
 	'/newUser': NewUser,
 	'/existingUser': existingUser,
@@ -28,11 +25,10 @@ export var routes = {
 		'/profileEdit': ProfileEditView,
 		// '/profile/matchHistory': ProfileMatchHistoryView,
 	'/game': GameView,
-		'/gameRemote': GameRemoteView,
-		'/tournament': Tournament,
+		// '/gameRemote': GameRemoteView,
+		// '/tournament': Tournament,
 	// '/chat': chatView,
-	"/settings": Settings,
-	"/chat": Chat
+	"/settings": Settings
 };
 
 export async function autoLogin()

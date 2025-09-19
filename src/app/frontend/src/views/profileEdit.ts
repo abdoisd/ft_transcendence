@@ -304,7 +304,7 @@ async function EditUser(event: Event)
 
 	const jwt = localStorage.getItem('jwt');
 	return fetch("/updateProfile/" + clsGlobal.LoggedInUser.Id.toString(), {
-		method: 'POST',
+		method: 'PUT',
 		headers: {
 			'Authorization': 'Bearer ' + jwt
 		},

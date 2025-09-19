@@ -20,16 +20,7 @@ export class Relationship {
 		this.Relationship = Relationship ?? -1;
 	}
 
-	// old
-	// return db.all('SELECT * FROM Relationships', (err, rows) => {
-	// 	if (err)
-		// 		return null;
-	// 	return rows;
-	// });
-
-	// db.all runs asynchronously, in the background, we define callback to handle it
-	// here we use promise to use async/await with it
-	static getAll(): Promise<any[] | null> // return rows or null
+	static getAll(): Promise<any[] | null>
 	{
 		return new Promise((resolve, reject) => {
 			db.all('SELECT * FROM Relationships', (err, rows) => {
@@ -105,50 +96,28 @@ export class Relationship {
 		});
 	}
 
-	//
-
-	// // get friends per user
-	// static getFriendsPerUserId(Id: number): Promise<any[] | null> // return rows or null
-	// {
-	// 	return new Promise((resolve, reject) => {
-	// 		db.all('select * from relationships where (User1Id = ? or User2Id = ?) and Relationship = 1;', [Id], (err, rows) => {
-	// 			if (err)
-	// 				reject(null); // returning
-	// 			else
-	// 				resolve(rows);
-	// 		});
-	// 	});
-	// }
-
 }
 // THIS IS SQLITE
+
+const relationshipAddSchema = {
+	body: {
+		type: "object",
+		required: ["User1Id", "User2Id", "Relationship"],
+		properties: {
+			User1Id: { type: "integer" },
+			User2Id: { type: "integer" },
+			Relationship: { type: "integer", enum: [0, 1] }
+		}
+	}
+};
 
 // routes
 // THIS IS FASTIFY
 export function relationshipRoutes()
 {
 
-	// server.get("/data/relationship/getAll", async (request, reply) => {
-	// 	const res = await Relationship.getAll(); // fastify will await
-	// 	if (res == null) {
-	// 		reply.status(500).send();
-	// 	} else {
-	// 		reply.send(res);
-	// 	}
-	// });
-
-	// server.get("/data/relationship/getById", async (request, reply) => {
-	// 	const Id = Number((request.query as any).Id);
-	// 	const relationship = await Relationship.getById(Id);
-	// 	if (relationship == null) {
-	// 		reply.status(404).send();
-	// 	} else {
-	// 		reply.send(relationship);
-	// 	}
-	// });
-
 	// ADD FRIEND, ONLY IF YOU ARE USER1
-	server.post("/data/relationship/add", { preHandler: (server as any).byItsOwnUser }, async (request, reply) => {
+	server.post("/relationships", { preHandler: (server as any).byItsOwnUser, schema: relationshipAddSchema }, async (request, reply) => {
 		const relationship: Relationship = Object.assign(new Relationship(), request.body);
 		await relationship.add();
 		if (relationship.Id == -1) {
@@ -158,21 +127,10 @@ export function relationshipRoutes()
 		}
 	});
 
-	// FOR BLOCKING, ONLY IF YOU ARE USER1
-	server.put("/data/relationship/update", { preHandler: (server as any).byItsOwnUser }, async (request, reply) => {
-		const relationship: Relationship = Object.assign(new Relationship(), request.body);
-		const res = await relationship.update();
-		if (res == false) {
-			reply.status(500).send();
-		} else {
-			reply.send(res);
-		}
-	});
-
-	// NOT IN THE WEB APP
-	// server.delete("/data/relationship/delete", async (request, reply) => {
-	// 	const Id = Number((request.query as any).Id);
-	// 	const res = await Relationship.deleteById(Id);
+	// // FOR BLOCKING, ONLY IF YOU ARE USER1
+	// server.put("/relationships", { preHandler: (server as any).byItsOwnUser }, async (request, reply) => {
+	// 	const relationship: Relationship = Object.assign(new Relationship(), request.body);
+	// 	const res = await relationship.update();
 	// 	if (res == false) {
 	// 		reply.status(500).send();
 	// 	} else {
@@ -181,6 +139,3 @@ export function relationshipRoutes()
 	// });
 
 }
-
-// relationships
-// client server exchange: Relationship objects

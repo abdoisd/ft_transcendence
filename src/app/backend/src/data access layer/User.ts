@@ -5,6 +5,7 @@ import fs from "fs";
 import { server } from "../server.ts"; // import variable
 import { guid } from "../global.ts";
 import { clsGame } from "./game.ts";
+import { pipeline } from "stream/promises";
 
 db.run(`
 	CREATE TABLE IF NOT EXISTS Users (
@@ -115,9 +116,8 @@ export class User
 	}
 
 	//!
-	update()
+	update(): Promise<boolean>
 	{
-
 		console.log(green, 'User.update');
 		console.debug(yellow, 'Updating: ', this);
 		
@@ -263,14 +263,20 @@ export function UserRoutes()
 
 			if (request.method == "PUT")
 			{
+				//! when we will update a user from frontend
+				// if ((user.Id || request.params.id) != payload.Id)
+					// 	return reply.status(403).send({ error: 'Forbidden' }); // Forbidden
+				
 				const user = request.body;
-				if (user.Id != payload.Id)
-					return reply.status(403).send({ error: 'Forbidden' }); // Forbidden
+				// for /updateProfile/3 and update user
+				if ((request.params.id || user.Id) != payload.Id)
+					return reply.status(403).send(); // Forbidden
+
 			}
 			else if (request.method == "DELETE" || request.method == "GET") // get for friends
 			{
 
-				const Id = request.query.Id;
+				const Id = request.query.Id || request.params.id;
 				if (!Id) // google id
 				{
 					const GoogleId = request.query.GoogleId;
@@ -291,6 +297,13 @@ export function UserRoutes()
 					if (Id != payload.Id)
 						return reply.status(403).send(); // Forbidden
 				}
+			}
+			else if (request.method == "POST")
+			{
+				// relationship || upload profile
+				const relationship = request.body;
+				if ((relationship?.User1Id || request.params.id) != payload.Id)
+					return reply.status(403).send();
 			}
 		}
 		catch (err)
@@ -330,82 +343,99 @@ export function UserRoutes()
 	// 		}
 	// 	});
 	// });
-	/**
-		response looks like:
-		{
-		  "Id": 1,
-		  "GoogleId": "123",
-		  "Username": "john",
-		  "AvatarPath": "john.png",
-		  "Wins": 10,
-		  "Losses": 5,
-		  "SessionId": null,
-		  "ExpirationDate": null,
-		  "AvatarUrl": "/uploads/avatars/john.png"
-		}
-	*/
 
 	// serving avatars
 	server.get('/data/user/getAvatarById', (request, reply) => {
+
+		// console.log(request.cookies);
+		// if cookie is not for the user id, you can't get it
+
 		const Id = (request.query as { Id: number }).Id;
+		
+		User.getById(Id)
+		.then((user) => {
 
-		// get the avatar path
-		db.get("SELECT AvatarPath FROM users WHERE Id = ?", [Id], (err, row) => {
 
-			const defaultAvatarPath = "./avatars/default-avatar.png";
+			if (user && user.SessionId != request.cookies.sessionId)
+				return reply.status(403).send();
 
-			reply.type("image/png"); // set content-type
+// get the avatar path
+db.get("SELECT AvatarPath FROM users WHERE Id = ?", [Id], (err, row) => {
+
+	const defaultAvatarPath = "./avatars/default-avatar.png";
+
+	reply.type("image/png"); // set content-type
+	
+	if (err) // database error
+	{
+		console.error(red, 'Error: /data/user/getAvatarById:', err);
+		if (!fs.existsSync(defaultAvatarPath))
+		{
+			reply.status(500).send();
+			return ;
+		}
+		fs.createReadStream(defaultAvatarPath).pipe(reply.raw); // serve default
+		return ;
+	}
+
+	// user not found !
+	if (!row || !(row as any).AvatarPath) {
+		console.debug(blue, 'User not found in db or no avatar for him');
+		if (!fs.existsSync(defaultAvatarPath))
+		{
+			reply.status(500).send();
+			return ;
+		}
+		fs.createReadStream(defaultAvatarPath).pipe(reply.raw); // serve default
+		return ;
+	}
+
+	// Full avatar path
+	const filePath = path.join(process.cwd(), "avatars", (row as any).AvatarPath);
+
+	// if dir not found
+
+	// if file not found
+	if (!fs.existsSync(filePath))
+	{
+		console.debug(blue, 'Avatar file not found, serving default');
+		if (!fs.existsSync(defaultAvatarPath))
+		{
+			reply.status(500).send();
+			return ;
+		}
+		fs.createReadStream(defaultAvatarPath).pipe(reply.raw);
+		return ;
+	}
+
+	// Send the image file
+	console.debug(blue, 'Serving the proper avatar');
+	reply.type("image/jpeg");
+	fs.createReadStream(filePath).pipe(reply.raw); // readable stream pipe to writable stream
+	// A file stream is a way to read or write a file piece by piece, instead of loading the entire file into memory at once
+});
+
 			
-			if (err) // database error
-			{
-				console.error(red, 'Error: /data/user/getAvatarById:', err);
-				if (!fs.existsSync(defaultAvatarPath))
-				{
-					reply.status(500).send();
-					return ;
-				}
-				fs.createReadStream(defaultAvatarPath).pipe(reply.raw); // serve default
-				return ;
-			}
+		})
 
-			// user not found !
-			if (!row || !(row as any).AvatarPath) {
-				console.debug(blue, 'User not found in db or no avatar for him');
-				if (!fs.existsSync(defaultAvatarPath))
-				{
-					reply.status(500).send();
-					return ;
-				}
-				fs.createReadStream(defaultAvatarPath).pipe(reply.raw); // serve default
-				return ;
-			}
-
-			// Full avatar path
-			const filePath = path.join(process.cwd(), "avatars", (row as any).AvatarPath);
-
-			// if dir not found
-
-			// if file not found
-			if (!fs.existsSync(filePath))
-			{
-				console.debug(blue, 'Avatar file not found, serving default');
-				if (!fs.existsSync(defaultAvatarPath))
-				{
-					reply.status(500).send();
-					return ;
-				}
-				fs.createReadStream(defaultAvatarPath).pipe(reply.raw);
-				return ;
-			}
-
-			// Send the image file
-			console.debug(blue, 'Serving the proper avatar');
-			fs.createReadStream(filePath).pipe(reply.raw); // Take the file and send it to the browser chunk by chunk until it’s done
-			// A file stream is a way to read or write a file piece by piece, instead of loading the entire file into memory at once
-			// in c, we use read
-		});
+		
 	});
 
+	server.get('/data/user/getByUsername', { preHandler: (server as any).mustHaveToken }, async (request, reply) => {
+		const { username } = request.query as { username: string }; // Cast request.query to include username
+
+		if (!username || username.trim() == "" || username.length < 3 || username.length > 20 || !/^[a-zA-Z0-9_]+$/.test(username)) {
+			return reply.status(400).send();
+		}
+		
+		const res = await UserDTO.getByUsername(username);
+		if (res)
+			reply.send(res);
+		else
+			reply.status(404).send();
+	});
+
+	// what is this route for
 	server.get('/data/user/getByGoogleId', { preHandler: (server as any).byItsOwnUser }, (request, reply) => {
 		const GoogleId: number = (request.query as { GoogleId: number }).GoogleId; // the query string is a json object: url ? Id=${encodeURIComponent(Id)
 		db.get("select * from users where GoogleId = ?", [GoogleId], (err, row) => {
@@ -428,19 +458,7 @@ export function UserRoutes()
 	});
 
 	// return userDTO
-	server.get('/data/user/getByUsername', { preHandler: (server as any).mustHaveToken }, async (request, reply) => {
-		const { username } = request.query as { username: string }; // Cast request.query to include username
-
-		if (!username || username.trim() == "") {
-			return reply.status(400).send();
-		}
-		
-		const res = await UserDTO.getByUsername(username);
-		if (res)
-			reply.send(res);
-		else
-			reply.status(404).send();
-	});
+	
 
 	// server.put('/data/user/update', { preHandler: server.byItsOwnUser }, (request, reply) => {
 
@@ -465,10 +483,20 @@ export function UserRoutes()
 	// 	});
 	// });
 
-	//!
-	server.put('/data/user/update', { preHandler: (server as any).byItsOwnUser }, async (request, reply) => {
+	const updateUserSchema = {
+		body: {
+			type: 'object',
+			required: ['Id', 'Username'],
+			properties: {
+				Id: { type: 'number' },
+				Username: { type: "string", minLength: 3, maxLength: 20, pattern: "^[a-zA-Z0-9_]+$" } // str protect
+			}
+		}
+	};
 
-		const userObj = request.body as UserDTO; // Define the type
+	server.put('/data/user/update', { preHandler: (server as any).byItsOwnUser, schema: updateUserSchema }, async (request, reply) => {
+
+		const userObj = request.body as UserDTO;
 		// obj to userDTO
 		let user: UserDTO = new UserDTO();
 		user.Id = userObj.Id;
@@ -477,25 +505,26 @@ export function UserRoutes()
 		user.Losses = userObj.Losses;
 		user.LastActivity = userObj.LastActivity;
 		await user.update();
+
 	});
 
-	server.delete('/data/user/delete', { preHandler: (server as any).byItsOwnUser }, (request, reply) => {
-		const { Id } = request.query as { Id: number };
-		db.run("delete from users where id = ?", [Id], function(err) {
-			if (err)
-			{
-				console.log(red, 'Error: get /data/user/delete: ', err);
-				reply.status(500).send();
-			}
-			else
-			{
-				if (this.changes < 1)
-					reply.status(500).send();
-				else
-					reply.send();
-			}
-		});
-	});
+	// server.delete('/data/user/delete', { preHandler: (server as any).byItsOwnUser }, (request, reply) => {
+	// 	const { Id } = request.query as { Id: number };
+	// 	db.run("delete from users where id = ?", [Id], function(err) {
+	// 		if (err)
+	// 		{
+	// 			console.log(red, 'Error: get /data/user/delete: ', err);
+	// 			reply.status(500).send();
+	// 		}
+	// 		else
+	// 		{
+	// 			if (this.changes < 1)
+	// 				reply.status(500).send();
+	// 			else
+	// 				reply.send();
+	// 		}
+	// 	});
+	// });
 
 	// 
 
@@ -505,11 +534,12 @@ export function UserRoutes()
 		reply.send(await User.getFriends(Id));
 	});
 
+	// problem if I added jwt checking
 	server.get('/data/user/enabled2FA', async (request, reply) => {
-		const Id = (request.query as { Id: number }).Id; // if id is not in query, fastify send by request
+		const Id = (request.query as { Id: number }).Id;
 		const user = await User.getById(Id);
 		if (!user)
-			return reply.status(404).send(); // there is a problem in the logic
+			return reply.status(404).send();
 		if (user.enabled2FA())
 			reply.status(200).send();
 		else
@@ -519,48 +549,54 @@ export function UserRoutes()
 	// you must give it
 	// id
 	// username or avatar or both In multipart form data
-	server.post("/updateProfile/:id", async (req, reply) => {
-
+	server.put("/updateProfile/:id", { preHandler: (server as any).byItsOwnUser }, async (req, reply) =>
+	{
 		const parts = req.parts();
 
 		let username: string | null = null;
 		let avatarPath: string | null = null;
+		let filename: string | null = null;
 
-		let filename;
-	  
-		for await (const part of parts) { // we must have await for iterate
+		// send files async (file by file)
+		// each file content is also async (file chunk by file chunk)
+			// parts is async iterable
+			// part.file is stream what we can use one pipe/pipeline to write it chunk by chunk, or work with it like async iterable
+		for await (const part of parts) {
 			if (part.type === "file" && part.fieldname === "avatar") {
 
 				filename = guid() + ".png";
-				
 				avatarPath = path.join(process.cwd(), "avatars", filename);
-				const writeStream = fs.createWriteStream(avatarPath);
-				part.file.pipe(writeStream);
 
-				break ;
+				const writeStream = fs.createWriteStream(avatarPath);
+				pipeline(part.file, writeStream);
+
 			} else if (part.type === "field" && part.fieldname === "username") {
-				username = part.value as any;
+				username = part.value as string;
 			}
 		}
 
-		if ((!username || username.trim() == "") && !avatarPath)
-		{
-			return reply.status(400).send();
+		if (username) {
+			if (
+				username.trim() === "" ||
+				username.length < 3 ||
+				username.length > 20 ||
+				!/^[a-zA-Z0-9_]+$/.test(username)
+			) {
+				return reply.status(400).send();
+			}
 		}
-	  
-		// Here you would update your DB with the provided fields
-		// e.g. updateProfile(userId, { username, avatarPath })
-		const user: User = await User.getById((req.params as any).id); // debug this
+
+		const user: User = await User.getById((req.params as any).id);
 		user.Username = username ?? user.Username;
 		user.AvatarPath = filename ?? user.AvatarPath;
-		user.update();
+		await user.update(); // why wait
 
 		reply.send();
+
 	});
 
-	//?
 	// get user games
-	server.get("/users/:id/games", async (req, reply) => {
+	server.get("/users/:id/games", { preHandler: (server as any).byItsOwnUser }, async (req, reply) => {
 
 		console.log(green, 'GET /users/:id/games');
 		console.debug(yellow, 'User ID: ', (req.params as any).id);

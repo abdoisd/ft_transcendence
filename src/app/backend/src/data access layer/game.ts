@@ -23,7 +23,7 @@ db.run(`
 		User1Id INTEGER NOT NULL,
 		User2Id INTEGER NULL, -- ai game
 		Date TEXT NOT NULL DEFAULT NULL,
-		WinnerId INTEGER NOT NULL,
+		WinnerId INTEGER NULL, -- ai wins
 		TournamentId INTEGER NULL, -- game not in tournament
 
 		FOREIGN KEY (User1Id) REFERENCES Users(Id),
@@ -83,7 +83,7 @@ export class clsGame {
 		});	
 	}
 
-	static getByUserId(Id): Promise<clsGame[]>
+	static getByUserId(Id): Promise<clsGame[] | null>
 	{
 		console.log(green, 'Game.getByUserId');
 		console.debug(yellow, 'UserId: ', Id);
@@ -97,11 +97,11 @@ export class clsGame {
 				if (err)
 				{
 					console.error(red, 'Error: Game.getByUserId: ', err);
-					// reject(err);
+					reject(null);
 				}
 				else
 				{
-					// make them class instances?
+					// make them class instances
 					const games = rows.map(row => {
 						const game = new clsGame(row);
 						return game;

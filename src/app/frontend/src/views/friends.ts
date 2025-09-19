@@ -10,9 +10,9 @@ export function friendsView()
 
 const friendsViewStaticPart: string = `
 <p>Friends View:</p>
-<a href="/addFriend" onclick="route()">Add Friend</a>
+<a class="anchor-general" href="/addFriend" onclick="route()">Add Friend</a>
 <br>
-<a href="/listFriends" onclick="route()">List Friends</a>
+<a class="anchor-general" href="/listFriends" onclick="route()">List Friends</a>
 `;
 
 /**

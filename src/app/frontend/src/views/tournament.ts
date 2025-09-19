@@ -36,11 +36,3 @@ class Queue {
         return this.items.length;
     }
 }
-
-export function Tournament()
-{
-	// add player to queue in the ws server
-
-
-	
-}

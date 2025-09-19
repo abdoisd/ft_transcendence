@@ -15,6 +15,6 @@ export class Relationship {
 
 	async add()
 	{
-		return post("/data/relationship/add", this);
+		return post("/relationships", this);
 	}
 }
