@@ -14,8 +14,10 @@ import { Tournament } from './views/tournament.ts';
 import { UserDTO } from './business layer/user.ts';
 
 import { post } from "./views/request.ts";
+import { Chat } from './views/chat.ts';
 
 type RoutePath = keyof typeof routes;
+
 export var routes = {
 	'/newUser': NewUser,
 	'/existingUser': existingUser,
@@ -29,7 +31,8 @@ export var routes = {
 		'/gameRemote': GameRemoteView,
 		'/tournament': Tournament,
 	// '/chat': chatView,
-	"/settings": Settings
+	"/settings": Settings,
+	"/chat": Chat
 };
 
 export async function autoLogin()

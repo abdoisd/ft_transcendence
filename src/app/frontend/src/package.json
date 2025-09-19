@@ -12,13 +12,11 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"@tailwindcss/cli": "^4.1.12",
 		"socket.io-client": "^4.8.1"
 	},
 	"devDependencies": {
 		"@types/node": "^24.3.0",
 		"esbuild": "^0.25.9",
-		"nodemon": "^3.1.10",
-		"tailwindcss": "^4.1.12"
+		"nodemon": "^3.1.10"
 	}
 }

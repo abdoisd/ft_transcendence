@@ -151,18 +151,13 @@ services:
       - ROOT_TOKEN=${ROOT_TOKEN}
     depends_on:
       - vault-server
+      - frontend
 
   frontend:
     build: app/frontend
     working_dir: /usr/src/app
     volumes:
       - ./app/frontend/src:/usr/src/app
-    ports: # tmp
-      - "4000:4000"
-    networks: # tmp
-      - app
-    depends_on:
-      - backend
 
 volumes:
   es_data: 
