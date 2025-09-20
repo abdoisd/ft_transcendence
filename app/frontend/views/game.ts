@@ -1,3 +1,5 @@
+import { UserDTO } from "../business layer/user";
+
 import { tournamentGameViewStaticPart } from "./gameViews";
 import { Three3DGameViewStaticPart } from "./gameViews";
 import { remoteGameViewStaticPart } from "./gameViews";
@@ -131,12 +133,24 @@ function remoteGame() {
 	wsClientRemote.emit("join-game", {userId: clsGlobal.LoggedInUser.Id});
 
 	let game = null;
-	wsClientRemote.on("start-game", (initialState) => {
+	wsClientRemote.on("start-game", async (initialState) => {
+
+		const p1 = document.querySelector(".p1");
+		const p2 = document.querySelector(".p2");
+
+		console.log(initialState)
+
+		p1.textContent = (await UserDTO.getById(initialState.leftId)).Username;
+		p2.textContent = (await UserDTO.getById(initialState.rightId)).Username;
+
 		setScores(0, 0);
 		game = new ClientGame(canvas, ctx, initialState.players[0], initialState.players[1], wsClientRemote);
 		game.state = initialState;
 		game.draw();
+
+		game.usernames = {_1: p1.textContent, _2: p2.textContent};
 	});
+
 	wsClientRemote.on("game-state", state => {
 		if (game) {
 			game.state = state;
@@ -147,9 +161,16 @@ function remoteGame() {
 	wsClientRemote.on("score-state", (score) => {
 		setScores(score.left, score.right);
 	})
-	wsClientRemote.on("new-winner", winner => {
+	wsClientRemote.on("new-winner", async winnerId => {
+		// gameOverView(winner, winner === "left"? "right" : "left");
+
+		console.log("Winner ID: ", winnerId);
+		const winner = (await UserDTO.getById(winnerId)).Username;
+
 		console.log("The winner: ", winner);
-		gameOverView(winner, winner === "left"? "right" : "left");
+
+		gameOverView(winner, (winner == game.usernames._1) ? game.usernames._2 : game.usernames._1);
+		
 		window.gameManager.leaveActiveGame();
 	})
 	wsClientRemote.on("opponent-left", () => {

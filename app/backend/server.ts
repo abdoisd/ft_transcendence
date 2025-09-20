@@ -59,10 +59,10 @@ const requestCounter = new client.Counter({
 });
 register.registerMetric(requestCounter);
 server.addHook('onResponse', (request, reply, done) => {
-requestCounter.inc({
-	request_method: request.method,
-	requested_file: request.url,
-	response_status: reply.statusCode
+	requestCounter.inc({
+		request_method: request.method,
+		requested_file: request.url,
+		response_status: reply.statusCode
 	});
 	done();
 });

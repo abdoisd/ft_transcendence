@@ -95,7 +95,7 @@ export class Game {
 		if (this.scores[scorer] >= MAX_SCORE)
 		{
 			this.running = false;
-			this.winnerId = this.scores["left"] > this.scores["right"] ? this.players[0]: this.players[1];
+			this.winnerId = this.scores["left"] > this.scores["right"] ? this.ids.id1: this.ids.id2;
 		} else {
 			this.randomizeBall();
 		}

@@ -1,7 +1,7 @@
 import { Server } from "socket.io";
 import { Game } from "./game.ts";
-
 import { clsGame } from "./data access layer/game.ts";
+
 import { clsTournament } from "./data access layer/tournament.ts";
 import { red, green, yellow, cyan } from "./global.ts";
 import { Socket } from "dgram";
@@ -13,11 +13,14 @@ export function webSocket(fastifyServer) {
 	const wsServerAI = wsServer.of("/ai");
 
 	const aiGames = new Map();
+
 	wsServerAI.on("connection", (client) => {
 		const roomId = `game_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 		client.join(roomId);
+
 		client.roomId = roomId;
 		client.userId = client.id;
+
 		const game = new Game(client.id, "ai", wsServerAI, roomId);
 		aiGames.set(roomId, game);
 		wsServerAI.to(roomId).emit("start-game", game.getFullState());
@@ -31,7 +34,20 @@ export function webSocket(fastifyServer) {
 			if (game.running)
 				wsServerAI.to(roomId).emit("game-state", game.getState());
 			else // end game ...
+			{
+
+				// const dbGame = new clsGame({
+				// 	Id: -1,
+				// 	User1Id: client.userId,
+				// 	User2Id: null,
+				// 	Date: Date.now(),
+				// 	WinnerId: game.winnerId,
+				// 	TournamentId: -1
+				// });
+				// dbGame.add();
+
 				clearInterval(interval);
+			}
 		}, 16);
 
 		client.on("disconnect", () => {
@@ -66,9 +82,10 @@ export function webSocket(fastifyServer) {
 	const remoteGames = new Map();
 	wsServerRemote.on("connection", (client) => {
 		client.roomId = null;
-		client.on("join-game", () => {
+		client.on("join-game", (user) => {
 			// if (client.roomId)
 			// 	return;
+			client.userId = user.userId;
 			if (waitingRemotePlayers.length > 0) {
 				const opponent = waitingRemotePlayers.pop();
 				if (opponent.id === client.id) {
@@ -158,10 +175,15 @@ export function webSocket(fastifyServer) {
 		p1.roomId = roomId;
 		p2.roomId = roomId;
 
-		const game = new Game(p1.id, p2.id, wsServerRemote, roomId);
+		const game = new Game(p1.id, p2.id, wsServerRemote, roomId, {id1: p1.userId, id2: p2.userId}); //&
 		remoteGames.set(roomId, game);
 
-		wsServerRemote.to(roomId).emit("start-game", game.getFullState());
+		const state = game.getFullState();
+		
+		state.leftId = p1.userId;
+		state.rightId = p2.userId;
+
+		wsServerRemote.to(roomId).emit("start-game", state);
 		let lastTime = Date.now();
 		const interval = setInterval(() => {
 			const now = Date.now();
@@ -173,6 +195,19 @@ export function webSocket(fastifyServer) {
 			if (game.running) {
 				wsServerRemote.to(roomId).emit("game-state", game.getState());
 			} else {
+
+				// end game ...
+				const dbGame = new clsGame({
+					Id: -1,
+					User1Id: p1.userId,
+					User2Id: p2.userId,
+					Date: Date.now(),
+					WinnerId: game.winnerId,
+					TournamentId: -1
+				});
+				dbGame.add();
+				//
+
 				clearInterval(interval);
 				remoteGames.delete(roomId);
 			}

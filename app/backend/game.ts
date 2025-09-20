@@ -6,7 +6,7 @@ const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 150;
 const BALL_RADIUS = 9;
 const MAX_VELOCITY = 1500;
-const MAX_SCORE = 5;
+const MAX_SCORE = 1;
 
 export class Game {
 
@@ -22,9 +22,11 @@ export class Game {
 	targetY;
 	aiGame;
 	
-	constructor(player1Id, player2Id, io, roomId) {
+	constructor(player1Id, player2Id, io, roomId, ids) {
 		this.io = io;
 		this.roomId = roomId;
+
+		this.ids = ids; //&
 
 		this.players = [player1Id, player2Id];
 		this.paddles = {
@@ -93,9 +95,9 @@ export class Game {
 		this.io.to(this.roomId).emit("score-state", this.scores);
 		if (this.scores[scorer] >= MAX_SCORE)
 		{
-			this.io.to(this.roomId).emit("new-winner", this.scores["left"] > this.scores["right"] ? "left" : "right");
+			this.io.to(this.roomId).emit("new-winner", this.scores["left"] > this.scores["right"] ? this.ids.id1: this.ids.id2);
 			this.running = false;
-			this.winnerId = this.scores["left"] > this.scores["right"] ? this.players[0]: this.players[1];
+			this.winnerId = this.scores["left"] > this.scores["right"] ? this.ids.id1: this.ids.id2;
 		} else {
 			this.randomizeBall();
 		}
