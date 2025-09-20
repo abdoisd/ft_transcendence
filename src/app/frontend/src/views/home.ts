@@ -7,6 +7,7 @@ const HomeViewStaticPart: string = `
 <nav style="grid-area: nav;">
 	<a class="flex-item anchor-nav" href="/" onclick="route()">home</a>
 	<a class="flex-item anchor-nav" href="/friends" onclick="route()">friends</a>
+	<a class="flex-item anchor-nav" href="/chat" onclick="route()">chat</a>
 	<a class="flex-item anchor-nav" href="/profile" onclick="route()">profile</a>
 	<a class="flex-item anchor-nav" href="/settings" onclick="route()">settings</a>
 </nav>
