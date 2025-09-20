@@ -44,8 +44,9 @@ server.register(fastifyJwt, {
 })
 
 // game / socket.io
-// import { webSocket } from "./webSocket.ts";
-// webSocket(); //!
+import { webSocket } from "./webSocket.ts";
+webSocket(server.server);
+
 
 // prometheus
 import client from 'prom-client';
@@ -58,10 +59,10 @@ const requestCounter = new client.Counter({
 });
 register.registerMetric(requestCounter);
 server.addHook('onResponse', (request, reply, done) => {
-requestCounter.inc({
-	request_method: request.method,
-	requested_file: request.url,
-	response_status: reply.statusCode
+	requestCounter.inc({
+		request_method: request.method,
+		requested_file: request.url,
+		response_status: reply.statusCode
 	});
 	done();
 });
@@ -118,6 +119,8 @@ server.addHook('onSend', async (request, reply, payload) => {
 // 	console.info(magenta, "Server response: " + reply.statusCode);
 // });
 
+import { gameRoutes } from "./game api/game api.ts";
+
 const start = async () =>
 {
     try
@@ -130,6 +133,7 @@ const start = async () =>
 		OAuth2Routes();
 		server.register(relationshipRoutes);
 		server.register(Enable2faRoutes);
+		gameRoutes();
 
 		server.ready(err => {
 			if (err) throw err;

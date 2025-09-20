@@ -118,7 +118,6 @@ export class clsGame {
 	// we add game after it finishes
 	add()
 	{
-
 		console.log(green, 'Game.add');
 		console.debug(yellow, 'Adding: ', this);
 		

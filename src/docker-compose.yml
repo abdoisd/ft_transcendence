@@ -148,8 +148,6 @@ services:
       - PORT=${PORT}
       - HOST=${HOST}
       - WEBSITE_URL=${WEBSITE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-      - ROOT_TOKEN=${ROOT_TOKEN}
     depends_on:
       - vault-server
       - frontend

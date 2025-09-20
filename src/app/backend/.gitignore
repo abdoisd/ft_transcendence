@@ -1,0 +1,2 @@
+./src/avatars/*
+!./src/avatars/default-avatar.png
