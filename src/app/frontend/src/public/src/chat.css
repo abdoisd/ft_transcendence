@@ -148,7 +148,7 @@
 }
 
 .list .active {
-    background-color: #2e1d1d;
+    background-color: #1E0D15;
 }
 
 input::placeholder {
@@ -174,7 +174,7 @@ input::placeholder {
 }
 
 .list-item:hover {
-    background-color: #2e1d1d;
+    background-color: #1E0D15;
 }
 
 .avatar {

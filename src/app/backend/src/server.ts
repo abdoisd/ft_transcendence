@@ -120,6 +120,8 @@ server.addHook('onSend', async (request, reply, payload) => {
 // });
 
 import { gameRoutes } from "./game api/game api.ts";
+import chatApi from "./api/chat.ts";
+import apiRoutes from "./api/api_routes.ts";
 
 const start = async () =>
 {
@@ -134,6 +136,7 @@ const start = async () =>
 		server.register(relationshipRoutes);
 		server.register(Enable2faRoutes);
 		gameRoutes();
+		apiRoutes();
 
 		server.ready(err => {
 			if (err) throw err;

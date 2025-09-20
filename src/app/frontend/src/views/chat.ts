@@ -1,5 +1,7 @@
 export async function Chat() {
     document.getElementById("main-views")!.innerHTML = ChatView;
+
+    
 }
 
 
@@ -15,12 +17,33 @@ const ChatView: string = `
         <input type="text" placeholder="Search" />
     </div>
 
-
     <div class="mv-5">
         <h3 class="mh-5 mb-3">Conversations</h3>
 
         <div class="list">
             <div class="flex list-item active">
+                <img class="avatar" src="https://images.pexels.com/photos/33545082/pexels-photo-33545082.jpeg"
+                    alt="">
+                <div class="list-item-content">
+                    <h4>Youness Lagmah</h4>
+                    <span>wech</span>
+                </div>
+            </div>
+            <div class="flex list-item">
+                <img class="avatar" src="https://images.pexels.com/photos/33545082/pexels-photo-33545082.jpeg"
+                    alt="">
+                <div class="list-item-content">
+                    <h4>Youness Lagmah</h4>
+                    <span>wech</span>
+                </div>
+            </div>
+
+        </div>
+
+        <h3 class="mh-5 mt-5 mb-3">All users</h3>
+
+        <div id="users" class="list">
+            <div class="flex list-item">
                 <img class="avatar" src="https://images.pexels.com/photos/33545082/pexels-photo-33545082.jpeg"
                     alt="">
                 <div class="list-item-content">
