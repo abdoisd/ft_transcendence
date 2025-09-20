@@ -4,7 +4,6 @@ app/backend/node_modules
 
 # output of building: build with npm build
 app/frontend/public/bundle.js
-app/frontend/public/output.css
 
 # any md file
 *.md
@@ -24,6 +23,7 @@ app/backend/unit tests
 app/backend/test
 me
 
-# all avatars except the default
+# backend data
 app/backend/avatars/*
 !app/backend/avatars/default-avatar.png
+app/backend/ft_transcendence

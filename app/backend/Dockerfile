@@ -6,8 +6,11 @@ WORKDIR /backend
 
 COPY package.json .
 
+# tmp
 RUN npm install \
 	&& apk add sqlite tini bash
+# tmp
+RUN npm install -g nodemon wscat
 
 # ENTRYPOINT ["tini", "--"]
 # CMD ["npm","run","dev"]
