@@ -8,7 +8,8 @@ import { LoginWithGoogle, existingUser, NewUser } from './views/loginWithGoogle.
 import { friendsView, addFriendView, listFriendsView } from './views/friends.ts';
 import { Settings } from './views/settings.ts';
 // import { GameRemoteView } from './views/gameRemote.ts';
-import { GameView } from './views/game.ts';
+import { GameModesView } from './views/game.ts';
+// import { Tournament } from './views/tournament.ts';
 
 import { UserDTO } from './business layer/user.ts';
 
@@ -24,7 +25,7 @@ export var routes = {
 	'/profile': ProfileView,
 		'/profileEdit': ProfileEditView,
 		// '/profile/matchHistory': ProfileMatchHistoryView,
-	'/game': GameView,
+	'/game': GameModesView,
 		// '/gameRemote': GameRemoteView,
 		// '/tournament': Tournament,
 	// '/chat': chatView,
@@ -89,9 +90,14 @@ window.route = route;
 document.addEventListener('DOMContentLoaded', route);
 
 function handleView (event?, path?: string | null) {
+	if (window.gameManager) {
+		window.gameManager.leaveActiveGame();
+	}
 
 	if (!path)
 		path = window.location.pathname;
+
+	
 	
 	console.log("Handling route: " + path);
 

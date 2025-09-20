@@ -11,13 +11,10 @@ const HomeViewStaticPart: string = `
 	<a class="flex-item anchor-nav" href="/settings" onclick="route()">settings</a>
 </nav>
 <main id="main-views" style="grid-area: main; display: flex; flex-direction: column; align-items: center;">
-	<a class="anchor-main" href="/game" onclick="route()">play</a>
-	<a class="anchor-main anchor-chat" href="/chat" onclick="route()">chat</a>
-
-	<a class="anchor-general">Join a tournament</a>
-
+	<a class="main-anchor" href="/game" onclick="route()">play</a>
+	<a class="main-anchor chat" href="/chat" onclick="route()">chat</a>
 </main>
-<footer style="grid-area: footer; font-weight: 1; text-align: center;">
-	2025 — ft_transcendence Inc.
+<footer style="grid-area: footer;">
+	2025 — ft_transcendence
 </footer>
 `;

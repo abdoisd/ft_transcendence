@@ -12,7 +12,9 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
+		"@babylonjs/core": "^8.27.2",
 		"@tailwindcss/cli": "^4.1.12",
+		"babylonjs": "^8.27.2",
 		"socket.io-client": "^4.8.1"
 	},
 	"devDependencies": {
