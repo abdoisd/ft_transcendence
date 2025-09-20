@@ -1,244 +1,393 @@
 import { Server } from "socket.io";
-import { server } from "./server.ts";
 import { Game } from "./game.ts";
 
 import { clsGame } from "./data access layer/game.ts";
 import { clsTournament } from "./data access layer/tournament.ts";
-import { red, green, yellow } from "./global.ts";
+import { red, green, yellow, cyan } from "./global.ts";
+import { Socket } from "dgram";
 
-export function webSocket()
-{
-	const	wsServer = new Server(server.server);
+export function webSocket(fastifyServer) {
+	const wsServer = new Server(fastifyServer);
+	const wsServerTournament = wsServer.of("/tournament");
+	const wsServerRemote = wsServer.of("/remote");
+	const wsServerAI = wsServer.of("/ai");
 
-	wsServer.on("connection", (client) => {
-		client.roomId = null;
+	const aiGames = new Map();
+	wsServerAI.on("connection", (client) => {
+		const roomId = `game_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+		client.join(roomId);
+		client.roomId = roomId;
+		client.userId = client.id;
+		const game = new Game(client.id, "ai", wsServerAI, roomId);
+		aiGames.set(roomId, game);
+		wsServerAI.to(roomId).emit("start-game", game.getFullState());
 	
-		client.on("disconnect", () => handleDisconnect(client));
-	
-		//?
-		client.on("join-game", (obj: tournamentDTO) => {
+		let lastTime = Date.now();
+		const interval = setInterval(() => {
+			const now = Date.now();
+			const delta = (now - lastTime) / 1000;
+			lastTime = now;
+			game.update(delta);
+			if (game.running)
+				wsServerAI.to(roomId).emit("game-state", game.getState());
+			else // end game ...
+				clearInterval(interval);
+		}, 16);
 
-			//? set id to ws client
-			client.userId = obj.userId;
-			client.gameId = obj.gameId;
-			client.tournamentId = obj.tournamentId;
-
-			console.debug(yellow, `User ${client.userId} joined matchmaking`);
-
-			if (client.roomId)
-				return;
-
-			if (waitingPlayers.length > 0)
-			{
-				const opponent = waitingPlayers.pop();
-				if (opponent.userId === client.userId)
-				{
-					console.debug(yellow, "Same player, cannot play against oneself");
-					// clean client that tried to join again
-					return;
-				}
-
-				if (obj.gameId && opponent.gameId != client.gameId)
-				{
-					console.debug(yellow, "Players in a tournament must have the same gameId");
-					console.debug(yellow, `User ${client.userId} is waiting for an opponent`);
-					waitingPlayers.push(client);
-					return;
-				}
-				
-				startGame(opponent, client);
-			}
-			else
-			{
-				console.debug(yellow, `User ${client.userId} is waiting for an opponent`);
-				waitingPlayers.push(client);
-			}
-		});
-
-		client.on("paddle-move", ({ key, pressedState }) => {
+		client.on("disconnect", () => {
 			const roomId = client.roomId;
 			if (!roomId)
 				return;
-	
-			const game = gameStates.get(roomId);
+			const game = aiGames.get(roomId);
 			if (!game)
 				return;
-	
+			game.running = false;
+			aiGames.delete(roomId);
+		});
+
+		client.on("paddle-move", ({key, pressedState}) => {
+			const roomId = client.roomId;
+			if (!roomId)
+				return;
+			const game = aiGames.get(roomId);
+			if (!game)
+				return;
 			const keyStates = game.keyStates[client.userId];
 			if (!keyStates)
 				return;
-	
+			if (key == "ArrowUp" || key == "w")
+				keyStates.up = pressedState;
+			else if (key == "ArrowDown" || key == "s")
+				keyStates.down = pressedState;
+		});
+	});
+
+	const waitingRemotePlayers = [];
+	const remoteGames = new Map();
+	wsServerRemote.on("connection", (client) => {
+		client.roomId = null;
+		client.on("join-game", () => {
+			// if (client.roomId)
+			// 	return;
+			if (waitingRemotePlayers.length > 0) {
+				const opponent = waitingRemotePlayers.pop();
+				if (opponent.id === client.id) {
+					waitingRemotePlayers.push(opponent);
+					return;
+				}
+				startRemoteGame(opponent, client);
+			} else {
+				waitingRemotePlayers.push(client);
+			}
+		});
+
+		client.on("paddle-move", ({key, pressedState}) => {
+			const roomId = client.roomId;
+			if (!roomId)
+				return;
+			const game = remoteGames.get(roomId);
+			if (!game)
+				return;
+			const keyStates = game.keyStates[client.id];
+			if (!keyStates)
+				return;
 			if (key === "ArrowUp" || key === "w")
 				keyStates.up = pressedState;
 			if (key === "ArrowDown" || key === "s")
 				keyStates.down = pressedState;
 		});
-		
-		client.on("join-tournament", (obj) => joinTournamentHandler(client, obj));
-	});
 
-	const waitingGames = [];
-
-	const gameStates = new Map();
-	const waitingPlayers = []; // what type this holds, client ?
-	function gameLoop(roomId, game): Promise<any> {
-		return new Promise((resolve) => {
-			let lastTime = Date.now();
-	
-			const interval = setInterval(() => {
-				const now = Date.now();
-				const delta = (now - lastTime) / 1000;
-				lastTime = now;
-	
-				game.update(delta);
-	
-				if (game.running) {
-					wsServer.to(roomId).emit("game-state", game.getState());
-				}
-	
-				if (!game.running) {
-
-					//? GAME END
-					console.debug(yellow, "Winner Id:", game.winnerId);
-	
-					// Add game to db
-					const dbGame: clsGame = new clsGame({
-						Id: -1,
-						User1Id: game.players[0],
-						User2Id: game.players[1],
-						Date: new Date(),
-						WinnerId: game.winnerId,
-						TournamentId: null
-					});
-					dbGame.add();
-					//?
-	
-					clearInterval(interval);
-					gameStates.delete(roomId);
-	
-					// Resolve the promise when the game ends
-					resolve(game);
-				}
-			}, 1000 / 60);
-		});
-	}
-	
-	function  startGame(p1, p2) {
-
-		console.debug(yellow, `Starting game between User ${p1} and User ${p2}`);
-		
-		return new Promise((resolve) => {
-			if (!p1.connected || !p2.connected)
-			{
-				if (p1.connected) waitingPlayers.push(p1);
-				if (p2.connected) waitingPlayers.push(p2);
-				resolve(); // Resolve immediately if players are not connected
+		client.on("disconnect", () => handleRemoteDisconnect(client));
+		function handleRemoteDisconnect(leaver) {
+			const leaverIndexInWaitingList = waitingRemotePlayers.indexOf(leaver);
+			if (leaverIndexInWaitingList !== -1) {
+				waitingRemotePlayers.splice(leaverIndexInWaitingList, 1);
 				return;
 			}
-	
-			const roomId = `game_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-			p1.join(roomId);
-			p2.join(roomId);
-	
-			p1.roomId = roomId;
-			p2.roomId = roomId;
-	
-			const game = new Game(p1.userId, p2.userId, wsServer, roomId);
-			gameStates.set(roomId, game);
-			game.tournamentId = p1.tournamentId;
-	
-			wsServer.to(roomId).emit("start-game", game.getFullState());
-	
-			// Assuming gameLoop returns a promise that resolves when the game is done
-			resolve(gameLoop(roomId, game));
-		});
-	}
-	
-	// ======================================================================
-	
-	function handleDisconnect(leaver) {
 
-		console.debug(red, "User disconnected:", leaver.userId);
-		
-		const waitingIndex = waitingPlayers.indexOf(leaver);
-		if (waitingIndex !== -1) {
-			waitingPlayers.splice(waitingIndex, 1);
-			return;
-		}
-	
-		const roomId = leaver.roomId;
-		if (!roomId)
-			return;
-	
-		const clientsInRoom = wsServer.sockets.adapter.rooms.get(roomId);
-		if (!clientsInRoom) {
-			gameStates.delete(roomId);
-			return;
-		}
-	
-		const game = gameStates.get(roomId);
-		if (game)
-			game.running = false;
-		wsServer.to(roomId).emit("opponent-left");
-	
-		gameStates.delete(roomId);
-		leaver.leave(roomId);
-		leaver.roomId = null;
-	
-		const validSurvivors = [...clientsInRoom]
-			.filter(id => id !== leaver.id)
-			.map(id => wsServer.sockets.sockets.get(id))
-			.filter(socket => socket?.connected);
-	
-		validSurvivors.forEach(survivor => {
-			if (!waitingPlayers.includes(survivor)) {
-				waitingPlayers.push(survivor);
-				console.log("Has been pushed back to waiting list");
-				survivor.roomId = null;
+			const roomId = leaver.roomId;
+			// if (!roomId)
+			// 	return;
+			const clientsInRoom = wsServerRemote.adapter.rooms.get(roomId);
+			if (!clientsInRoom) {
+				remoteGames.delete(roomId);
+				return; // removed the game after all the players have left
 			}
-		});
-	
-		while (waitingPlayers.length >= 2) {
-			const p1 = waitingPlayers.pop();
-			const p2 = waitingPlayers.pop();
-			startGame(p1, p2);
+
+			const game = remoteGames.get(roomId);
+			if (game)
+				game.running = false;
+			wsServerRemote.to(roomId).emit("opponent-left");
+
+			remoteGames.delete(roomId);
+			leaver.leave(roomId);
+			leaver.roomId = null;
+
+			const validSurvivors = [...clientsInRoom].filter((id) => id !== leaver.id)
+				.map((id) => wsServerRemote.sockets.get(id))
+				.filter((socket) => socket?.connected);
+
+			validSurvivors.forEach((survivor) => {
+				if (!waitingRemotePlayers.includes(survivor)) {
+					waitingRemotePlayers.push(survivor);
+					survivor.roomId = null;
+				}
+			});
+
+			while (waitingRemotePlayers.length >= 2) {
+				const p1 = waitingRemotePlayers.pop();
+				const p2 = waitingRemotePlayers.pop();
+				startRemoteGame(p1, p2);
+			}
 		}
-	}
+	});
 
-	async function	joinTournamentHandler(client, obj)
-	{
-		client.userId = obj.userId;
+	function startRemoteGame(p1, p2) {
+		if (!p1.connected || !p2.connected) {
+			if (p1.connected)
+				waitingRemotePlayers.push(p1);
+			if (p2.connected)
+				waitingRemotePlayers.push(p2)
+			return;
+		}
 
-		usersQueue.enqueue(client);
+		const roomId = `game_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+		p1.join(roomId);
+		p2.join(roomId);
 
-		if (usersQueue.size() >= 4)
-		{
-			console.log(green, "Reached 4 players, starting tournament games...");
+		p1.roomId = roomId;
+		p2.roomId = roomId;
+
+		const game = new Game(p1.id, p2.id, wsServerRemote, roomId);
+		remoteGames.set(roomId, game);
+
+		wsServerRemote.to(roomId).emit("start-game", game.getFullState());
+		let lastTime = Date.now();
+		const interval = setInterval(() => {
+			const now = Date.now();
+			const delta = (now - lastTime) / 1000;
+			lastTime = now;
 			
-			const game1 = await startGame(usersQueue.dequeue(), usersQueue.dequeue());
-			const game2 = await startGame(usersQueue.dequeue(), usersQueue.dequeue());
+			game.update(delta);
 
-			console.debug(yellow, "Both first finished");
-
-			const winner1Id = game1.winnerId;
-			const winner2Id = game2.winnerId;
-
-			const allClients = Array.from(wsServer.sockets.sockets.values());
-			const winner1Client = allClients.find(client => client.userId === winner1Id);
-			const winner2Client = allClients.find(client => client.userId === winner2Id);
-
-			console.debug(yellow, `Winners are: ${winner1Client} and ${winner2Client}`);
-
-			if (winner1Client && winner2Client)
-			{
-				console.log(green, "Last game starting...");
-				startGame(winner1Client, winner2Client);
+			if (game.running) {
+				wsServerRemote.to(roomId).emit("game-state", game.getState());
+			} else {
+				clearInterval(interval);
+				remoteGames.delete(roomId);
 			}
+		}, 16);
+	}
+
+	const tournaments = new Map();
+	let tournament: any | null = null;
+	let tournamentId: any | null = null;
+	wsServerTournament.on("connection", (client) => {
+		client.on("join-tournament", (data) => {
+			client.userId = data.userId;
+			if (!tournament) {
+				tournamentId = `${Date.now()}_${Math.random().toString(10).slice(2, 7)}`;
+				tournament = new Tournament(startTournamentGame);
+				tournament.addPlayer(client);
+				tournaments.set(tournamentId, tournament);
+				client.tournamentId = tournamentId;
+				client.sharedRoomId = tournamentId;
+				client.join(tournamentId);
+
+				console.log(cyan, `${client.id} joined ${tournamentId}`);
+			} else if (tournament.players.length <= 4) {
+				tournament.addPlayer(client);
+				client.tournamentId = tournamentId;
+				if (tournament.players.length == 4) {
+					tournament.startSemifinals();
+					tournament = null;
+					
+					console.log(`game started`);
+				}
+				client.sharedRoomId = tournamentId;
+				client.join(tournamentId);
+
+				console.log(cyan, `${client.id} joined ${tournamentId}`);
+			}
+		})
+
+		client.on("paddle-move", ({key, pressedState}) => {
+			const game = client.game;
+			if (!game)
+				return;
+			const keyStates = game.keyStates[client.id];
+			if (!keyStates)
+				return;
+			if (key == "ArrowUp" || key == "w")
+				keyStates.up = pressedState;
+			else if (key == "ArrowDown" || key == "s")
+				keyStates.down = pressedState;
+		});
+
+		client.on("disconnect", () => handleTournamentDisconnect(client));
+		function handleTournamentDisconnect(leaver) {
+			const currTournament = tournaments.get(leaver.tournamentId);
+			if (!currTournament)
+				return;
+			if (leaver == currTournament.matches.semi1.loser
+					|| leaver == currTournament.matches.semi2.loser
+					|| leaver == currTournament.matches.final.loser)
+					return;
+			for (const player of currTournament.players) {
+				if (player !== leaver) {
+					player.game.looping = false;
+					player.emit("void");
+				}
+			}
+			currTournament.void = true;
 		}
-		else
-			console.debug(yellow, "Waiting for more players to join the tournament...");
+	});
+
+	function startTournamentGame(p1, p2) {
+		if (!p1.connected || !p2.connected) {
+			tournaments.get(p1.tournamentId).void = true;
+			// maybe disconnect all the others and finish the tournament
+		}
+
+		const roomId = `game_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+		p1.join(roomId);
+		p2.join(roomId);
+		p1.roomId = roomId;
+		p2.roomId = roomId;
+		
+		const game = new Game(p1.id, p2.id, wsServerTournament, roomId);
+		p1.game = game;
+		p2.game = game;
+
+		wsServerTournament.to(roomId).emit("start-game", game.getFullState());
+		let lastTime = Date.now();
+		const interval = setInterval(() => {
+			const now = Date.now();
+			game.update((now - lastTime) / 1000);
+			lastTime = now;
+	
+			if (game.running) {
+					wsServerTournament.to(roomId).emit("game-state", game.getState());
+			} else {
+				clearInterval(interval);
+				const tournamentId = p1.tournamentId;
+				const tournament = tournaments.get(tournamentId);
+				if (tournament && !tournament.void) {
+					if (game.winnerId == p1.id) {
+						tournament.onGameEnd(p1, p2);
+						console.log(cyan, "P1 WON", p1.id);
+					} else if (game.winnerId == p2.id) {
+						tournament.onGameEnd(p2, p1);
+						console.log(cyan, "P2 WON", p2.id);
+					}
+					
+					if (tournament.matches.semi1.winner && tournament.matches.semi2.winner && !tournament.done) {
+						tournament.matches.semi1.loser.emit("winner", tournament.getState());
+						tournament.matches.semi2.loser.emit("winner", tournament.getState());
+						tournament.startFinal();
+						console.log("STARTED FINAL");
+					} else if (tournament.done) {
+						for (const player of tournament.players) {
+							player.emit("winner", tournament.getState());
+						}
+						console.log("WE ARE DONE");
+						console.log(`winner of the final: ${tournament.matches.final.winner}`);
+					}
+				}
+			}
+		}, 16);
 	}
 }
 
-import { Queue } from "./data structures/queue.ts";
-const	usersQueue = new Queue();
+class Tournament {
+	players: any[];
+	status: string;
+	matches: {
+		semi1: { players: any[]; winner: any | null; loser: any | null };
+		semi2: { players: any[]; winner: any | null; loser: any | null };
+		final: { players: any[]; winner: any | null; loser: any | null };
+	};
+	void: Boolean;
+	starterFunction: Function;
+	done: Boolean;
+    constructor(starter) {
+		this.players = [];
+		this.status = 'waiting';
+		this.matches = {
+			semi1: { players: [], winner: null, loser: null },
+			semi2: { players: [], winner: null, loser: null },
+			final: { players: [], winner: null, loser: null }
+		};
+		this.void = false;
+		this.starterFunction = starter;
+		this.done = false;
+    }
+
+    addPlayer(client) {
+		this.players.push(client);
+		if (this.players.length === 4) {
+			this.setupMatches();
+		}
+    }
+
+    setupMatches() {
+		// const shuffled = [...this.players].sort(() => Math.random() - 0.5);
+		// this.matches.semi1.players = [shuffled[0], shuffled[1]];
+		// this.matches.semi2.players = [shuffled[2], shuffled[3]];
+
+		this.matches.semi1.players = [this.players[0], this.players[1]];
+		this.matches.semi2.players = [this.players[2], this.players[3]];
+
+		this.status = 'ready';
+    }
+
+    startSemifinals() {
+		this.starterFunction(...this.matches.semi1.players);
+        this.starterFunction(...this.matches.semi2.players);
+        this.status = 'semifinals';
+    }
+
+	startFinal() {
+		this.matches.final.players = [this.matches.semi1.winner, this.matches.semi2.winner];
+		this.starterFunction(...this.matches.final.players);
+		this.status = 'final';
+		this.done = true;
+		console.log("FINAL IS BEING STARTED");
+    }
+	
+    onGameEnd(winner, loser) {
+		if (this.matches.final.players.includes(winner)) {
+			this.matches.final.winner = winner;
+			this.matches.final.loser = loser;
+			this.status = "finished";
+			return;
+		} else if (this.matches.semi1.players.includes(winner)) {
+			this.matches.semi1.winner = winner;
+			this.matches.semi1.loser = loser;
+		} else if (this.matches.semi2.players.includes(winner)) {
+			this.matches.semi2.winner = winner;
+			this.matches.semi2.loser = loser;
+		} 
+	}
+
+	getState() {
+		return {
+			status: this.void ? "void" : this.status,
+			semi1: {
+				one: this.matches.semi1.players[0]?.userId,
+				two: this.matches.semi1.players[1]?.userId,
+				winner: this.matches.semi1.winner?.userId
+			},
+			semi2: {
+				one: this.matches.semi2.players[0]?.userId,
+				two: this.matches.semi2.players[1]?.userId,
+				winner: this.matches.semi2.winner?.userId
+			},
+			final: {
+				one: this.matches.final.players[0]?.userId,
+				two: this.matches.final.players[1]?.userId,
+				winner: this.matches.final.winner?.userId
+			}
+		}
+	}
+}

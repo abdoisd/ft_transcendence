@@ -3,7 +3,7 @@
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>Document</title>
+	<title>Transcendence</title>
 	<!-- <link rel="stylesheet" href="output.css"> css -->
 	<script type = "text/javascript" src = "bundle.js"></script> <!-- js -->
 	<!-- <script src="/socket.io/socket.io.js"></script> -->
@@ -100,12 +100,12 @@
 
 		display: grid;
 		grid-template-areas: 
-			"nav nav nav"
-			"main main main"
-			"footer footer footer";
+			"nav"
+			"main"
+			"footer";
 		grid-template-rows: 200px 1fr 25px;
 		/* grid-template-rows: 100px minmax(500px, 1fr) 50px; */
-		grid-template-columns: 100px 1fr;
+		grid-template-columns: 1fr;
 
 		background-image: url('bg.jpg');
 		background-repeat: no-repeat;
@@ -183,8 +183,7 @@
 	display: flex;
 	gap: 60px;
 	margin-bottom: 10px;
-	font-family: 'Orbitron', sans-serif; /* futuristic digital look */
-	/* text-shadow: 0 0 8px #ff1a1a; glowing red text */
+	font-family: 'Orbitron', sans-serif;
 }
 
 .scores div {
@@ -195,7 +194,7 @@
 
 .scores .p1,
 .scores .p2 {
-	color: #ff1a1a; /* red for player labels */
+	color: #ff1a1a;
 	font-weight: 700;
 	font-size: 1.2rem;
 }
@@ -204,7 +203,7 @@
 .scores .score-p2 {
 	font-weight: 900;
 	font-size: 32px;
-	color: white; /* keep scores neon green for contrast */
+	color: white;
 }
 
 </style>

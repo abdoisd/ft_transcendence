@@ -45,7 +45,8 @@ server.register(fastifyJwt, {
 
 // game / socket.io
 import { webSocket } from "./webSocket.ts";
-webSocket();
+webSocket(server.server);
+
 
 // prometheus
 import client from 'prom-client';

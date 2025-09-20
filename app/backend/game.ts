@@ -6,7 +6,7 @@ const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 150;
 const BALL_RADIUS = 9;
 const MAX_VELOCITY = 1500;
-const MAX_SCORE = 3;
+const MAX_SCORE = 5;
 
 export class Game {
 
@@ -54,7 +54,10 @@ export class Game {
 		this.randomizeBall();
 		this.winnerId = null;
 
-		this.aiGame = false;
+		if (player2Id === "ai")
+			this.aiGame = true;
+		else
+			this.aiGame = false;
 		this.targetY = BOARD_HEIGHT / 2;
 	}
 
@@ -149,7 +152,7 @@ export class Game {
 			this.targetY = n % 2 === 0 ? r : BOARD_HEIGHT - r;
 		}
 
-		const tolerance = 0; // zero-tolerance requires precision
+		const tolerance = 2;
 		keyStates.down = false;
 		keyStates.up = false;
 		if (paddle.y + PADDLE_HEIGHT < this.targetY + tolerance)
