@@ -31,6 +31,7 @@ export default class ChatDao {
             JOIN Users AS receiver ON messages.receiver_id = receiver.Id
             WHERE (messages.sender_id = ? AND messages.receiver_id = ?) 
             OR (messages.sender_id = ? AND messages.receiver_id = ?)
+            ORDER BY created_at DESC
         `;
 
         return db.all(sql, [first, second, second, first], function (err: { message: any; }, res: any[]) {
@@ -39,7 +40,7 @@ export default class ChatDao {
             return resolve(res.map((row: any) => ({
                 id: row.id,
                 message: row.content,
-                createdAt: row.createdAt,
+                createdAt: row.created_at,
                 sender: {
                     id: row.sender_id,
                     username: row.sender_username,
@@ -81,7 +82,7 @@ export default class ChatDao {
                 {
                     id: row.id,
                     message: row.content,
-                    createdAt: row.createdAt,
+                    createdAt: row.created_at,
                     sender: {
                         id: row.sender_id,
                         username: row.sender_username,

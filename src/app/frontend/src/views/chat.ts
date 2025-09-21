@@ -53,9 +53,9 @@ const updateChat = async () => {
     <h2>${user.username ?? "-"}</h2>
     </div>
     
-    <div class="conversation scroll-box pv-5">
- 
-    
+    <div id="chat" class="conversation scroll-box pv-5">
+    </div>
+
     <div class="mh-5">
     <div class="flex center">
         <img class="avatar small mr-5"
@@ -119,20 +119,47 @@ const updateChat = async () => {
 
 
 const updateMessages = async (other) => {
+    const conversationDiv = document.getElementById("chat");
+    if (!conversationDiv)
+        return;
+
     const messages = await authGet(`/api/messages/${other}`);
-    
-    console.log(messages);
+
+    for (let msg of messages)
+        appendMessage(msg, false, conversationDiv)
 }
+
+const appendMessage = (msg, prepend: boolean, conversationDiv) => {
+    conversationDiv = conversationDiv ?? document.getElementById("chat");
+    if (!conversationDiv)
+        return;
+    const newElement = document.createElement("div");
+    newElement.classList.add(msg.sender_is_me ? 'msg-me' : 'msg', 'flex', 'bottom', 'gap-medium');
+    newElement.innerHTML = `
+        <img class="avatar small"
+            src="https://images.pexels.com/photos/33545082/pexels-photo-33545082.jpeg" alt="">
+
+        <div class="box">
+            <p class="m-0">${msg.message}</p>
+        </div>
+    `;
+
+    if (prepend)
+        conversationDiv?.prepend(newElement)
+    else
+        conversationDiv?.appendChild(newElement)
+}
+
 
 const sendMessage = async (event, userId) => {
     event.preventDefault();
-    var input = document.getElementById("input") as HTMLInputElement;
+    const input = document.getElementById("input") as HTMLInputElement;
     const message = input.value;
     input.value = "";
     if (!message || message === "")
         return;
-    // TODO add or refresh
-    console.log(await authPost(`/api/chats/${userId}`, { message: message }));
+    const msg = await authPost(`/api/chats/${userId}`, { message: message });
+    appendMessage(msg, true, null);
 }
 
 
