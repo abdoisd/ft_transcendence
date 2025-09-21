@@ -1,5 +1,4 @@
 import { UserDTO } from "../business layer/user";
-
 import { tournamentGameViewStaticPart } from "./gameViews";
 import { Three3DGameViewStaticPart } from "./gameViews";
 import { remoteGameViewStaticPart } from "./gameViews";
@@ -47,7 +46,7 @@ function aiGame() {
 	canvas.width = rect.width;
 	canvas.height = rect.height;
 
-	const wsClientAI = io("/ai");
+	const wsClientAI = io("ws://localhost:3000/ai");
 	wsClientAI.emit("join-game", {userId: clsGlobal.LoggedInUser.Id})
 
 	let game = null;
@@ -81,13 +80,13 @@ function aiGame() {
 	function keyDown(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientAI.emit("move-paddle", {key: event.key, pressedState: true});
+			wsClientAI.emit("move", {key: event.key, pressedState: true});
 		}
 	}
 	function keyUp(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientAI.emit("move-paddle", {key: event.key, pressedState: false});
+			wsClientAI.emit("move", {key: event.key, pressedState: false});
 		}
 	}
 
@@ -173,13 +172,13 @@ function remoteGame() {
 	function keyDown(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientRemote.emit("paddle-move", {key: event.key, pressedState: true});
+			wsClientRemote.emit("move", {key: event.key, pressedState: true});
 		}
 	}
 	function keyUp(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientRemote.emit("paddle-move", {key: event.key, pressedState: false});
+			wsClientRemote.emit("move", {key: event.key, pressedState: false});
 		}
 	}
 
@@ -329,13 +328,13 @@ function tournamentGame() {
 	function keyDown(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientTournament.emit("paddle-move", {key: event.key, pressedState: true});
+			wsClientTournament.emit("move", {key: event.key, pressedState: true});
 		}
 	}
 	function keyUp(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientTournament.emit("paddle-move", {key: event.key, pressedState: false});
+			wsClientTournament.emit("move", {key: event.key, pressedState: false});
 		}
 	}
 

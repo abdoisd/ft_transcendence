@@ -7,7 +7,12 @@ import { red, green, yellow, cyan } from "./global.ts";
 import { Socket } from "dgram";
 
 export function webSocket(fastifyServer) {
-	const wsServer = new Server(fastifyServer);
+	const wsServer = new Server(fastifyServer, {
+		cors: {
+			origin: "*",
+			methods: ["GET", "POST"]
+		}
+	});
 	const wsServerTournament = wsServer.of("/tournament");
 	const wsServerRemote = wsServer.of("/remote");
 	const wsServerAI = wsServer.of("/ai");
@@ -35,16 +40,27 @@ export function webSocket(fastifyServer) {
 					wsServerAI.to(roomId).emit("game-state", game.getState());
 				else
 				{
-	
+					const dbGame = new clsGame({
+						Id: -1,
+						User1Id: client.userId,
+						User2Id: null,
+						Date: Date.now(),
+						WinnerId: game.winnerId,
+						TournamentId: -1
+					});
+					dbGame.add();
+
+					// // end game ...
 					// const dbGame = new clsGame({
 					// 	Id: -1,
-					// 	User1Id: client.userId,
-					// 	User2Id: null,
+					// 	User1Id: p1.userId,
+					// 	User2Id: p2.userId,
 					// 	Date: Date.now(),
 					// 	WinnerId: game.winnerId,
 					// 	TournamentId: -1
 					// });
 					// dbGame.add();
+					// //
 	
 					clearInterval(interval);
 				}
@@ -62,7 +78,7 @@ export function webSocket(fastifyServer) {
 			aiGames.delete(roomId);
 		});
 
-		client.on("paddle-move", ({key, pressedState}) => {
+		client.on("move", ({key, pressedState}) => {
 			const roomId = client.roomId;
 			if (!roomId)
 				return;
@@ -99,7 +115,7 @@ export function webSocket(fastifyServer) {
 			}
 		});
 
-		client.on("paddle-move", ({key, pressedState}) => {
+		client.on("move", ({key, pressedState}) => {
 			const roomId = client.roomId;
 			if (!roomId)
 				return;
@@ -239,7 +255,7 @@ export function webSocket(fastifyServer) {
 			}
 		})
 
-		client.on("paddle-move", ({key, pressedState}) => {
+		client.on("move", ({key, pressedState}) => {
 			const game = client.game;
 			if (!game)
 				return;
