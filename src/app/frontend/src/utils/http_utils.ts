@@ -11,3 +11,18 @@ export const authGet = async (path: string) => {
         throw response.statusText;
     return await response.json();
 }
+
+export const authPost = async (path: string, body: any) => {
+    const response = await fetch(path, {
+        method: "POST",
+        headers: {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${localStorage.getItem("jwt")}`
+        },
+        body: JSON.stringify(body)
+    });
+    if (!response.ok)
+        throw response.statusText;
+    return await response.json();
+}
