@@ -7,12 +7,12 @@ const createMessagesTable = () => {
 	CREATE TABLE IF NOT EXISTS messages (
 	    id INTEGER PRIMARY KEY AUTOINCREMENT,
         sender_id INTEGER NOT NULL,
-        reciever_id INTEGER NOT NULL,
+        receiver_id INTEGER NOT NULL,
         content TEXT,
         content_type TEXT NOT NULL,
         created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (sender_id) REFERENCES Users(Id) ON DELETE CASCADE,
-        FOREIGN KEY (reciever_id) REFERENCES Users(Id) ON DELETE CASCADE
+        FOREIGN KEY (receiver_id) REFERENCES Users(Id) ON DELETE CASCADE
 	);
 `, (err: any) => {
         if (err)
