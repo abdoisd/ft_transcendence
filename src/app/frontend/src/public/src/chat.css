@@ -77,6 +77,7 @@
     padding: 15px;
     border-radius: 8px;
     line-height: 20px;
+    line-break: anywhere;
 }
 
 .conversation {
@@ -91,6 +92,7 @@
     padding: 15px;
     border-radius: 8px;
     line-height: 20px;
+    line-break: anywhere;
 }
 
 .conversation .msg-me {

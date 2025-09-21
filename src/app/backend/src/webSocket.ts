@@ -1,16 +1,15 @@
-import { Server } from "socket.io";
 import { Game } from "./game.ts";
 import { clsGame } from "./data access layer/game.ts";
 
 import { clsTournament } from "./data access layer/tournament.ts";
 import { red, green, yellow, cyan } from "./global.ts";
 import { Socket } from "dgram";
+import { ws } from "./server.ts";
 
 export function webSocket(fastifyServer) {
-	const wsServer = new Server(fastifyServer);
-	const wsServerTournament = wsServer.of("/tournament");
-	const wsServerRemote = wsServer.of("/remote");
-	const wsServerAI = wsServer.of("/ai");
+	const wsServerTournament = ws.of("/tournament");
+	const wsServerRemote = ws.of("/remote");
+	const wsServerAI = ws.of("/ai");
 
 	const aiGames = new Map();
 

@@ -4,6 +4,7 @@ import fastifyStatic from "@fastify/static";
 import multipart from "@fastify/multipart";
 import cookie from "@fastify/cookie";
 import fastifyJwt from "@fastify/jwt";
+import { Server } from "socket.io";
 
 // dotenv
 import dotenv from 'dotenv';
@@ -28,6 +29,9 @@ import { relationshipRoutes } from "./data access layer/relationship.ts"
 import { Enable2faRoutes } from "./2fa.ts";
 
 export const server = Fastify({bodyLimit: 3048576}); // 1mb
+export const ws = new Server(server.server);
+
+
 // REGISTER PLUGINS
 server.register(cookie, {});
 server.register(multipart);
