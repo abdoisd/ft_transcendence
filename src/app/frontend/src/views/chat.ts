@@ -113,6 +113,15 @@ const updateChat = async () => {
     form!.onsubmit = async function (event) {
         await sendMessage(event, id);
     };
+
+    await updateMessages(id);
+}
+
+
+const updateMessages = async (other) => {
+    const messages = await authGet(`/api/messages/${other}`);
+    
+    console.log(messages);
 }
 
 const sendMessage = async (event, userId) => {
@@ -122,6 +131,7 @@ const sendMessage = async (event, userId) => {
     input.value = "";
     if (!message || message === "")
         return;
+    // TODO add or refresh
     console.log(await authPost(`/api/chats/${userId}`, { message: message }));
 }
 

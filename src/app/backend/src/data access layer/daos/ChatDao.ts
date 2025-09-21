@@ -16,6 +16,45 @@ export default class ChatDao {
     });
 
 
+    static getConversation = async (first: number, second: number) => new Promise<Message[]>((resolve, reject) => {
+        let sql = `
+            SELECT 
+            messages.*,
+            sender.Id AS sender_id,
+            sender.AvatarPath AS sender_avatar,
+            sender.Username AS sender_username,
+            receiver.Id AS receiver_id,
+            receiver.AvatarPath AS receiver_avatar,
+            receiver.Username AS receiver_username
+            FROM messages
+            JOIN Users AS sender ON messages.sender_id = sender.Id
+            JOIN Users AS receiver ON messages.receiver_id = receiver.Id
+            WHERE (messages.sender_id = ? AND messages.receiver_id = ?) 
+            OR (messages.sender_id = ? AND messages.receiver_id = ?)
+        `;
+
+        return db.all(sql, [first, second, second, first], function (err: { message: any; }, res: any[]) {
+            if (err)
+                return reject(err.message);
+            return resolve(res.map((row: any) => ({
+                id: row.id,
+                message: row.content,
+                createdAt: row.createdAt,
+                sender: {
+                    id: row.sender_id,
+                    username: row.sender_username,
+                    avatar: row.sender_avatar
+                },
+                receiver: {
+                    id: row.receiver_id,
+                    username: row.receiver_username,
+                    avatar: row.receiver_avatar
+                }
+            })));
+        });
+    });
+
+
     static getMessage = async (id: number) => new Promise<Message | null>((resolve, reject) => {
         let sql = `
             SELECT 

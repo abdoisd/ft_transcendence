@@ -14,4 +14,10 @@ export default function chatApi(): void {
     });
 
 
+    server.get("/api/messages/:id", { preHandler: server.mustHaveToken }, async (request, reply) => {
+        const { id } = request.params;
+        const user = request.user;
+        reply.send(await chatRepository.getConversation(user.Id, id));
+    });
+
 }
