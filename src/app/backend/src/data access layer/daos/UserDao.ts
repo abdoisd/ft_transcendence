@@ -4,6 +4,23 @@ import { db } from "../database.ts"
 
 export default class UserDao {
 
+    static getUser = async (id: number) => new Promise<User>((resolve, reject) => {
+        let sql = `SELECT * FROM Users WHERE Id == ? LIMIT 1`;
+
+        return db.get(sql, [id], function (err, row) {
+            if (err)
+                return reject(err.message);
+            return resolve(
+                {
+                    id: row.Id,
+                    username: row.Username,
+                    avatar: row.AvatarPath,
+                }
+            );
+        });
+    });
+
+
     static getAllUsers = async (currentUserId: number) => new Promise<User[]>((resolve, reject) => {
         let sql = `SELECT * FROM Users WHERE Id != ?`;
 
@@ -35,5 +52,25 @@ export default class UserDao {
         // });
     });
 
+
+    static getConversationId = async (userId: number, otherId: number) => new Promise<number | null>((resolve, reject) => {
+        let sql = `
+            SELECT c.*, u1.*, u2.* FROM conversations c
+            LEFT JOIN users u1 ON c.first_user_id = u1.id
+            LEFT JOIN users u2 ON c.second_user_id = u2.id
+            WHERE (first_user_id = ? AND second_user_id = ?) 
+            OR (first_user_id = ? AND second_user_id = ?)
+            LIMIT 1
+        `;
+        return db.get(sql, [userId, otherId, otherId, userId], function (err, res) {
+            if (err) {
+                console.log("=> " + err.message)
+                return reject(err.message);
+
+            }
+            console.log("=> " + JSON.stringify(res))
+            return resolve(res?.id);
+        });
+    });
 
 }

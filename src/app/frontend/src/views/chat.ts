@@ -47,11 +47,12 @@ const updateChat = async () => {
     if (!id)
         return (element.innerHTML = "<h5>Start a conversation.</h5>")
 
-    
+    const user = await authGet(`/api/users/${id}`);
+
 
     element.innerHTML = `
     <div class="header">
-    <h2>Youness Lagmah</h2>
+    <h2>${user.username}</h2>
     </div>
     
     <div class="conversation scroll-box pv-5">
@@ -60,7 +61,7 @@ const updateChat = async () => {
     <div class="mh-5">
     <div class="flex center">
         <img class="avatar small mr-5"
-            src="https://images.pexels.com/photos/33545082/pexels-photo-33545082.jpeg" alt="">
+            src="${user.username}" alt="">
         <div class="input flex flex-1">
             <input class="pl-3" type="text" placeholder="Type a message..." />
             <button>Send</button>

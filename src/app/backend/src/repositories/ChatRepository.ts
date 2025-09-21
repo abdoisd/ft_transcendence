@@ -7,9 +7,18 @@ export default class ChatRepository {
         return users
     }
 
+    static getUser = async (id: number) => {
+        return await userDao.getUser(id);
+    }
+
+
     static getConversations = async (userId: number) => {
         const conversations = await userDao.getConversations(userId);
         return conversations
+    }
+
+    static getConversation = async (userId: number, otherId: number) => {
+       return await userDao.getConversationId(userId, otherId);
     }
 
 }
