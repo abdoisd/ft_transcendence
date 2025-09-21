@@ -6,7 +6,7 @@ import { red, green, yellow, cyan } from "./global.ts";
 import { Socket } from "dgram";
 import { ws } from "./server.ts";
 
-export function webSocket(fastifyServer) {
+export function webSocket() {
 	const wsServerTournament = ws.of("/tournament");
 	const wsServerRemote = ws.of("/remote");
 	const wsServerAI = ws.of("/ai");

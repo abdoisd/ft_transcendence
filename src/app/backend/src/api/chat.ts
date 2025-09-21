@@ -1,3 +1,4 @@
+import { emitMessage } from "../chat.ts";
 import chatRepository from "../repositories/ChatRepository.ts";
 import { server } from "../server.ts";
 
@@ -10,7 +11,9 @@ export default function chatApi(): void {
         const user = request.user;
         if (!message || message === "")
             return (reply.code(422).send({ error: "Invalid message" }));
-        reply.send(await chatRepository.storeMessage(user.Id, id, message));
+        const result = await chatRepository.storeMessage(user.Id, id, message);
+        emitMessage(id, user.Id);
+        reply.send(result);
     });
 
 

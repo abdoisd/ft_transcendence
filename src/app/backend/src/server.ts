@@ -29,7 +29,11 @@ import { relationshipRoutes } from "./data access layer/relationship.ts"
 import { Enable2faRoutes } from "./2fa.ts";
 
 export const server = Fastify({bodyLimit: 3048576}); // 1mb
-export const ws = new Server(server.server);
+export const ws = new Server(server.server, {
+	cors: {
+		origin: "https://localhost",
+	},
+});
 
 
 // REGISTER PLUGINS
@@ -49,7 +53,9 @@ server.register(fastifyJwt, {
 
 // game / socket.io
 import { webSocket } from "./webSocket.ts";
-webSocket(server.server);
+webSocket();
+
+chatWs();
 
 
 // prometheus
@@ -126,6 +132,7 @@ server.addHook('onSend', async (request, reply, payload) => {
 import { gameRoutes } from "./game api/game api.ts";
 import chatApi from "./api/chat.ts";
 import apiRoutes from "./api/api_routes.ts";
+import { chatWs } from "./chat.ts";
 
 const start = async () =>
 {

@@ -1,8 +1,22 @@
-import { route } from "../frontend";
 import { authGet, authPost } from "../utils/http_utils";
+import { io } from "socket.io-client";
+
+const socket = io("ws://localhost:3000/chat", {
+    auth: {
+        token: localStorage.getItem("jwt")
+    }
+});
+
+
+
 
 export async function Chat() {
     document.getElementById("main-views")!.innerHTML = ChatView;
+
+    socket.on("msg", function (userId) {
+        if (currentChatId() == userId)
+            updateChat();
+    });
 
     initUsers();
     updateChat();
@@ -35,13 +49,18 @@ const initUsers = async () => {
 }
 
 
+const currentChatId = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get("id");
+}
+
+
 
 const updateChat = async () => {
     const element = document.getElementById("conversation");
     if (!element)
         return
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get("id");
+    const id = currentChatId();
 
     if (!id)
         return (element.innerHTML = "<h5>Start a conversation.</h5>")
@@ -108,12 +127,10 @@ const updateChat = async () => {
     </div>
     </div>
     `;
-
     var form = document.getElementById("form");
     form!.onsubmit = async function (event) {
         await sendMessage(event, id);
     };
-
     await updateMessages(id);
 }
 
@@ -143,9 +160,13 @@ const appendMessage = (msg, prepend: boolean, conversationDiv) => {
             <p class="m-0">${msg.message}</p>
         </div>
     `;
-
-    if (prepend)
+    if (prepend) {
         conversationDiv?.prepend(newElement)
+        conversationDiv?.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+        });
+    }
     else
         conversationDiv?.appendChild(newElement)
 }
