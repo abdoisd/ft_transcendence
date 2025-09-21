@@ -8,4 +8,9 @@ export default class UserRepository {
         return await userDao.getAllUsers(currentUserId);
     }
 
+
+    static getUser = async (id: number) => {
+        return await userDao.getUser(id);
+    }
+    
 }

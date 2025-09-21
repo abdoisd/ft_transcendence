@@ -20,4 +20,23 @@ export default class UserDao {
     });
 
 
+    static getUser = async (id: number) => new Promise<User | null>((resolve, reject) => {
+        let sql = `SELECT * FROM Users WHERE Id == ? LIMIT 1`;
+
+        return db.get(sql, [id], function (err, row) {
+            if (err)
+                return reject(err.message);
+            if (!row)
+                return resolve(null);
+            return resolve(
+                {
+                    id: row.Id,
+                    username: row.Username,
+                    avatar: row.AvatarPath,
+                }
+            );
+        });
+    });
+
+
 }
