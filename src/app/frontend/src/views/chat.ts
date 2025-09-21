@@ -3,6 +3,33 @@ import { authGet, authPost } from "../utils/http_utils";
 
 export async function Chat() {
     document.getElementById("main-views")!.innerHTML = ChatView;
+
+    initUsers();
+}
+
+
+const initUsers = async () => {
+    const usersDiv = document.getElementById("users");
+
+    try {
+        const users = await authGet("/api/users");
+        for (let user of users) {
+            const newElement = document.createElement("a");
+            newElement.classList.add('flex', 'list-item');
+            newElement.onclick = function () {
+                history.pushState(null, '', `/chat?id=${user.id}`);
+            };
+            newElement.innerHTML = `
+                <img class="avatar" src="${user.avatar}" alt="">
+                <div class="list-item-content">
+                    <h4>${user.username || "-"}</h4>
+                </div>
+            `;
+            usersDiv?.appendChild(newElement)
+        }
+    } catch (e) {
+        console.error(e)
+    }
 }
 
 
