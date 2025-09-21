@@ -60,10 +60,10 @@ const updateChat = async () => {
     <div class="flex center">
         <img class="avatar small mr-5"
             src="${user.avatar}" alt="">
-        <div class="input flex flex-1">
-            <input class="pl-3" type="text" placeholder="Type a message..." />
+        <form id="form" class="input flex flex-1">
+            <input id="input" class="pl-3" type="text" placeholder="Type a message..." />
             <button>Send</button>
-        </div>
+        </form>
     </div>
     
     <div class="mt-5 inline-block gap-medium">
@@ -108,6 +108,21 @@ const updateChat = async () => {
     </div>
     </div>
     `;
+
+    var form = document.getElementById("form");
+    form!.onsubmit = async function (event) {
+        await sendMessage(event, id);
+    };
+}
+
+const sendMessage = async (event, userId) => {
+    event.preventDefault();
+    var input = document.getElementById("input") as HTMLInputElement;
+    const message = input.value;
+    input.value = "";
+    if (!message || message === "")
+        return;
+    console.log(await authPost(`/api/chats/${userId}`, { message: message }));
 }
 
 

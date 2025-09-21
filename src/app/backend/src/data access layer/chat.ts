@@ -10,7 +10,7 @@ const createMessagesTable = () => {
         reciever_id INTEGER NOT NULL,
         content TEXT,
         content_type TEXT NOT NULL,
-        created_at INTEGER NOT NULL,
+        created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (sender_id) REFERENCES Users(Id) ON DELETE CASCADE,
         FOREIGN KEY (reciever_id) REFERENCES Users(Id) ON DELETE CASCADE
 	);
