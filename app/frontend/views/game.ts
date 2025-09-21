@@ -14,6 +14,7 @@ import { gameOverViewStaticPart } from "./gameViews";
 import { opponentLeftGame } from "./gameViews";
 import { tournamentOverview } from "./gameViews";
 import { voidedTournament } from "./gameViews";
+import { wrap } from "module";
 
 export function GameModesView() {
 	if (!window.gameManager)
@@ -47,11 +48,12 @@ function aiGame() {
 	canvas.height = rect.height;
 
 	const wsClientAI = io("/ai");
+	wsClientAI.emit("join-game", {userId: clsGlobal.LoggedInUser.Id})
 
 	let game = null;
 	wsClientAI.on("start-game", (initialState) => {		
-		setScores(0, 0);
-		game = new ClientGame(canvas, ctx, initialState.players[0], initialState.players[1], wsClientAI);
+		setScores(0, 0); // maybe unecessary because maybe game modes gives these elements 0 by default
+		game = new ClientGame(canvas, ctx, initialState.ids.left, initialState.ids.right);
 		game.state = initialState;
 		game.draw();
 	});
@@ -62,29 +64,31 @@ function aiGame() {
 				game.draw();
 		}
 	});
-	wsClientAI.on("score-state", score => {
-		setScores(score.left, score.right);
+	wsClientAI.on("score-state", async (scores) => {
+		const entries = Object.entries(scores);
+		const leftUsername = (await UserDTO.getById(Number(entries[0][0]))).Username;
+		setScores(entries[0][1], entries[1][1], leftUsername, "AI");
 	})
-	wsClientAI.on("new-winner", winner => {
-		console.log("The winner: ", winner);
-		window.removeEventListener("keydown", keyDown);
-		window.removeEventListener("keyup", keyUp);
-		gameOverView(winner, winner === "left"? "right" : "left");
+	wsClientAI.on("new-winner", async (scores) => {
+		const entries = Object.entries(scores) as [string, number][];
+		const leftUsername = (await UserDTO.getById(Number(entries[0][0]))).Username;
+		const winnerName = entries[0][1] > entries[1][1] ? leftUsername : "AI";
+		const loserName = winnerName === "AI" ? leftUsername : "AI";
+		gameOverView(winnerName, loserName);
+		window.gameManager.leaveActiveGame();
 	})
-
-	function movePaddleAI(event, state) {
-		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
-		if (validKeys.includes(event.key))
-			wsClientAI.emit("paddle-move", {key: event.key, pressedState: state});
-	}
 
 	function keyDown(event) {
-		movePaddleAI(event, true);
-		console.log("TRIGGERED");
+		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
+		if (validKeys.includes(event.key)) {
+			wsClientAI.emit("move-paddle", {key: event.key, pressedState: true});
+		}
 	}
 	function keyUp(event) {
-		movePaddleAI(event, false);
-		console.log("TRIGGERED");
+		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
+		if (validKeys.includes(event.key)) {
+			wsClientAI.emit("move-paddle", {key: event.key, pressedState: false});
+		}
 	}
 
 	window.gameManager.setActiveGame("ai", wsClientAI, {keyDown, keyUp});
@@ -133,24 +137,11 @@ function remoteGame() {
 	wsClientRemote.emit("join-game", {userId: clsGlobal.LoggedInUser.Id});
 
 	let game = null;
-	wsClientRemote.on("start-game", async (initialState) => {
-
-		const p1 = document.querySelector(".p1");
-		const p2 = document.querySelector(".p2");
-
-		console.log(initialState)
-
-		p1.textContent = (await UserDTO.getById(initialState.leftId)).Username;
-		p2.textContent = (await UserDTO.getById(initialState.rightId)).Username;
-
-		setScores(0, 0);
-		game = new ClientGame(canvas, ctx, initialState.players[0], initialState.players[1], wsClientRemote);
+	wsClientRemote.on("start-game", (initialState) => {
+		game = new ClientGame(canvas, ctx, initialState.ids.left, initialState.ids.right);
 		game.state = initialState;
 		game.draw();
-
-		game.usernames = {_1: p1.textContent, _2: p2.textContent};
 	});
-
 	wsClientRemote.on("game-state", state => {
 		if (game) {
 			game.state = state;
@@ -158,38 +149,38 @@ function remoteGame() {
 				game.draw();
 		}
 	});
-	wsClientRemote.on("score-state", (score) => {
-		setScores(score.left, score.right);
-	})
-	wsClientRemote.on("new-winner", async winnerId => {
-		// gameOverView(winner, winner === "left"? "right" : "left");
-
-		console.log("Winner ID: ", winnerId);
-		const winner = (await UserDTO.getById(winnerId)).Username;
-
-		console.log("The winner: ", winner);
-
-		gameOverView(winner, (winner == game.usernames._1) ? game.usernames._2 : game.usernames._1);
-		
+	wsClientRemote.on("score-state", async (scores) => {
+		const entries = Object.entries(scores) as [string, number][];
+		const leftUsername = (await UserDTO.getById(Number(entries[0][0]))).Username;
+		const rightUsername = (await UserDTO.getById(Number(entries[1][0]))).Username;
+		setScores(entries[0][1], entries[1][1], leftUsername, rightUsername);
+	});
+	wsClientRemote.on("new-winner", async (scores) => {
+		const entries = Object.entries(scores) as [string, number][];
+		const leftUsername = (await UserDTO.getById(Number(entries[0][0]))).Username;
+		const rightUsername = (await UserDTO.getById(Number(entries[1][0]))).Username;
+		const winnerName = entries[0][1] > entries[1][1] ? leftUsername : rightUsername;
+		const loserName = winnerName == leftUsername ? rightUsername : leftUsername;
+		gameOverView(winnerName, loserName);
 		window.gameManager.leaveActiveGame();
-	})
+	});
 	wsClientRemote.on("opponent-left", () => {
 		game.looping = false;
 		window.gameManager.leaveActiveGame();
-
 		opponentLeftGame();
 	});
 
-	function movePaddleAI(event, state) {
-		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
-		if (validKeys.includes(event.key))
-			wsClientRemote.emit("paddle-move", {key: event.key, pressedState: state});
-	}
 	function keyDown(event) {
-		movePaddleAI(event, true);
+		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
+		if (validKeys.includes(event.key)) {
+			wsClientRemote.emit("paddle-move", {key: event.key, pressedState: true});
+		}
 	}
 	function keyUp(event) {
-		movePaddleAI(event, false);
+		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
+		if (validKeys.includes(event.key)) {
+			wsClientRemote.emit("paddle-move", {key: event.key, pressedState: false});
+		}
 	}
 
 	window.gameManager.setActiveGame("remote", wsClientRemote, {keyDown, keyUp});
@@ -258,7 +249,6 @@ async function apiGame() {
 			setScores(data.gameState.scores.left, data.gameState.scores.right)
 		}
 		else {
-			console.log("GAME ENDED");
 			clearInterval(interval);
 		}
 	}, 16);
@@ -287,8 +277,7 @@ function tournamentGame() {
 
 	let game = null;
 	wsClientTournament.on("start-game", (initialState) => {
-		setScores(0, 0);
-		game = new ClientGame(canvas, ctx, initialState.players[0], initialState.players[1]);
+		game = new ClientGame(canvas, ctx, initialState.ids.left, initialState.ids.right);
 		game.state = initialState;
 		game.draw();
 	});
@@ -299,28 +288,55 @@ function tournamentGame() {
 				game.draw();
 		}
 	});
-	wsClientTournament.on("score-state", (score) => {
-		setScores(score.left, score.right);
-	})
-	wsClientTournament.on("winner", (data) => {
-		tournamentOverview(data);
-	})
+	wsClientTournament.on("score-state", async (scores) => {
+		const entries = Object.entries(scores) as [string, number][];
+		const leftUsername = (await UserDTO.getById(Number(entries[0][0]))).Username;
+		const rightUsername = (await UserDTO.getById(Number(entries[1][0]))).Username;
+		setScores(entries[0][1], entries[1][1], leftUsername, rightUsername);
+	});
+	wsClientTournament.on("phase", async (data) => {
+		const wrapper = {
+			semi1: {
+				one: (await UserDTO.getById(data.semi1.one)).Username,
+				two: (await UserDTO.getById(data.semi1.two)).Username,
+				winner: null
+			},
+			semi2: {
+				one: (await UserDTO.getById(data.semi2.one)).Username,
+				two: (await UserDTO.getById(data.semi2.two)).Username,
+				winner: null
+			},
+			final: {
+				one: null,
+				two: null,
+				winner: null
+			}
+		};
+		wrapper.semi1.winner = data.semi1.winner ? (await UserDTO.getById(data.semi1.winner)).Username : "To be announced";
+		wrapper.semi2.winner = data.semi2.winner ? (await UserDTO.getById(data.semi2.winner)).Username : "To be announced";
+		
+		wrapper.final.one = data.final.one ? (await UserDTO.getById(data.final.one)).Username : "To be announced";
+		wrapper.final.two = data.final.two ? (await UserDTO.getById(data.final.two)).Username : "To be announced";
+		wrapper.final.winner = data.final.winner ? (await UserDTO.getById(data.final.winner)).Username : "To be announced";
+		tournamentOverview(data.status, wrapper, data.final.winner);
+	});
 	wsClientTournament.on("void", () => {
 		game.looping = false;
 		window.gameManager.leaveActiveGame();
 		voidedTournament();
 	});
 
-	function movePaddleTournament(event, state) {
-		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
-		if (validKeys.includes(event.key))
-			wsClientTournament.emit("paddle-move", {key: event.key, pressedState: state});
-	}
 	function keyDown(event) {
-		movePaddleTournament(event, true);
+		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
+		if (validKeys.includes(event.key)) {
+			wsClientTournament.emit("paddle-move", {key: event.key, pressedState: true});
+		}
 	}
 	function keyUp(event) {
-		movePaddleTournament(event, false);
+		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
+		if (validKeys.includes(event.key)) {
+			wsClientTournament.emit("paddle-move", {key: event.key, pressedState: false});
+		}
 	}
 
 	window.gameManager.setActiveGame("tournament", wsClientTournament, {keyDown, keyUp});

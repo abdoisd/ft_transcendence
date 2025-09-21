@@ -6,13 +6,14 @@ const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 150;
 const BALL_RADIUS = 9;
 const MAX_VELOCITY = 1500;
-const MAX_SCORE = 1;
+const MAX_SCORE = 2;
 
 export class Game {
-
 	io;
 	roomId;
-	players;
+	aiGame;
+	player1Id;
+	player2Id;
 	paddles;
 	scores;
 	ball;
@@ -20,26 +21,32 @@ export class Game {
 	running;
 	winnerId;
 	targetY;
-	aiGame;
-	
-	constructor(player1Id, player2Id, io, roomId, ids) {
+
+	constructor(player1Client, player2Client, io, roomId) {
 		this.io = io;
 		this.roomId = roomId;
 
-		this.ids = ids; //&
+		this.player1Id = player1Client.userId;
+		if (player2Client === "AI") {
+			this.aiGame = true;
+			this.player2Id = player2Client;
+		}
+		else {
+			this.aiGame = false;
+			this.player2Id = player2Client.userId;
+		}
 
-		this.players = [player1Id, player2Id];
 		this.paddles = {
-			[player1Id]: { 
-					y: BOARD_HEIGHT / 2 - PADDLE_HEIGHT / 2
-				},
-			[player2Id]: { 
-					y: BOARD_HEIGHT / 2 - PADDLE_HEIGHT / 2
-				}
+			[this.player1Id]: { 
+				y: BOARD_HEIGHT / 2 - PADDLE_HEIGHT / 2
+			},
+			[this.player2Id]: { 
+				y: BOARD_HEIGHT / 2 - PADDLE_HEIGHT / 2
+			}
 		};
 		this.scores = {
-			left: 0,
-			right: 0
+			[this.player1Id]: 0,
+			[this.player2Id]: 0
 		};
 		this.ball = { 
 			x: BOARD_WIDTH / 2, 
@@ -49,18 +56,17 @@ export class Game {
 		};
 
 		this.keyStates = {
-			[player1Id]: { up: false, down: false },
-			[player2Id]: { up: false, down: false }
+			[this.player1Id]: { up: false, down: false },
+			[this.player2Id]: { up: false, down: false }
 		};
-		this.running = true;
-		this.randomizeBall();
-		this.winnerId = null;
 
-		if (player2Id === "ai")
-			this.aiGame = true;
-		else
-			this.aiGame = false;
-		this.targetY = BOARD_HEIGHT / 2;
+		this.running = true;
+		this.winnerId = null;
+		this.targetY;
+		this.randomizeBall();
+
+		console.log(this.player1Id);
+		console.log(this.player2Id);
 	}
 
 	randomizeBall() {
@@ -87,17 +93,16 @@ export class Game {
 		this.ball.vy = Math.sign(angle) * INITIAL_VELOCITY;
 
 		if (this.aiGame)
-			this.aiPlayer(true, this.ball, this.paddles[this.players[1]], this.keyStates[this.players[1]]);
+			this.aiPlayer(true, this.ball, this.paddles[this.player2Id], this.keyStates[this.player2Id]);
 	}
 
-	score(scorer) {
-		this.scores[scorer] += 1;
+	score(scorerId) {
+		this.scores[scorerId] += 1;
 		this.io.to(this.roomId).emit("score-state", this.scores);
-		if (this.scores[scorer] >= MAX_SCORE)
-		{
-			this.io.to(this.roomId).emit("new-winner", this.scores["left"] > this.scores["right"] ? this.ids.id1: this.ids.id2);
+		if (this.scores[scorerId] >= MAX_SCORE) {
 			this.running = false;
-			this.winnerId = this.scores["left"] > this.scores["right"] ? this.ids.id1: this.ids.id2;
+			this.io.to(this.roomId).emit("new-winner", this.scores);
+			this.winnerId = scorerId;
 		} else {
 			this.randomizeBall();
 		}
@@ -109,9 +114,9 @@ export class Game {
 			this.ball.vy *= -1;
 
 		if (this.ball.x - BALL_RADIUS < 0)
-			this.score("right");
+			this.score(this.player2Id);
 		if (this.ball.x + BALL_RADIUS > BOARD_WIDTH)
-			this.score("left");
+			this.score(this.player1Id);
 	}
 
 	collidesWithPaddles(ball, paddle, side) {
@@ -137,7 +142,7 @@ export class Game {
 
 			if (side === "left") {
 				if (this.aiGame)
-					this.aiPlayer(true, this.ball, this.paddles[this.players[1]], this.keyStates[this.players[1]]);
+					this.aiPlayer(true, this.ball, this.paddles[this.player2Id], this.keyStates[this.player2Id]);
 			} else {
 				this.targetY = BOARD_HEIGHT / 2;
 			}
@@ -168,26 +173,26 @@ export class Game {
 			return;
 
 		if (this.aiGame)
-			this.aiPlayer(false, this.ball, this.paddles[this.players[1]], this.keyStates[this.players[1]]);
+			this.aiPlayer(false, this.ball, this.paddles[this.player2Id], this.keyStates[this.player2Id]);
 
 		const speed = INITIAL_VELOCITY * 1.5;
-		for (const playerId of this.players) {
+		const players = [this.player1Id, this.player2Id];
+		for (const playerId of players) {
 			const paddle = this.paddles[playerId];
 			const keys = this.keyStates[playerId]; 
-
 			if (keys.up)
 				paddle.y -= speed * delta;
 			if (keys.down)
 				paddle.y += speed * delta;
-
 			paddle.y = Math.max(0, Math.min(BOARD_HEIGHT-PADDLE_HEIGHT, paddle.y));
 		}
+
 
 		this.ball.x += this.ball.vx * delta;
 		this.ball.y += this.ball.vy * delta;
 
-		this.collidesWithPaddles(this.ball, this.paddles[this.players[0]], "left");
-		this.collidesWithPaddles(this.ball, this.paddles[this.players[1]], "right");
+		this.collidesWithPaddles(this.ball, this.paddles[this.player1Id], "left");
+		this.collidesWithPaddles(this.ball, this.paddles[this.player2Id], "right");
 		this.collidesWithSides();
 	}
 
@@ -202,7 +207,8 @@ export class Game {
 		return {
 			paddles: this.paddles,
 			ball: this.ball,
-			players: Object.keys(this.paddles)
+			ids: {left: this.player1Id, right: this.player2Id}
+			// players: Object.keys(this.paddles) // where do we use it in the the start of the game? 
 		};
 	}
 }

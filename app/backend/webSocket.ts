@@ -13,42 +13,43 @@ export function webSocket(fastifyServer) {
 	const wsServerAI = wsServer.of("/ai");
 
 	const aiGames = new Map();
-
 	wsServerAI.on("connection", (client) => {
-		const roomId = `game_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-		client.join(roomId);
-
+		const roomId = `room_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 		client.roomId = roomId;
-		client.userId = client.id;
+		client.join(roomId);
+		
+		client.on("join-game", (msg) => {
+			client.userId = msg.userId;
+			const game = new Game(client, "AI", wsServerAI, roomId);
+			aiGames.set(roomId, game);
 
-		const game = new Game(client.id, "ai", wsServerAI, roomId);
-		aiGames.set(roomId, game);
-		wsServerAI.to(roomId).emit("start-game", game.getFullState());
+			wsServerAI.to(roomId).emit("start-game", game.getFullState());
+			wsServerAI.to(roomId).emit("score-state", game.scores);
+			let lastTime = Date.now();
+			const interval = setInterval(() => {
+				const now = Date.now();
+				const delta = (now - lastTime) / 1000;
+				lastTime = now;
+				game.update(delta);
+				if (game.running)
+					wsServerAI.to(roomId).emit("game-state", game.getState());
+				else
+				{
 	
-		let lastTime = Date.now();
-		const interval = setInterval(() => {
-			const now = Date.now();
-			const delta = (now - lastTime) / 1000;
-			lastTime = now;
-			game.update(delta);
-			if (game.running)
-				wsServerAI.to(roomId).emit("game-state", game.getState());
-			else // end game ...
-			{
-
-				// const dbGame = new clsGame({
-				// 	Id: -1,
-				// 	User1Id: client.userId,
-				// 	User2Id: null,
-				// 	Date: Date.now(),
-				// 	WinnerId: game.winnerId,
-				// 	TournamentId: -1
-				// });
-				// dbGame.add();
-
-				clearInterval(interval);
-			}
-		}, 16);
+					// const dbGame = new clsGame({
+					// 	Id: -1,
+					// 	User1Id: client.userId,
+					// 	User2Id: null,
+					// 	Date: Date.now(),
+					// 	WinnerId: game.winnerId,
+					// 	TournamentId: -1
+					// });
+					// dbGame.add();
+	
+					clearInterval(interval);
+				}
+			}, 16);
+		});
 
 		client.on("disconnect", () => {
 			const roomId = client.roomId;
@@ -82,13 +83,13 @@ export function webSocket(fastifyServer) {
 	const remoteGames = new Map();
 	wsServerRemote.on("connection", (client) => {
 		client.roomId = null;
-		client.on("join-game", (user) => {
+		client.on("join-game", (msg) => {
 			// if (client.roomId)
 			// 	return;
-			client.userId = user.userId;
+			client.userId = msg.userId;
 			if (waitingRemotePlayers.length > 0) {
 				const opponent = waitingRemotePlayers.pop();
-				if (opponent.id === client.id) {
+				if (opponent.userId === client.userId) {
 					waitingRemotePlayers.push(opponent);
 					return;
 				}
@@ -158,7 +159,6 @@ export function webSocket(fastifyServer) {
 			}
 		}
 	});
-
 	function startRemoteGame(p1, p2) {
 		if (!p1.connected || !p2.connected) {
 			if (p1.connected)
@@ -168,22 +168,18 @@ export function webSocket(fastifyServer) {
 			return;
 		}
 
-		const roomId = `game_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+		const roomId = `room_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 		p1.join(roomId);
 		p2.join(roomId);
 
 		p1.roomId = roomId;
 		p2.roomId = roomId;
 
-		const game = new Game(p1.id, p2.id, wsServerRemote, roomId, {id1: p1.userId, id2: p2.userId}); //&
+		const game = new Game(p1, p2, wsServerRemote, roomId);
 		remoteGames.set(roomId, game);
 
-		const state = game.getFullState();
-		
-		state.leftId = p1.userId;
-		state.rightId = p2.userId;
-
-		wsServerRemote.to(roomId).emit("start-game", state);
+		wsServerRemote.to(roomId).emit("start-game", game.getFullState());
+		wsServerRemote.to(roomId).emit("score-state", game.scores);
 		let lastTime = Date.now();
 		const interval = setInterval(() => {
 			const now = Date.now();
@@ -195,6 +191,7 @@ export function webSocket(fastifyServer) {
 			if (game.running) {
 				wsServerRemote.to(roomId).emit("game-state", game.getState());
 			} else {
+				clearInterval(interval);
 
 				// end game ...
 				const dbGame = new clsGame({
@@ -208,7 +205,6 @@ export function webSocket(fastifyServer) {
 				dbGame.add();
 				//
 
-				clearInterval(interval);
 				remoteGames.delete(roomId);
 			}
 		}, 16);
@@ -218,29 +214,26 @@ export function webSocket(fastifyServer) {
 	let tournament: any | null = null;
 	let tournamentId: any | null = null;
 	wsServerTournament.on("connection", (client) => {
-		client.on("join-tournament", (data) => {
-			client.userId = data.userId;
+		client.on("join-tournament", (msg) => {
+			client.userId = msg.userId;
 			if (!tournament) {
-				tournamentId = `${Date.now()}_${Math.random().toString(10).slice(2, 7)}`;
 				tournament = new Tournament(startTournamentGame);
 				tournament.addPlayer(client);
+				tournamentId = `tournament_${Date.now()}_${Math.random().toString(10).slice(2, 7)}`;
 				tournaments.set(tournamentId, tournament);
 				client.tournamentId = tournamentId;
-				client.sharedRoomId = tournamentId;
 				client.join(tournamentId);
-
 				console.log(cyan, `${client.id} joined ${tournamentId}`);
 			} else if (tournament.players.length <= 4) {
-				tournament.addPlayer(client);
 				client.tournamentId = tournamentId;
+				client.join(tournamentId);
+				tournament.addPlayer(client);
 				if (tournament.players.length == 4) {
 					tournament.startSemifinals();
 					tournament = null;
 					
 					console.log(`game started`);
 				}
-				client.sharedRoomId = tournamentId;
-				client.join(tournamentId);
 
 				console.log(cyan, `${client.id} joined ${tournamentId}`);
 			}
@@ -250,7 +243,7 @@ export function webSocket(fastifyServer) {
 			const game = client.game;
 			if (!game)
 				return;
-			const keyStates = game.keyStates[client.id];
+			const keyStates = game.keyStates[client.userId];
 			if (!keyStates)
 				return;
 			if (key == "ArrowUp" || key == "w")
@@ -259,8 +252,8 @@ export function webSocket(fastifyServer) {
 				keyStates.down = pressedState;
 		});
 
-		client.on("disconnect", () => handleTournamentDisconnect(client));
-		function handleTournamentDisconnect(leaver) {
+		client.on("disconnect", () => {
+			const leaver = client;
 			const currTournament = tournaments.get(leaver.tournamentId);
 			if (!currTournament)
 				return;
@@ -270,31 +263,38 @@ export function webSocket(fastifyServer) {
 					return;
 			for (const player of currTournament.players) {
 				if (player !== leaver) {
-					player.game.looping = false;
+					player.game.looping = false; // what if 3 have joined and one of them leaves would this be undefined? 
 					player.emit("void");
 				}
 			}
 			currTournament.void = true;
-		}
+		});
 	});
-
 	function startTournamentGame(p1, p2) {
 		if (!p1.connected || !p2.connected) {
-			tournaments.get(p1.tournamentId).void = true;
 			// maybe disconnect all the others and finish the tournament
+			const tour = tournaments.get(p1.tournamentId);
+			tour.void = true;
+			for (const dp of tour.players) {
+				if (dp.connected) {
+					dp.emit("void");
+				}
+			}
+			return;
 		}
 
-		const roomId = `game_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+		const roomId = `room_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 		p1.join(roomId);
 		p2.join(roomId);
 		p1.roomId = roomId;
 		p2.roomId = roomId;
-		
-		const game = new Game(p1.id, p2.id, wsServerTournament, roomId);
+
+		const game = new Game(p1, p2, wsServerTournament, roomId);
 		p1.game = game;
 		p2.game = game;
 
 		wsServerTournament.to(roomId).emit("start-game", game.getFullState());
+		wsServerTournament.to(roomId).emit("score-state", game.scores);
 		let lastTime = Date.now();
 		const interval = setInterval(() => {
 			const now = Date.now();
@@ -308,22 +308,22 @@ export function webSocket(fastifyServer) {
 				const tournamentId = p1.tournamentId;
 				const tournament = tournaments.get(tournamentId);
 				if (tournament && !tournament.void) {
-					if (game.winnerId == p1.id) {
+					if (game.winnerId == p1.userId) {
 						tournament.onGameEnd(p1, p2);
-						console.log(cyan, "P1 WON", p1.id);
-					} else if (game.winnerId == p2.id) {
+						console.log(cyan, "P1 WON", p1.userId);
+					} else if (game.winnerId == p2.userId) {
 						tournament.onGameEnd(p2, p1);
-						console.log(cyan, "P2 WON", p2.id);
+						console.log(cyan, "P2 WON", p2.userId);
 					}
 					
 					if (tournament.matches.semi1.winner && tournament.matches.semi2.winner && !tournament.done) {
-						tournament.matches.semi1.loser.emit("winner", tournament.getState());
-						tournament.matches.semi2.loser.emit("winner", tournament.getState());
+						tournament.matches.semi1.loser.emit("phase", tournament.getState());
+						tournament.matches.semi2.loser.emit("phase", tournament.getState());
 						tournament.startFinal();
 						console.log("STARTED FINAL");
 					} else if (tournament.done) {
 						for (const player of tournament.players) {
-							player.emit("winner", tournament.getState());
+							player.emit("phase", tournament.getState());
 						}
 						console.log("WE ARE DONE");
 						console.log(`winner of the final: ${tournament.matches.final.winner}`);
@@ -354,8 +354,8 @@ class Tournament {
 			final: { players: [], winner: null, loser: null }
 		};
 		this.void = false;
-		this.starterFunction = starter;
 		this.done = false;
+		this.starterFunction = starter;
     }
 
     addPlayer(client) {
@@ -374,9 +374,11 @@ class Tournament {
 		this.matches.semi2.players = [this.players[2], this.players[3]];
 
 		this.status = 'ready';
+		console.log("SETUP MATCHES");
     }
 
     startSemifinals() {
+		console.log("START SEMIS");
 		this.starterFunction(...this.matches.semi1.players);
         this.starterFunction(...this.matches.semi2.players);
         this.status = 'semifinals';

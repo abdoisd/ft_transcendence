@@ -1,24 +1,27 @@
 import { GameModesView } from "./game";
 import { gameOverView } from "./game";
 
-export function tournamentOverview(data) {
+export function tournamentOverview(status, data, noFurtherUpdates) {
 	document.getElementById("main-views")!.innerHTML = `
-	<h1>Tournament has status: ${data.status}</h1>
+	<h1>Tournament has status: ${status}</h1>
 	<div class="semi-match-1">Semi: ${data.semi1.one} vs ${data.semi1.two} -> ${data.semi1.winner}</div>
 	<div class="semi-match-2">Semi: ${data.semi2.one} vs ${data.semi2.two} -> ${data.semi2.winner}</div>
 	<div class="final-match">Final: ${data.final.one} vs ${data.final.two} -> ${data.final.winner}</div>
 	<button class="game-modes">Game Modes</button>
 	`;
-	document.querySelector(".game-modes")?.addEventListener("click", GameModesView);
-	if (data.final.winner)
+	document.querySelector(".game-modes")?.addEventListener("click", () => {
+		window.gameManager.leaveActiveGame();
+		GameModesView();
+	});
+	if (noFurtherUpdates)
 		window.gameManager.leaveActiveGame();
 }
 
 export function gameOverViewStaticPart(winner, loser) {
 	return `
 	<h1>Game Over</h1>
-	<div class="winner">${winner.charAt(0).toUpperCase() + winner.slice(1)} won.</div>
-	<div class="loser">${loser.charAt(0).toUpperCase() + loser.slice(1)} lost.</div>
+	<div class="winner">${winner} won.</div>
+	<div class="loser">${loser} lost.</div>
 	<button class="game-modes">Game Modes</button>
 	`;
 }
@@ -220,7 +223,7 @@ export class ClientGame {
 	}
 }
 
-export function setScores(left, right, ctx, canvas) {
+export function setScores(left, right, leftUsername, rightUsername) {
 	const scoreLeft = document.querySelector(".score-p1");
 	const scoreRight = document.querySelector(".score-p2");
 	if (!scoreLeft || !scoreRight) {
@@ -228,7 +231,14 @@ export function setScores(left, right, ctx, canvas) {
 	}
 	scoreLeft.textContent = left;
 	scoreRight.textContent = right;
-	// p1.textContent = (await UserDTO.getById(id)).Username;
+	
+	const pLeft = document.querySelector(".p1");
+	const pRight = document.querySelector(".p2");
+	if (!pLeft || !pRight) {
+		return;
+	}
+	pLeft.textContent = leftUsername;
+	pRight.textContent = rightUsername;
 }
 
 import { Engine, Scene, FreeCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Camera, Light, Mesh, Color3, Texture} from "@babylonjs/core";
