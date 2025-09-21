@@ -1,4 +1,5 @@
 import userDao from "../data access layer/daos/UserDao.ts"
+import type Conversation from "../entities/Conversation.ts";
 
 export default class ChatRepository {
 
@@ -13,12 +14,25 @@ export default class ChatRepository {
 
 
     static getConversations = async (userId: number) => {
-        const conversations = await userDao.getConversations(userId);
-        return conversations
+        const conversations = await userDao.getConversationByUserId(userId);
+        return conversations.map((c) => {
+            return this.conversationMapper(c, userId);
+        })
     }
 
-    static getConversation = async (userId: number, otherId: number) => {
-       return await userDao.getConversationId(userId, otherId);
+
+    static getConversation = async (id: number, userId: number) => {
+        const conversation = await userDao.getConversation(id);
+        return this.conversationMapper(conversation, userId)
     }
+
+
+    static conversationMapper = (c: Conversation, userId: number) => {
+        return {
+            id: c.id,
+            user: c.firstUser.id === userId ? c.secondUser : c.firstUser
+        };
+    }
+
 
 }

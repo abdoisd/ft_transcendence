@@ -16,11 +16,17 @@ export default function chatApi(): void {
         reply.send(users);
     });
 
+    server.get("/api/conversations", { preHandler: server.mustHaveToken }, async (request, reply) => {
+        const user = request.user;
+        let conversations = await chatRepository.getConversations(user.Id);
+        reply.send(conversations);
+    });
+
 
     server.get("/api/conversations/:id", { preHandler: server.mustHaveToken }, async (request, reply) => {
         const { id } = request.params;
         const user = request.user;
-        let conversation = await chatRepository.getConversation(user.Id, id);
-        reply.send({});
+        let conversation = await chatRepository.getConversation(id, user.Id);
+        reply.send(conversation);
     });
 }

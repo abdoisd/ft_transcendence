@@ -10,7 +10,9 @@ const createConversationsTable = () => {
         first_user_id INTEGER NOT NULL,
         second_user_id INTEGER NOT NULL,
         FOREIGN KEY (first_user_id) REFERENCES Users(Id) ON DELETE CASCADE,
-        FOREIGN KEY (second_user_id) REFERENCES Users(Id) ON DELETE CASCADE
+        FOREIGN KEY (second_user_id) REFERENCES Users(Id) ON DELETE CASCADE,
+        UNIQUE (first_user_id, second_user_id),
+        UNIQUE (second_user_id, first_user_id)
 	);
 `, (err: any) => {
         if (err)

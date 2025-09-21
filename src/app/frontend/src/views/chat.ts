@@ -4,10 +4,40 @@ import { authGet } from "../utils/http_utils";
 export async function Chat() {
     document.getElementById("main-views")!.innerHTML = ChatView;
 
-    initUsers();
     updateChat();
+    initUsers();
+    initConversations();
 }
 
+
+const initConversations = async () => {
+    const conversaionsDiv = document.getElementById("conversations");
+
+    try {
+        const conversations = await authGet(`/api/conversations`);
+
+        for (let conversation of conversations) {
+            const newElement = document.createElement("a");
+            newElement.classList.add('flex', 'list-item');
+            newElement.onclick = function () {
+                history.pushState(null, '', `/chat?conversation_id=${conversation.id}`);
+                updateChat();
+            };
+            newElement.innerHTML = `
+                <img class="avatar" src=">${conversation.user.avatar}"
+                alt="">
+                <div class="list-item-content">
+                    <h4>${conversation.user.username || "-"}</h4>
+                    <span>wech</span>
+                </div>
+            `;
+            conversaionsDiv?.appendChild(newElement)
+        }
+    } catch (e) {
+        console.error(e)
+    }
+
+}
 
 const initUsers = async () => {
     const usersDiv = document.getElementById("users");
@@ -15,7 +45,6 @@ const initUsers = async () => {
     try {
         const users = await authGet("/api/users");
         for (let user of users) {
-            console.log(user)
             const newElement = document.createElement("a");
             newElement.classList.add('flex', 'list-item');
             newElement.onclick = function () {
@@ -43,16 +72,17 @@ const updateChat = async () => {
         return
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get("id");
+    const conversationId = urlParams.get("conversation_id");
 
-    if (!id)
+    if (!id && !conversationId)
         return (element.innerHTML = "<h5>Start a conversation.</h5>")
 
-    const user = await authGet(`/api/users/${id}`);
-
+    const conversation = conversationId != null ? await authGet(`/api/conversations/${conversationId}`) : null;
+    const user = conversation?.user ?? await authGet(`/api/users/${id}`);
 
     element.innerHTML = `
     <div class="header">
-    <h2>${user.username}</h2>
+    <h2>${user.username ?? "-"}</h2>
     </div>
     
     <div class="conversation scroll-box pv-5">
@@ -61,7 +91,7 @@ const updateChat = async () => {
     <div class="mh-5">
     <div class="flex center">
         <img class="avatar small mr-5"
-            src="${user.username}" alt="">
+            src="${user.avatar}" alt="">
         <div class="input flex flex-1">
             <input class="pl-3" type="text" placeholder="Type a message..." />
             <button>Send</button>
@@ -129,24 +159,7 @@ const ChatView: string = `
     <div class="mv-5">
         <h3 class="mh-5 mb-3">Conversations</h3>
 
-        <div class="list">
-            <div class="flex list-item active">
-                <img class="avatar" src="https://images.pexels.com/photos/33545082/pexels-photo-33545082.jpeg"
-                    alt="">
-                <div class="list-item-content">
-                    <h4>Youness Lagmah</h4>
-                    <span>wech</span>
-                </div>
-            </div>
-            <div class="flex list-item">
-                <img class="avatar" src="https://images.pexels.com/photos/33545082/pexels-photo-33545082.jpeg"
-                    alt="">
-                <div class="list-item-content">
-                    <h4>Youness Lagmah</h4>
-                    <span>wech</span>
-                </div>
-            </div>
-
+        <div id="conversations" class="list">
         </div>
 
         <h3 class="mh-5 mt-5 mb-3">All users</h3>

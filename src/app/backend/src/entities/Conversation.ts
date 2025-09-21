@@ -1,7 +1,9 @@
-import type { User } from "../data access layer/user.ts";
 import type Message from "./Message.ts";
+import type User from "./User.ts";
 
 export default interface Conversation {
-    users: User[],
+    id: number,
+    firstUser: User,
+    secondUser: User,
     lastMessage: Message | null
 }
