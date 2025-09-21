@@ -13,7 +13,6 @@ import { GameModesView } from './views/game.ts';
 
 import { UserDTO } from './business layer/user.ts';
 
-import { post } from "./views/request.ts";
 import { Chat } from './views/chat.ts';
 
 type RoutePath = keyof typeof routes;
@@ -87,8 +86,15 @@ export function route (event: Event | null, path?: string) {
 	}
 	handleView();
 };
+
 window.route = route;
 document.addEventListener('DOMContentLoaded', route);
+
+
+const getMainPath = (url: string): string => {
+    return url.split('?')[0];
+}
+
 
 function handleView (event?, path?: string | null) {
 	if (window.gameManager) {
@@ -138,13 +144,14 @@ function handleView (event?, path?: string | null) {
 
 		// load home
 		HomeView();
+		
 		if (path == '/') // home view is default
 		{
 			window.history.replaceState({}, "", "/");
 			return;
 		}
 
-		if (routes[path])
+		if (routes[getMainPath(path)])
 			routes[path]();
 		else
 		{

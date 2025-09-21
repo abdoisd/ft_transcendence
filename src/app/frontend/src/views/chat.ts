@@ -1,7 +1,37 @@
+import { route } from "../frontend";
+import { authGet } from "../utils/http_utils";
+
 export async function Chat() {
     document.getElementById("main-views")!.innerHTML = ChatView;
 
-    
+    initUsers()
+}
+
+
+const initUsers = async () => {
+    const usersDiv = document.getElementById("users");
+
+    try {
+        const users = await authGet("/api/users");
+        for (let user of users) {
+            console.log(user)
+            const newElement = document.createElement("a");
+            newElement.classList.add('flex', 'list-item');
+            newElement.onclick = function() {
+                history.pushState(null, '', `/chat?id=${user.id}`);
+            
+            };
+            newElement.innerHTML = `
+                <img class="avatar" src="${user.avatar}" alt="">
+                <div class="list-item-content">
+                    <h4>${user.username || "-"}</h4>
+                </div>
+            `;
+            usersDiv?.appendChild(newElement)
+        }
+    } catch (e) {
+        console.error(e)
+    }
 }
 
 
@@ -43,23 +73,6 @@ const ChatView: string = `
         <h3 class="mh-5 mt-5 mb-3">All users</h3>
 
         <div id="users" class="list">
-            <div class="flex list-item">
-                <img class="avatar" src="https://images.pexels.com/photos/33545082/pexels-photo-33545082.jpeg"
-                    alt="">
-                <div class="list-item-content">
-                    <h4>Youness Lagmah</h4>
-                    <span>wech</span>
-                </div>
-            </div>
-            <div class="flex list-item">
-                <img class="avatar" src="https://images.pexels.com/photos/33545082/pexels-photo-33545082.jpeg"
-                    alt="">
-                <div class="list-item-content">
-                    <h4>Youness Lagmah</h4>
-                    <span>wech</span>
-                </div>
-            </div>
-
         </div>
     </div>
 
