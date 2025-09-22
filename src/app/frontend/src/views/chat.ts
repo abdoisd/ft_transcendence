@@ -18,6 +18,7 @@ export async function Chat() {
     updateChat();
 }
 
+
 let socket = null;
 
 const getSocket = () => {
@@ -29,6 +30,20 @@ const getSocket = () => {
         }
     });
     return socket!;
+}
+
+navigation.addEventListener("navigate", e => {
+    const newUrl = new URL(e.destination.url);
+    if (newUrl.pathname != "/chat")
+        disconnectSocket();
+});
+
+const disconnectSocket = () => {
+    if (!socket)
+        return ;
+    socket.off("msg");
+    socket.disconnect();
+    socket = null;
 }
 
 
