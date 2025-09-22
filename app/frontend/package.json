@@ -12,7 +12,7 @@
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
-		"@babylonjs/core": "^8.27.2",
+		"@babylonjs/core": "^8.28.1",
 		"@tailwindcss/cli": "^4.1.12",
 		"babylonjs": "^8.27.2",
 		"socket.io-client": "^4.8.1"

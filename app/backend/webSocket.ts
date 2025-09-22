@@ -49,19 +49,6 @@ export function webSocket(fastifyServer) {
 						TournamentId: -1
 					});
 					dbGame.add();
-
-					// // end game ...
-					// const dbGame = new clsGame({
-					// 	Id: -1,
-					// 	User1Id: p1.userId,
-					// 	User2Id: p2.userId,
-					// 	Date: Date.now(),
-					// 	WinnerId: game.winnerId,
-					// 	TournamentId: -1
-					// });
-					// dbGame.add();
-					// //
-	
 					clearInterval(interval);
 				}
 			}, 16);
@@ -239,19 +226,23 @@ export function webSocket(fastifyServer) {
 				tournaments.set(tournamentId, tournament);
 				client.tournamentId = tournamentId;
 				client.join(tournamentId);
-				console.log(cyan, `${client.id} joined ${tournamentId}`);
 			} else if (tournament.players.length <= 4) {
+				const alreadyJoined = tournament.players.some((p) => {
+					return p.userId === client.userId;
+				});
+				if (alreadyJoined) {
+					client.emit("error", "You already joined the tournament.");
+					client.disconnect(true);
+					return;
+				}
+
 				client.tournamentId = tournamentId;
 				client.join(tournamentId);
 				tournament.addPlayer(client);
 				if (tournament.players.length == 4) {
 					tournament.startSemifinals();
 					tournament = null;
-					
-					console.log(`game started`);
 				}
-
-				console.log(cyan, `${client.id} joined ${tournamentId}`);
 			}
 		})
 
@@ -288,7 +279,6 @@ export function webSocket(fastifyServer) {
 	});
 	function startTournamentGame(p1, p2) {
 		if (!p1.connected || !p2.connected) {
-			// maybe disconnect all the others and finish the tournament
 			const tour = tournaments.get(p1.tournamentId);
 			tour.void = true;
 			for (const dp of tour.players) {

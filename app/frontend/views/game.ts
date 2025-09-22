@@ -64,7 +64,7 @@ function aiGame() {
 		}
 	});
 	wsClientAI.on("score-state", async (scores) => {
-		const entries = Object.entries(scores);
+		const entries = Object.entries(scores) as [string, number][];
 		const leftUsername = (await UserDTO.getById(Number(entries[0][0]))).Username;
 		setScores(entries[0][1], entries[1][1], leftUsername, "AI");
 	})
@@ -132,7 +132,7 @@ function remoteGame() {
 	canvas.width = rect.width;
 	canvas.height = rect.height;
 
-	const wsClientRemote = io("/remote");
+	const wsClientRemote = io("ws://localhost:3000/remote");
 	wsClientRemote.emit("join-game", {userId: clsGlobal.LoggedInUser.Id});
 
 	let game = null;
@@ -196,38 +196,34 @@ function apiView() {
 window.apiView = apiView;
 
 async function apiGame() {
-	let response = await fetch("/api-game/init")
-	let data = await response.json();
-	const gameId = data.gameId;
-
-	response = await fetch(`/api-game/start/${gameId}`);
-	data = await response.json();
-	console.log(data.gameId);
-
 	const canvas = document.querySelector(".canvas");
 	const ctx = canvas.getContext("2d");
 	const board = document.querySelector(".board");
 	const rect = board.getBoundingClientRect();
 	canvas.width = rect.width;
 	canvas.height = rect.height;
-	setScores(0, 0);
+	setScores(0, 0, "P1", "P2");
 
-	let game = null;
-	game = new ClientGame(canvas, ctx, data.gameState.players[0], data.gameState.players[1]);
+	let response = await fetch("/api-game/init")
+	let data = await response.json();
+	const gameId = data.gameId;
+
+	response = await fetch(`/api-game/start/${gameId}`);
+	data = await response.json();
+
+	const game = new ClientGame(canvas, ctx, data.gameState.ids.left, data.gameState.ids.right);
 	game.state = data.gameState;
 	game.gameId = gameId;
 	game.draw();
 
 	function movePaddleApi(event, state) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
-		if (!validKeys.includes(event.key))
-			return;
-		let player = ["ArrowUp", "ArrowDown"].includes(event.key) ? "right" : "left";
-		let move = ["ArrowUp", "w"].includes(event.key) ? "up" : "down";
-		move = state == "none" ? state : move;
-		fetch(`/api-game/${gameId}/${player}/${move}`, {method: "POST"});
+		if (validKeys.includes(event.key)) {
+			const player = ["w", "s"].includes(event.key) ? "player1api" : "player2api";
+			const move =  (state === "none") ? state : (["ArrowUp", "w"].includes(event.key) ? "up" : "down");
+			fetch(`/api-game/${gameId}/${player}/${move}`, {method: "POST"});
+		}
 	}
-
 	function keyDown(event) {
 		movePaddleApi(event, "pressed");
 	}
@@ -242,15 +238,22 @@ async function apiGame() {
 		const response = await fetch(`/api-game/state/${game.gameId}`);
 		const data = await response.json();
 
-		game.state = data.gameState;
-		if (data.gameState.status) {
+		if (data.gameState.state) {
+			game.state = data.gameState;
 			game.draw();
-			setScores(data.gameState.scores.left, data.gameState.scores.right)
+			setScores(data.gameState.scores["player1api"], data.gameState.scores["player2api"], "P1", "P2");
 		}
 		else {
-			clearInterval(interval);
+			const scores = data.gameState.scores;
+			const entries = Object.entries(scores) as [string, number][];
+			const winnerName = entries[0][1] > entries[1][1] ? "P1" : "P2";
+			const loserName = (winnerName === "P1") ? "P2" : "P1";
+			gameOverView(winnerName, loserName); 
+			window.gameManager.leaveActiveGame();
 		}
 	}, 16);
+
+	window.gameManager.setActiveGame("api", null, {keyDown, keyUp}, null, interval);
 }
 
 function tournamentView() {
@@ -271,7 +274,7 @@ function tournamentGame() {
 	canvas.width = rect.width;
 	canvas.height = rect.height;
 
-	const wsClientTournament = io("/tournament");
+	const wsClientTournament = io("ws://localhost:3000/tournament");
 	wsClientTournament.emit("join-tournament", {userId: clsGlobal.LoggedInUser.Id});
 
 	let game = null;
@@ -289,6 +292,7 @@ function tournamentGame() {
 	});
 	wsClientTournament.on("score-state", async (scores) => {
 		const entries = Object.entries(scores) as [string, number][];
+		console.log(entries);
 		const leftUsername = (await UserDTO.getById(Number(entries[0][0]))).Username;
 		const rightUsername = (await UserDTO.getById(Number(entries[1][0]))).Username;
 		setScores(entries[0][1], entries[1][1], leftUsername, rightUsername);
@@ -324,6 +328,12 @@ function tournamentGame() {
 		window.gameManager.leaveActiveGame();
 		voidedTournament();
 	});
+	wsClientTournament.on("error", (err) => {
+		console.log("error joined alrady");
+		console.log(err);
+		window.gameManager.leaveActiveGame();
+		GameModesView();
+	});
 
 	function keyDown(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
@@ -342,12 +352,13 @@ function tournamentGame() {
 }
 
 class GameManager {
-	activeGame: null | "ai" | "remote" | "tournament" | "3d" = null;
+	activeGame: null | "ai" | "remote" | "tournament" | "3d" | "api" = null;
 	activeSocket: null | any = null;
 	keyListeners: {keyDown?: EventListener, keyUp?: EventListener} = {};
 	engine: any | null;
+	interval: any | null;
 
-	setActiveGame(game: "ai" | "remote" | "tournament" | "3d", socket: any, listeners: {keyDown: EventListener, keyUp: EventListener}, engine: any) {
+	setActiveGame(game: "ai" | "remote" | "tournament" | "3d" | "api", socket: any, listeners: {keyDown: EventListener, keyUp: EventListener}, engine: any, interval) {
 		this.leaveActiveGame();
 
 		this.activeGame = game;
@@ -360,6 +371,8 @@ class GameManager {
 			window.addEventListener("keyup", listeners.keyUp);
 
 		this.engine = engine;
+
+		this.interval = interval;
 	}
 
 	leaveActiveGame() {
@@ -376,6 +389,11 @@ class GameManager {
 
 		if (this.engine) {
 			this.engine.stopRenderLoop();
+		}
+
+		if (this.interval) {
+			console.log("CLEARED INTERVAL");
+			clearInterval(this.interval);
 		}
 
 		this.keyListeners = {};

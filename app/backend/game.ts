@@ -12,6 +12,7 @@ export class Game {
 	io;
 	roomId;
 	aiGame;
+	apiGame; // api game
 	player1Id;
 	player2Id;
 	paddles;
@@ -25,24 +26,30 @@ export class Game {
 	constructor(player1Client, player2Client, io, roomId) {
 		this.io = io;
 		this.roomId = roomId;
-
-		this.player1Id = player1Client.userId;
-		if (player2Client === "AI") {
-			this.aiGame = true;
-			this.player2Id = player2Client;
-		}
-		else {
+		if (player2Client === "player2api") {
+			this.apiGame = true;
 			this.aiGame = false;
+			this.player1Id = player1Client;
+			this.player2Id = player2Client;
+		} else if (player2Client === "AI") {
+			this.aiGame = true;
+			this.apiGame = false;
+			this.player1Id = player1Client.userId;
+			this.player2Id = player2Client;
+		} else {
+			this.player1Id = player1Client.userId;
 			this.player2Id = player2Client.userId;
+			this.apiGame = false;
+			this.aiGame = false;
 		}
 
 		this.paddles = {
 			[this.player1Id]: { 
-				y: BOARD_HEIGHT / 2 - PADDLE_HEIGHT / 2
-			},
+					y: BOARD_HEIGHT / 2 - PADDLE_HEIGHT / 2
+				},
 			[this.player2Id]: { 
-				y: BOARD_HEIGHT / 2 - PADDLE_HEIGHT / 2
-			}
+					y: BOARD_HEIGHT / 2 - PADDLE_HEIGHT / 2
+				}
 		};
 		this.scores = {
 			[this.player1Id]: 0,
@@ -64,9 +71,6 @@ export class Game {
 		this.winnerId = null;
 		this.targetY;
 		this.randomizeBall();
-
-		console.log(this.player1Id);
-		console.log(this.player2Id);
 	}
 
 	randomizeBall() {
@@ -98,10 +102,14 @@ export class Game {
 
 	score(scorerId) {
 		this.scores[scorerId] += 1;
-		this.io.to(this.roomId).emit("score-state", this.scores);
+		if (!this.apiGame) {
+			this.io.to(this.roomId).emit("score-state", this.scores);
+		}
 		if (this.scores[scorerId] >= MAX_SCORE) {
 			this.running = false;
-			this.io.to(this.roomId).emit("new-winner", this.scores);
+			if (!this.apiGame) {
+				this.io.to(this.roomId).emit("new-winner", this.scores);
+			}
 			this.winnerId = scorerId;
 		} else {
 			this.randomizeBall();
@@ -109,14 +117,16 @@ export class Game {
 	}
 
 	collidesWithSides() {
-		if (this.ball.y + BALL_RADIUS >= BOARD_HEIGHT
-				|| this.ball.y - BALL_RADIUS <= 0)
+		if (this.ball.y + BALL_RADIUS >= BOARD_HEIGHT || this.ball.y - BALL_RADIUS <= 0) {
 			this.ball.vy *= -1;
+		}
 
-		if (this.ball.x - BALL_RADIUS < 0)
+		if (this.ball.x - BALL_RADIUS < 0) {
 			this.score(this.player2Id);
-		if (this.ball.x + BALL_RADIUS > BOARD_WIDTH)
+		}
+		if (this.ball.x + BALL_RADIUS > BOARD_WIDTH) {
 			this.score(this.player1Id);
+		}
 	}
 
 	collidesWithPaddles(ball, paddle, side) {
@@ -124,9 +134,8 @@ export class Game {
 		const halfHeight = PADDLE_HEIGHT / 2;
 
 		const paddleCenterY = paddle.y + halfHeight;
-		const paddleCenterX = (side === "left") 
-			? 0 + PADDLE_WIDTH / 2
-			: BOARD_WIDTH - PADDLE_WIDTH / 2;
+		const paddleCenterX = (side === "left") ? 
+			0 + PADDLE_WIDTH / 2 : BOARD_WIDTH - PADDLE_WIDTH / 2;
 
 		const dx = Math.abs(ball.x - paddleCenterX);
 		const dy = Math.abs(ball.y - paddleCenterY);
@@ -208,7 +217,43 @@ export class Game {
 			paddles: this.paddles,
 			ball: this.ball,
 			ids: {left: this.player1Id, right: this.player2Id}
-			// players: Object.keys(this.paddles) // where do we use it in the the start of the game? 
 		};
+	}
+
+	getStateApi() {
+		return {
+			paddles: this.paddles,
+			ball: this.ball,
+			ids: {left: this.player1Id, right: this.player2Id},
+			state: this.running,
+			scores: this.scores
+		}
+	}
+
+	startApiGame() {
+		let lastTime = Date.now();
+		const interval = setInterval(() => {
+			const now = Date.now();
+			const delta = (now - lastTime) / 1000;
+			lastTime = now;
+			this.update(delta);
+			if (!this.running)
+				clearInterval(interval);
+		}, 16);
+	}
+
+	moveApiGame(player, move) {
+		if (move === "none") {
+			this.keyStates[player].up = false;
+			this.keyStates[player].down = false;
+		}
+		else if (move === "down") {
+			this.keyStates[player].up = false;
+			this.keyStates[player].down = true;
+		}
+		else if (move === "up") {
+			this.keyStates[player].up = true;
+			this.keyStates[player].down = false;
+		}
 	}
 }
