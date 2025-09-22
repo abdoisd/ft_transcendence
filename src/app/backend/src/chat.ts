@@ -27,10 +27,10 @@ export const chatWs = () => {
     });
 }
 
-export const emitMessage = (userId: number, senderId: number) => {
+export const emitMessage = (userId: number, msg) => {
     const io = ws.of("/chat");
 
     if (!users[userId])
         return ;
-    io.to(users[userId]).emit("msg", senderId);
+    io.to(users[userId]).emit("msg", msg);
 }

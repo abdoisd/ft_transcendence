@@ -8,16 +8,13 @@ const socket = io("ws://localhost:3000/chat", {
 });
 
 
-
-
 export async function Chat() {
     document.getElementById("main-views")!.innerHTML = ChatView;
 
-    socket.on("msg", function (userId) {
-        if (currentChatId() == userId)
-            updateChat();
+    socket.on("msg", function (msg) {
+        if (currentChatId() == msg.sender_id)
+            appendMessage(msg, true, null);
     });
-
     initUsers();
     updateChat();
 }
@@ -32,8 +29,10 @@ const initUsers = async () => {
             const newElement = document.createElement("a");
             newElement.classList.add('flex', 'list-item');
             newElement.onclick = function () {
+                const shouldUpdate = currentChatId() != user.id
                 history.pushState(null, '', `/chat?id=${user.id}`);
-                updateChat();
+                if (shouldUpdate)
+                    updateChat();
             };
             newElement.innerHTML = `
                 <img class="avatar" src="${user.avatar}" alt="">

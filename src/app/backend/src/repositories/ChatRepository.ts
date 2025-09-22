@@ -11,6 +11,10 @@ export default class ChatRepository {
         return this.messageMapper(await chatDao.getMessage(id), me);
     }
 
+    static getMessage = async (id: number, userId: number) => {
+        const msg = await chatDao.getMessage(id);
+        return this.messageMapper(msg, userId);
+    }
 
     static getConversation = async (first: number, second: number) => {
         const conversations = await chatDao.getConversation(first, second);
@@ -27,6 +31,7 @@ export default class ChatRepository {
             id: message.id,
             message: message.message,
             sender_is_me: meSender,
+            sender_id: message.sender.id,
             created_at: message.createdAt,
             other: meSender ? message.receiver : message.sender
         };

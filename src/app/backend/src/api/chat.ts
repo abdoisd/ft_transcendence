@@ -12,7 +12,7 @@ export default function chatApi(): void {
         if (!message || message === "")
             return (reply.code(422).send({ error: "Invalid message" }));
         const result = await chatRepository.storeMessage(user.Id, id, message);
-        emitMessage(id, user.Id);
+        emitMessage(id, await chatRepository.getMessage(result.id, id));
         reply.send(result);
     });
 
