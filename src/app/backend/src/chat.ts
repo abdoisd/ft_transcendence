@@ -19,9 +19,12 @@ export const chatWs = () => {
     });
 
     io.on("connection", (socket) => {
+        console.log(`${socket.userId} connected`);
         users[socket.userId] = socket.id;
 
         socket.on('disconnect', () => {
+            console.log(`${socket.userId} disconnect`);
+
             delete users[socket.userId];
         });
     });

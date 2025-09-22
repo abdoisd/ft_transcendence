@@ -22,6 +22,14 @@
     padding: 10px 0px;
 }
 
+.center-v {
+    justify-content: center;
+}
+
+.text-center {
+    text-align: center;
+}
+
 .header h2 {
     margin: 0px 18px;
 }
@@ -267,6 +275,7 @@ input::placeholder {
 
 .overflow-hidden {
     overflow: hidden;
+    white-space: nowrap;
 }
 
 .gap-medium {

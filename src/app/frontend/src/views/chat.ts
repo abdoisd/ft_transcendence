@@ -1,26 +1,34 @@
 import { authGet, authPost } from "../utils/http_utils";
 import { io } from "socket.io-client";
 
-const socket = io("ws://localhost:3000/chat", {
-    auth: {
-        token: localStorage.getItem("jwt")
-    }
-});
-
 
 export async function Chat() {
     document.getElementById("main-views")!.innerHTML = ChatView;
 
-    socket.on("msg", function (msg) {
-        if (currentChatId() == msg.sender_id)
-            appendMessage(msg, true, null);
-        updateConversations()
+    getSocket().on("connect", function () {
+        getSocket().on("msg", function (msg) {
+            if (currentChatId() == msg.sender_id)
+                appendMessage(msg, true, null);
+            updateConversations()
+        });
     });
-
 
     updateConversations();
     initUsers();
     updateChat();
+}
+
+let socket = null;
+
+const getSocket = () => {
+    if (socket)
+        return socket;
+    socket = io("ws://localhost:3000/chat", {
+        auth: {
+            token: localStorage.getItem("jwt")
+        }
+    });
+    return socket!;
 }
 
 
@@ -28,7 +36,7 @@ const updateConversations = async () => {
     const conversaionsDiv = document.getElementById("conversations");
 
     if (!conversaionsDiv)
-        return ;
+        return;
 
     try {
         const conversations = await authGet(`/api/conversations`);
@@ -101,7 +109,7 @@ const updateChat = async () => {
     const id = currentChatId();
 
     if (!id)
-        return (element.innerHTML = "<h5>Start a conversation.</h5>")
+        return (element.innerHTML = "<h5 class=\"text-center\">Start a conversation.</h5>")
 
     const user = await authGet(`/api/users/${id}`);
 
@@ -249,7 +257,7 @@ const ChatView: string = `
 </div>
 
 <div class="right section">
-    <div id="conversation" class="h-full flex-column">
+    <div id="conversation" class="h-full flex-column center-v">
         
     </div>
 </div>
