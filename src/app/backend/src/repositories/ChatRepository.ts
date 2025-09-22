@@ -37,6 +37,7 @@ export default class ChatRepository {
         const meSender = message.sender.id === me;
         return {
             id: message.id,
+            type: message.type,
             message: message.message,
             sender_is_me: meSender,
             sender_id: message.sender.id,

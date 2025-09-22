@@ -56,7 +56,7 @@ const updateConversations = async () => {
                 alt="">
                 <div class="list-item-content flex-full flex-1 overflow-hidden">
                     <h4>${user.username || "-"}</h4>
-                    <span>${conversation.message}</span>
+                    <span>${conversation.type === "INVITE" ? "Invitation!" : conversation.message}</span>
                 </div>
             `;
             conversaionsDiv?.appendChild(newElement)
@@ -202,13 +202,51 @@ const appendMessage = (msg, prepend: boolean, conversationDiv) => {
         return;
     const newElement = document.createElement("div");
     newElement.classList.add(msg.sender_is_me ? 'msg-me' : 'msg', 'flex', 'bottom', 'gap-medium');
-    newElement.innerHTML = `
+    console.log(msg);
+    if (msg.type === "INVITE") {
+        if (msg.sender_is_me) {
+            newElement.innerHTML = `
+            <img class="avatar small" src="${msg.sender.avatar}" alt="">
+        
+            <div class="box">
+                <p>You sent a pong game invitation.</p>
+            </div>
+        `;
+        } else {
+            newElement.innerHTML = `
+        <img class="avatar small" src="${msg.sender.avatar}" alt="">
+    
+        <div class="box">
+            <p>${msg.sender.username} invited you to play pong</p>
+    
+            <button class="btn-secondary success" id="invite">
+            <div class="flex center gap-small center-v">
+                <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" />
+                </svg>
+    
+                Accept
+            </div>
+        </button>
+        </div>
+    `;
+        }
+    } else {
+        newElement.innerHTML = `
         <img class="avatar small" src="${msg.sender.avatar}" alt="">
 
         <div class="box">
             <p class="m-0">${msg.message}</p>
         </div>
     `;
+    }
+
+
+
     if (prepend) {
         conversationDiv?.prepend(newElement)
         conversationDiv?.scrollTo({
@@ -267,6 +305,7 @@ const ChatView: string = `
         <h3 class="mh-5 mt-5 mb-3">All users</h3>
 
         <div id="users" class="list">
+        
         </div>
     </div>
 
