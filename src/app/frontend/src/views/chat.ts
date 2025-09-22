@@ -152,8 +152,7 @@ const appendMessage = (msg, prepend: boolean, conversationDiv) => {
     const newElement = document.createElement("div");
     newElement.classList.add(msg.sender_is_me ? 'msg-me' : 'msg', 'flex', 'bottom', 'gap-medium');
     newElement.innerHTML = `
-        <img class="avatar small"
-            src="https://images.pexels.com/photos/33545082/pexels-photo-33545082.jpeg" alt="">
+        <img class="avatar small" src="${msg.sender.avatar}" alt="">
 
         <div class="box">
             <p class="m-0">${msg.message}</p>
@@ -178,7 +177,7 @@ const sendMessage = async (event, userId) => {
     input.value = "";
     if (!message || message === "")
         return;
-    const msg = await authPost(`/api/chats/${userId}`, { message: message });
+    const msg = await authPost(`/api/conversations/${userId}`, { message: message });
     appendMessage(msg, true, null);
 }
 

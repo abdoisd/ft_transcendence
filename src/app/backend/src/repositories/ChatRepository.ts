@@ -23,6 +23,14 @@ export default class ChatRepository {
         });
     }
 
+
+    static getConversations = async (userId: number) => {
+        const conversations = await chatDao.getConversations(userId);
+        return conversations.map((e) => {
+            return this.messageMapper(e, userId)
+        });
+    }
+
     static messageMapper = (message: Message | null, me: number) => {
         if (!message)
             return null;
@@ -33,7 +41,8 @@ export default class ChatRepository {
             sender_is_me: meSender,
             sender_id: message.sender.id,
             created_at: message.createdAt,
-            other: meSender ? message.receiver : message.sender
+            sender: message.sender,
+            receiver: message.receiver
         };
     }
 }

@@ -5,7 +5,7 @@ import { server } from "../server.ts";
 
 export default function chatApi(): void {
 
-    server.post("/api/chats/:id", { preHandler: server.mustHaveToken }, async (request, reply) => {
+    server.post("/api/conversations/:id", { preHandler: server.mustHaveToken }, async (request, reply) => {
         const { id } = request.params;
         const { message } = request.body;
         const user = request.user;
@@ -13,6 +13,12 @@ export default function chatApi(): void {
             return (reply.code(422).send({ error: "Invalid message" }));
         const result = await chatRepository.storeMessage(user.Id, id, message);
         emitMessage(id, await chatRepository.getMessage(result.id, id));
+        reply.send(result);
+    });
+
+    server.get("/api/conversations", { preHandler: server.mustHaveToken }, async (request, reply) => {
+        const user = request.user;
+        const result = await chatRepository.getConversations(user.Id);
         reply.send(result);
     });
 
