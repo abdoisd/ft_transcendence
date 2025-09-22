@@ -265,6 +265,10 @@ input::placeholder {
     flex: 1;
 }
 
+.overflow-hidden {
+    overflow: hidden;
+}
+
 .gap-medium {
     gap: 12px;
 }

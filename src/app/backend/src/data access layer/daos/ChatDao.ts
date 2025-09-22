@@ -77,6 +77,7 @@ export default class ChatDao {
                   (m2.sender_id = messages.sender_id AND m2.receiver_id = messages.receiver_id)
                   OR (m2.sender_id = messages.receiver_id AND m2.receiver_id = messages.sender_id)
               )
+            GROUP BY messages.sender_id, messages.receiver_id
             ORDER BY created_at DESC
         `;
 

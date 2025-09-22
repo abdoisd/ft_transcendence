@@ -14,11 +14,50 @@ export async function Chat() {
     socket.on("msg", function (msg) {
         if (currentChatId() == msg.sender_id)
             appendMessage(msg, true, null);
+        updateConversations()
     });
+
+
+    updateConversations();
     initUsers();
     updateChat();
 }
 
+
+const updateConversations = async () => {
+    const conversaionsDiv = document.getElementById("conversations");
+
+    if (!conversaionsDiv)
+        return ;
+
+    try {
+        const conversations = await authGet(`/api/conversations`);
+
+        conversaionsDiv.innerHTML = "";
+
+        for (let conversation of conversations) {
+            const user = conversation.sender_is_me ? conversation.receiver : conversation.sender
+            const newElement = document.createElement("a");
+            newElement.classList.add('flex', 'list-item');
+            newElement.onclick = function () {
+                history.pushState(null, '', `/chat?id=${user.id}`);
+                updateChat();
+            };
+            newElement.innerHTML = `
+                <img class="avatar" src=">${user.avatar}"
+                alt="">
+                <div class="list-item-content flex-full flex-1 overflow-hidden">
+                    <h4>${user.username || "-"}</h4>
+                    <span>${conversation.message}</span>
+                </div>
+            `;
+            conversaionsDiv?.appendChild(newElement)
+        }
+    } catch (e) {
+        console.error(e)
+    }
+
+}
 
 const initUsers = async () => {
     const usersDiv = document.getElementById("users");
@@ -179,6 +218,7 @@ const sendMessage = async (event, userId) => {
         return;
     const msg = await authPost(`/api/conversations/${userId}`, { message: message });
     appendMessage(msg, true, null);
+    updateConversations();
 }
 
 
