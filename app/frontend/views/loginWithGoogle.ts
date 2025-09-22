@@ -28,6 +28,11 @@ export function NewUser() {
 	// 		return ;
 	// 	}
 	// });
+	
+	const jwt = params.get('jwt');
+	console.debug("setting jwt in localStorage: ", jwt);
+	localStorage.setItem("jwt", jwt);
+	console.debug("jwt in localStorage: ", localStorage.getItem("jwt"));
 
 	// just protect frontend view
 	getOnlyFetch("/data/user/getById", {Id: params.get("Id")})
@@ -57,11 +62,6 @@ export function NewUser() {
 
 		}
 	});
-
-	const jwt = params.get('jwt');
-	console.debug("setting jwt in localStorage: ", jwt);
-	localStorage.setItem("jwt", jwt);
-	console.debug("jwt in localStorage: ", localStorage.getItem("jwt"));
 	
 	document.getElementById("body")!.innerHTML = usernameAvatarForm;
 };

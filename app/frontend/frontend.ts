@@ -91,13 +91,12 @@ document.addEventListener('DOMContentLoaded', route);
 
 function handleView (event?, path?: string | null) {
 	if (window.gameManager) {
+		console.log("window.gameManager")
 		window.gameManager.leaveActiveGame();
 	}
 
 	if (!path)
 		path = window.location.pathname;
-
-	
 	
 	console.log("Handling route: " + path);
 
