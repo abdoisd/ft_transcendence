@@ -52,8 +52,7 @@ const updateConversations = async () => {
                 updateChat();
             };
             newElement.innerHTML = `
-                <img class="avatar" src=">${user.avatar}"
-                alt="">
+                <img class="avatar" src="/data/user/getAvatarById?Id=${user.id}">
                 <div class="list-item-content flex-full flex-1 overflow-hidden">
                     <h4>${user.username || "-"}</h4>
                     <span>${conversation.type === "INVITE" ? "Invitation!" : conversation.message}</span>
@@ -82,7 +81,7 @@ const initUsers = async () => {
                     updateChat();
             };
             newElement.innerHTML = `
-                <img class="avatar" src="${user.avatar}" alt="">
+                <img class="avatar" src="/data/user/getAvatarById?Id=${user.id}" alt="">
                 <div class="list-item-content">
                     <h4>${user.username || "-"}</h4>
                 </div>
@@ -123,8 +122,7 @@ const updateChat = async () => {
 
     <div class="mh-5">
     <div class="flex center">
-        <img class="avatar small mr-5"
-            src="${user.avatar}" alt="">
+        <img class="avatar small mr-5" src="/data/user/getAvatarById?Id=${user.id}" alt="">
         <form id="form" class="input flex flex-1">
             <input id="input" class="pl-3" type="text" placeholder="Type a message..." />
             <button>Send</button>
@@ -202,19 +200,16 @@ const appendMessage = (msg, prepend: boolean, conversationDiv) => {
         return;
     const newElement = document.createElement("div");
     newElement.classList.add(msg.sender_is_me ? 'msg-me' : 'msg', 'flex', 'bottom', 'gap-medium');
-    console.log(msg);
     if (msg.type === "INVITE") {
         if (msg.sender_is_me) {
             newElement.innerHTML = `
-            <img class="avatar small" src="${msg.sender.avatar}" alt="">
-        
             <div class="box">
                 <p>You sent a pong game invitation.</p>
             </div>
         `;
         } else {
             newElement.innerHTML = `
-        <img class="avatar small" src="${msg.sender.avatar}" alt="">
+        <img class="avatar small" src="/data/user/getAvatarById?Id=${msg.sender.id}" alt="">
     
         <div class="box">
             <p>${msg.sender.username} invited you to play pong</p>
@@ -236,8 +231,12 @@ const appendMessage = (msg, prepend: boolean, conversationDiv) => {
     `;
         }
     } else {
-        newElement.innerHTML = `
-        <img class="avatar small" src="${msg.sender.avatar}" alt="">
+        newElement.innerHTML = msg.sender_is_me ? `
+        <div class="box">
+            <p class="m-0">${msg.message}</p>
+        </div>
+    `: `
+        <img class="avatar small" src="/data/user/getAvatarById?Id=${msg.sender.id}" alt="">
 
         <div class="box">
             <p class="m-0">${msg.message}</p>

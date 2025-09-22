@@ -121,7 +121,6 @@ button {
 
 .conversation .msg-me {
     align-self: flex-end;
-    flex-direction: row-reverse;
 }
 
 .input {
