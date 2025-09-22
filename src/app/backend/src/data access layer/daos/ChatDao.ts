@@ -4,11 +4,11 @@ import { db } from "../database.ts"
 
 export default class ChatDao {
 
-    static storeMessage = async (senderId: number, receiverId: number, message: string) => new Promise<number>((resolve, reject) => {
+    static storeMessage = async (senderId: number, receiverId: number, message: string, type: string) => new Promise<number>((resolve, reject) => {
         let sql = `INSERT INTO messages (sender_id, receiver_id, content, content_type)
                     VALUES (?, ?, ?, ?)`;
 
-        return db.run(sql, [senderId, receiverId, message, "test"], function (err) {
+        return db.run(sql, [senderId, receiverId, message, type], function (err) {
             if (err)
                 return reject(err.message);
             return resolve(this.lastID);
@@ -40,6 +40,7 @@ export default class ChatDao {
             return resolve(res.map((row: any) => ({
                 id: row.id,
                 message: row.content,
+                type: row.content_type,
                 createdAt: row.created_at,
                 sender: {
                     id: row.sender_id,
@@ -88,6 +89,7 @@ export default class ChatDao {
                 id: row.id,
                 message: row.content,
                 createdAt: row.created_at,
+                type: row.content_type,
                 sender: {
                     id: row.sender_id,
                     username: row.sender_username,
@@ -131,6 +133,7 @@ export default class ChatDao {
                     id: row.id,
                     message: row.content,
                     createdAt: row.created_at,
+                    type: row.content_type,
                     sender: {
                         id: row.sender_id,
                         username: row.sender_username,

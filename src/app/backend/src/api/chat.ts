@@ -7,11 +7,11 @@ export default function chatApi(): void {
 
     server.post("/api/conversations/:id", { preHandler: server.mustHaveToken }, async (request, reply) => {
         const { id } = request.params;
-        const { message } = request.body;
+        const { message, type } = request.body;
         const user = request.user;
-        if (!message || message === "")
-            return (reply.code(422).send({ error: "Invalid message" }));
-        const result = await chatRepository.storeMessage(user.Id, id, message);
+        if ((type != "MSG" && type != "INVITE") || (type == "MSG" && (!message || message === "")))
+            return (reply.code(422).send({ error: "Invalid message or type" }));
+        const result = await chatRepository.storeMessage(user.Id, id, message, type);
         emitMessage(id, await chatRepository.getMessage(result.id, id));
         reply.send(result);
     });

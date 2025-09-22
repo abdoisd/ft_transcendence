@@ -4,8 +4,8 @@ import type Message from "../entities/Message.ts";
 
 export default class ChatRepository {
 
-    static storeMessage = async (me: number, receiverId: number, message: string) => {
-        const id = await chatDao.storeMessage(me, receiverId, message);
+    static storeMessage = async (me: number, receiverId: number, message: string, type: string) => {
+        const id = await chatDao.storeMessage(me, receiverId, message, type);
         if (!id)
             return null
         return this.messageMapper(await chatDao.getMessage(id), me);

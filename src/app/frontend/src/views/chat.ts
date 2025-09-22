@@ -132,7 +132,7 @@ const updateChat = async () => {
     </div>
     
     <div class="mt-5 inline-block gap-medium">
-        <button class="btn-secondary">
+        <button class="btn-secondary" id="invite">
             <div class="flex center gap-small">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -173,9 +173,13 @@ const updateChat = async () => {
     </div>
     </div>
     `;
-    var form = document.getElementById("form");
+    document.getElementById("invite")!.onclick = async function (event) {
+        await sendMessage(event, id, "INVITE");
+    }
+
+    const form = document.getElementById("form");
     form!.onsubmit = async function (event) {
-        await sendMessage(event, id);
+        await sendMessage(event, id, "MSG");
     };
     await updateMessages(id);
 }
@@ -217,16 +221,28 @@ const appendMessage = (msg, prepend: boolean, conversationDiv) => {
 }
 
 
-const sendMessage = async (event, userId) => {
+const sendMessage = async (event, userId, type) => {
     event.preventDefault();
+    let message;
+    if (type === "MSG") {
+        message = getMessage();
+        if (!message || message === "")
+            return;
+    }
+    else if (type === "INVITE")
+        message = null;
+    else
+        return;
+    const msg = await authPost(`/api/conversations/${userId}`, { message: message, type: type });
+    appendMessage(msg, true, null);
+    updateConversations();
+}
+
+const getMessage = () => {
     const input = document.getElementById("input") as HTMLInputElement;
     const message = input.value;
     input.value = "";
-    if (!message || message === "")
-        return;
-    const msg = await authPost(`/api/conversations/${userId}`, { message: message });
-    appendMessage(msg, true, null);
-    updateConversations();
+    return message;
 }
 
 
