@@ -1,51 +1,42 @@
 import { authGet, authPost } from "../utils/http_utils";
 import { io } from "socket.io-client";
 import { getQuery } from "../utils/utils";
-import { route } from "../frontend";
+
+const chatIO = io("ws://localhost:3000/chat", {
+    auth: {
+        token: localStorage.getItem("jwt")
+    }
+});
+
+
+chatIO.on("connect", function () {
+    chatIO.on("msg", function (msg) {
+        if (window.location.pathname == "/chat") {
+            if (currentChatId() == msg.sender_id)
+                appendMessage(msg, true, null);
+            updateConversations()
+        }
+        else {
+            Toastify({
+                text: message(msg),
+                gravity: "bottom",
+                position: "right",
+                avatar: `/data/user/getAvatarById?Id=${msg.sender.id}`,
+                style: {
+                    background: "#20262E"
+                }
+            }).showToast();
+        }
+    });
+});
 
 
 export async function Chat() {
     document.getElementById("main-views")!.innerHTML = ChatView;
 
-    getSocket().on("connect", function () {
-        getSocket().on("msg", function (msg) {
-            if (currentChatId() == msg.sender_id)
-                appendMessage(msg, true, null);
-            updateConversations()
-        });
-    });
-
     updateConversations();
     initUsers();
     updateChat();
-}
-
-
-let socket = null;
-
-const getSocket = () => {
-    if (socket)
-        return socket;
-    socket = io("ws://localhost:3000/chat", {
-        auth: {
-            token: localStorage.getItem("jwt")
-        }
-    });
-    return socket!;
-}
-
-window.addEventListener("navigate", e => {
-    const newUrl = new URL(e.destination.url);
-    if (newUrl.pathname != "/chat")
-        disconnectSocket();
-});
-
-const disconnectSocket = () => {
-    if (!socket)
-        return ;
-    socket.off("msg");
-    socket.disconnect();
-    socket = null;
 }
 
 
@@ -72,7 +63,7 @@ const updateConversations = async () => {
                 <img class="avatar" src="/data/user/getAvatarById?Id=${user.id}">
                 <div class="list-item-content flex-full flex-1 overflow-hidden">
                     <h4>${user.username || "-"}</h4>
-                    <span>${conversation.type === "INVITE" ? "Invitation!" : conversation.message}</span>
+                    <span>${message(conversation)}</span>
                 </div>
             `;
             conversaionsDiv?.appendChild(newElement)
@@ -80,7 +71,10 @@ const updateConversations = async () => {
     } catch (e) {
         console.error(e)
     }
+}
 
+const message = (conversation) => {
+    return conversation.type === "INVITE" ? "Invitation!" : conversation.message;
 }
 
 const initUsers = async () => {
