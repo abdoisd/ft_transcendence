@@ -1,6 +1,7 @@
 import { authGet, authPost } from "../utils/http_utils";
 import { io } from "socket.io-client";
 import { getQuery } from "../utils/utils";
+import { route } from "../frontend";
 
 
 export async function Chat() {
@@ -158,6 +159,7 @@ const updateChat = async () => {
             </div>
         </button>
     
+       <a href="/profile?id=${user.id}">
         <button class="btn-secondary">
             <div class="flex center gap-small">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -165,10 +167,11 @@ const updateChat = async () => {
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
                 </svg>
-    
+
                 View Profile
             </div>
         </button>
+       </a>
     
     
         <button class="btn-secondary danger">

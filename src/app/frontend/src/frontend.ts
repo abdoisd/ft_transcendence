@@ -76,6 +76,8 @@ export function route (event: Event | null, path?: string) {
 
 	// buttons
 	event = event || window.event; // window.event link event, event passed by addEventListener
+
+
 	event!.preventDefault();
 
 	if (pushToHistory)
