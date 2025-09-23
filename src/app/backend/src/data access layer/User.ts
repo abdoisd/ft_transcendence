@@ -8,6 +8,10 @@ import { clsGame } from "./game.ts";
 import { pipeline } from "stream/promises";
 import { createTables } from "./chat.ts";
 
+export const TOURNAMENT_ID = 100;
+export const TOURNAMENT_NAME = "Tournament";
+export const TOURNAMENT_AVATAR = "tournament-avatar.png";
+
 db.run(`
 	CREATE TABLE IF NOT EXISTS Users (
 		Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -26,10 +30,20 @@ db.run(`
 	if (err)
 		console.error(red, 'Error creating table Users', err);
 	else {
+		insertefaultUsers();
 		createTables();
 		console.log(green, 'Table Users ready');
 	}
 });
+
+const insertefaultUsers = () => {
+	db.run(`
+		INSERT OR IGNORE INTO Users (Id, GoogleId, Username, AvatarPath) VALUES (?, ?, ?, ?);
+	`, [TOURNAMENT_ID, "dummy", TOURNAMENT_NAME, TOURNAMENT_AVATAR], (err) => {
+		if (err)
+			console.error(red, 'Error creating defaults users', err);
+	});
+}
 
 export class User {
 	Id: number;
