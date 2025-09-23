@@ -53,8 +53,8 @@ server.register(fastifyJwt, {
 
 // game / socket.io
 import { webSocket } from "./webSocket.ts";
-webSocket();
 
+webSocket();
 chatWs();
 
 
@@ -130,9 +130,8 @@ server.addHook('onSend', async (request, reply, payload) => {
 // });
 
 import { gameRoutes } from "./game api/game api.ts";
-import chatApi from "./api/chat.ts";
-import apiRoutes from "./api/api_routes.ts";
 import { chatWs } from "./chat.ts";
+import apiRoutes from "./api/api_routes.ts";
 
 const start = async () =>
 {
@@ -148,7 +147,6 @@ const start = async () =>
 		server.register(Enable2faRoutes);
 		gameRoutes();
 		apiRoutes();
-
 		server.ready(err => {
 			if (err) throw err;
 		  

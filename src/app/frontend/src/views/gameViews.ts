@@ -1,24 +1,27 @@
 import { GameModesView } from "./game";
 import { gameOverView } from "./game";
 
-export function tournamentOverview(data) {
+export function tournamentOverview(status, data, noFurtherUpdates) {
 	document.getElementById("main-views")!.innerHTML = `
-	<h1>Tournament has status: ${data.status}</h1>
+	<h1>Tournament has status: ${status}</h1>
 	<div class="semi-match-1">Semi: ${data.semi1.one} vs ${data.semi1.two} -> ${data.semi1.winner}</div>
 	<div class="semi-match-2">Semi: ${data.semi2.one} vs ${data.semi2.two} -> ${data.semi2.winner}</div>
 	<div class="final-match">Final: ${data.final.one} vs ${data.final.two} -> ${data.final.winner}</div>
 	<button class="game-modes">Game Modes</button>
 	`;
-	document.querySelector(".game-modes")?.addEventListener("click", GameModesView);
-	if (data.final.winner)
+	document.querySelector(".game-modes")?.addEventListener("click", () => {
+		window.gameManager.leaveActiveGame();
+		GameModesView();
+	});
+	if (noFurtherUpdates)
 		window.gameManager.leaveActiveGame();
 }
 
 export function gameOverViewStaticPart(winner, loser) {
 	return `
 	<h1>Game Over</h1>
-	<div class="winner">${winner.charAt(0).toUpperCase() + winner.slice(1)} won.</div>
-	<div class="loser">${loser.charAt(0).toUpperCase() + loser.slice(1)} lost.</div>
+	<div class="winner">${winner} won.</div>
+	<div class="loser">${loser} lost.</div>
 	<button class="game-modes">Game Modes</button>
 	`;
 }
@@ -163,7 +166,7 @@ export class ClientGame {
 			paddles: {},
 			ball: {}
 		};
-		
+
 		this.looping = true;
 	}
 
@@ -184,32 +187,32 @@ export class ClientGame {
 		// board
 		ctx.fillStyle = "#000000";
 		ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-		ctx.setLineDash([12*scaleX,12*scaleY]);
+		ctx.setLineDash([12 * scaleX, 12 * scaleY]);
 		ctx.strokeStyle = "#FFFFFF";
 		ctx.beginPath();
-		ctx.moveTo(this.canvas.width/2, 0);
-		ctx.lineTo(this.canvas.width/2, this.canvas.height);
+		ctx.moveTo(this.canvas.width / 2, 0);
+		ctx.lineTo(this.canvas.width / 2, this.canvas.height);
 		ctx.stroke();
 
 		// draw outline
 		ctx.beginPath();
 		ctx.arc(this.canvas.width / 2, this.canvas.height / 2, 75, 0, 2 * Math.PI);
 		ctx.strokeStyle = "white";
-		ctx.lineWidth = 2;   
+		ctx.lineWidth = 2;
 		ctx.setLineDash([]);
-		ctx.stroke();    
+		ctx.stroke();
 
 		// paddles 
 		ctx.fillStyle = "#ff1a1a";
 		let paddleWidth = PADDLE_WIDTH * scaleX;
 		let paddleHeight = PADDLE_HEIGHT * scaleY;
-		ctx.fillRect(0*scaleX, paddles[this.leftId].y*scaleY, paddleWidth, paddleHeight);
-		ctx.fillRect((SERVER_WIDTH - PADDLE_WIDTH)*scaleX, paddles[this.rightId].y*scaleY, paddleWidth, paddleHeight);
+		ctx.fillRect(0 * scaleX, paddles[this.leftId].y * scaleY, paddleWidth, paddleHeight);
+		ctx.fillRect((SERVER_WIDTH - PADDLE_WIDTH) * scaleX, paddles[this.rightId].y * scaleY, paddleWidth, paddleHeight);
 
 		// ball
 		ctx.fillStyle = "red";
 		ctx.beginPath();
-		ctx.arc(ball.x * scaleX, ball.y * scaleY, BALL_RADIUS*Math.sqrt(scaleX*scaleY), 0, Math.PI*2);
+		ctx.arc(ball.x * scaleX, ball.y * scaleY, BALL_RADIUS * Math.sqrt(scaleX * scaleY), 0, Math.PI * 2);
 		ctx.fill();
 	}
 
@@ -220,7 +223,7 @@ export class ClientGame {
 	}
 }
 
-export function setScores(left, right, ctx, canvas) {
+export function setScores(left, right, leftUsername, rightUsername) {
 	const scoreLeft = document.querySelector(".score-p1");
 	const scoreRight = document.querySelector(".score-p2");
 	if (!scoreLeft || !scoreRight) {
@@ -228,11 +231,17 @@ export function setScores(left, right, ctx, canvas) {
 	}
 	scoreLeft.textContent = left;
 	scoreRight.textContent = right;
-	// p1.textContent = (await UserDTO.getById(id)).Username;
+
+	const pLeft = document.querySelector(".p1");
+	const pRight = document.querySelector(".p2");
+	if (!pLeft || !pRight) {
+		return;
+	}
+	pLeft.textContent = leftUsername;
+	pRight.textContent = rightUsername;
 }
 
-import { Engine, Scene, FreeCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Camera, Light, Mesh, Color3, Texture} from "@babylonjs/core";
-import { User } from "../../backend/data access layer/user";
+import { Engine, Scene, FreeCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Camera, Light, Mesh, Color3, Texture } from "@babylonjs/core";
 
 const WHITE = "#FFFFFF";
 const CYAN = "#00FFFF";
@@ -255,14 +264,14 @@ const LINE_DEPTH = 0.1;
 const PADDLE_WIDTH_3D = 1.5;
 const PADDLE_HEIGHT_3D = 0.3;
 const PADDLE_DEPTH = 0.15;
-const PAD_ONE_POS = new Vector3(0, BOARD_HEIGHT/2+PADDLE_HEIGHT_3D/2, 10-0.2);
-const PAD_TWO_POS = new Vector3(0, BOARD_HEIGHT/2+PADDLE_HEIGHT_3D/2, -10+0.2);
+const PAD_ONE_POS = new Vector3(0, BOARD_HEIGHT / 2 + PADDLE_HEIGHT_3D / 2, 10 - 0.2);
+const PAD_TWO_POS = new Vector3(0, BOARD_HEIGHT / 2 + PADDLE_HEIGHT_3D / 2, -10 + 0.2);
 
 const WALL_WIDTH = BOARD_HEIGHT;
 const WALL_HEIGHT = BOARD_HEIGHT + 0.3;
 const WALL_DEPTH = BOARD_DEPTH;
-const LEFT_WALL_POS = new Vector3(-BOARD_WITDTH/2-WALL_WIDTH/2, WALL_HEIGHT/2-BOARD_HEIGHT/2, 0);
-const RIGHT_WALL_POS = new Vector3(BOARD_WITDTH/2+WALL_WIDTH/2, WALL_HEIGHT/2-BOARD_HEIGHT/2, 0);
+const LEFT_WALL_POS = new Vector3(-BOARD_WITDTH / 2 - WALL_WIDTH / 2, WALL_HEIGHT / 2 - BOARD_HEIGHT / 2, 0);
+const RIGHT_WALL_POS = new Vector3(BOARD_WITDTH / 2 + WALL_WIDTH / 2, WALL_HEIGHT / 2 - BOARD_HEIGHT / 2, 0);
 
 const BALL_DIAMETER = 0.35;
 const BALL_RADIUS_3D = BALL_DIAMETER / 2;
@@ -282,48 +291,48 @@ export function init3DGame() {
 	const engine = new Engine(canvas, true);
 	const scene = new Scene(engine);
 	const camera = new FreeCamera("camera", CAMERA_POINT, scene);
-		camera.setTarget(FOCAL_POINT);
+	camera.setTarget(FOCAL_POINT);
 	const light = new HemisphericLight("light", LIGHT_POINT, scene);
-		light.intensity = 0.8;
+	light.intensity = 0.8;
 
 	const boardMaterial = new StandardMaterial("board-material", scene);
-		boardMaterial.diffuseColor = Color3.FromHexString(OPAQUE_WHITE);
-	const board = MeshBuilder.CreateBox("board", {width: BOARD_WITDTH, height: BOARD_HEIGHT, depth: BOARD_DEPTH}, scene);
-		board.material = boardMaterial;
-	
+	boardMaterial.diffuseColor = Color3.FromHexString(OPAQUE_WHITE);
+	const board = MeshBuilder.CreateBox("board", { width: BOARD_WITDTH, height: BOARD_HEIGHT, depth: BOARD_DEPTH }, scene);
+	board.material = boardMaterial;
+
 	const lineMaterial = new StandardMaterial("line-material", scene);
-		lineMaterial.diffuseColor = Color3.FromHexString(WHITE);
+	lineMaterial.diffuseColor = Color3.FromHexString(WHITE);
 	const dashCount = BOARD_WITDTH / 2 / LINE_WIDTH;
 	for (let i = 0; i < dashCount; i++) {
-		const dash = MeshBuilder.CreateBox(`dash${i}`, {width: LINE_WIDTH, height: LINE_HEIGHT, depth: LINE_DEPTH}, scene);
-		dash.position.x = -BOARD_WITDTH/2 + i + LINE_SPACING;
+		const dash = MeshBuilder.CreateBox(`dash${i}`, { width: LINE_WIDTH, height: LINE_HEIGHT, depth: LINE_DEPTH }, scene);
+		dash.position.x = -BOARD_WITDTH / 2 + i + LINE_SPACING;
 		dash.position.y = BOARD_HEIGHT;
 	}
 
 	const wallMaterial = new StandardMaterial("wall-material", scene);
-		wallMaterial.diffuseColor = Color3.FromHexString(RED);
-	const leftWall = MeshBuilder.CreateBox("left-wall", {width: WALL_WIDTH, height: WALL_HEIGHT, depth: WALL_DEPTH}, scene);
-		leftWall.material = wallMaterial;
-		leftWall.position = LEFT_WALL_POS;
+	wallMaterial.diffuseColor = Color3.FromHexString(RED);
+	const leftWall = MeshBuilder.CreateBox("left-wall", { width: WALL_WIDTH, height: WALL_HEIGHT, depth: WALL_DEPTH }, scene);
+	leftWall.material = wallMaterial;
+	leftWall.position = LEFT_WALL_POS;
 	const rightWall = leftWall.clone("right-wall");
-		rightWall.position = RIGHT_WALL_POS;
+	rightWall.position = RIGHT_WALL_POS;
 
 	const paddleMaterial = new StandardMaterial("paddle-material", scene);
-		paddleMaterial.diffuseColor = Color3.FromHexString(CYAN);
-	const paddleOne = MeshBuilder.CreateBox("left-paddle", {width: PADDLE_WIDTH_3D, height: PADDLE_HEIGHT_3D, depth: PADDLE_DEPTH}, scene);
-		paddleOne.material = paddleMaterial;
-		paddleOne.position = PAD_ONE_POS;
+	paddleMaterial.diffuseColor = Color3.FromHexString(CYAN);
+	const paddleOne = MeshBuilder.CreateBox("left-paddle", { width: PADDLE_WIDTH_3D, height: PADDLE_HEIGHT_3D, depth: PADDLE_DEPTH }, scene);
+	paddleOne.material = paddleMaterial;
+	paddleOne.position = PAD_ONE_POS;
 	const paddleTwo = paddleOne.clone("right-paddle");
-		paddleTwo.position = PAD_TWO_POS;
+	paddleTwo.position = PAD_TWO_POS;
 
 	const ballMaterial = new StandardMaterial("ball", scene);
-		// ballMaterial.diffuseColor = Color3.FromHexString(BRIGHT_YELLOW);
-		// ballMaterial.specularColor = new Color3(0.5, 0.5, 0.5);
-		// ballMaterial.specularPower = 32;
-		// ballMaterial.diffuseTexture = new Texture("strips.jpg", scene);
-	const ball = MeshBuilder.CreateSphere("ball", {diameter: BALL_DIAMETER, segments: 32}, scene);
-		ball.material = ballMaterial;
-		ball.position = BALL_POS;
+	// ballMaterial.diffuseColor = Color3.FromHexString(BRIGHT_YELLOW);
+	// ballMaterial.specularColor = new Color3(0.5, 0.5, 0.5);
+	// ballMaterial.specularPower = 32;
+	// ballMaterial.diffuseTexture = new Texture("strips.jpg", scene);
+	const ball = MeshBuilder.CreateSphere("ball", { diameter: BALL_DIAMETER, segments: 32 }, scene);
+	ball.material = ballMaterial;
+	ball.position = BALL_POS;
 
 	const game = new Game(canvas, engine, scene, camera, light, paddleOne, paddleTwo, ball);
 	return game;
@@ -339,7 +348,7 @@ class Game {
 	paddleTwo: Mesh;
 	ball: {
 		mesh: Mesh;
-		velocity: {x: number; y: number; z: number};
+		velocity: { x: number; y: number; z: number };
 	}
 
 	pressedKeys: {
@@ -356,7 +365,7 @@ class Game {
 
 	looping: boolean;
 
-	constructor(canvas:HTMLCanvasElement, engine:Engine, scene:Scene, camera:Camera, light:Light, paddleOne:Mesh, paddleTwo:Mesh, ball:Mesh) {
+	constructor(canvas: HTMLCanvasElement, engine: Engine, scene: Scene, camera: Camera, light: Light, paddleOne: Mesh, paddleTwo: Mesh, ball: Mesh) {
 		this.canvas = canvas;
 		this.engine = engine;
 		this.scene = scene;
@@ -368,7 +377,7 @@ class Game {
 
 		this.ball = {
 			mesh: ball,
-			velocity: { x: 0, y: 0, z: 0}
+			velocity: { x: 0, y: 0, z: 0 }
 		};
 		this.randomizeBall();
 
@@ -400,8 +409,8 @@ class Game {
 	}
 
 	collidesWithPaddles(paddle: Mesh, side: string) {
-		const halfWidth = PADDLE_WIDTH_3D/2;
-		const halfDepth = PADDLE_DEPTH/2;
+		const halfWidth = PADDLE_WIDTH_3D / 2;
+		const halfDepth = PADDLE_DEPTH / 2;
 
 		const paddleCenterX = paddle.position.x;
 		const paddleCenterZ = paddle.position.z;
@@ -421,19 +430,19 @@ class Game {
 	}
 
 	collidesWithSides() {
-		if (this.ball.mesh.position.x > BOARD_WITDTH/2 - BALL_RADIUS_3D 
-				|| this.ball.mesh.position.x < -BOARD_WITDTH/2 + BALL_RADIUS_3D)
+		if (this.ball.mesh.position.x > BOARD_WITDTH / 2 - BALL_RADIUS_3D
+			|| this.ball.mesh.position.x < -BOARD_WITDTH / 2 + BALL_RADIUS_3D)
 			this.ball.velocity.x *= -1;
 
-		if (this.ball.mesh.position.z > BOARD_DEPTH/2+BALL_RADIUS_3D) {
+		if (this.ball.mesh.position.z > BOARD_DEPTH / 2 + BALL_RADIUS_3D) {
 			this.scores.farther++;
 			this.randomizeBall();
 		}
-		else if (this.ball.mesh.position.z < -BOARD_DEPTH/2-BALL_RADIUS_3D) {
+		else if (this.ball.mesh.position.z < -BOARD_DEPTH / 2 - BALL_RADIUS_3D) {
 			this.scores.closer++;
 			this.randomizeBall();
 		}
-		setScores(this.scores.farther, this.scores.closer);
+		setScores(this.scores.farther, this.scores.closer, "P1", "P2");
 		if (this.scores.closer == 5) {
 			this.looping = false;
 			gameOverView("P1", "P2");
@@ -449,7 +458,7 @@ class Game {
 
 		this.ball.mesh.rotation.x += this.ball.velocity.z * dt / BALL_RADIUS_3D;
 		this.ball.mesh.rotation.z += this.ball.velocity.x * dt / BALL_RADIUS_3D;
-		
+
 		this.collidesWithSides();
 		this.collidesWithPaddles(this.paddleOne, "back");
 		this.collidesWithPaddles(this.paddleTwo, "front");
@@ -466,15 +475,15 @@ class Game {
 		if (this.pressedKeys["d"])
 			this.paddleOne.position.x -= PADDLE_SPEED;
 
-		if (this.paddleOne.position.x < -BOARD_WITDTH/2 + PADDLE_WIDTH_3D/2)
-			this.paddleOne.position.x = -BOARD_WITDTH/2 + PADDLE_WIDTH_3D/2;
-		else if (this.paddleOne.position.x > BOARD_WITDTH/2 - PADDLE_WIDTH_3D/2)
-			this.paddleOne.position.x = BOARD_WITDTH/2 - PADDLE_WIDTH_3D/2;
+		if (this.paddleOne.position.x < -BOARD_WITDTH / 2 + PADDLE_WIDTH_3D / 2)
+			this.paddleOne.position.x = -BOARD_WITDTH / 2 + PADDLE_WIDTH_3D / 2;
+		else if (this.paddleOne.position.x > BOARD_WITDTH / 2 - PADDLE_WIDTH_3D / 2)
+			this.paddleOne.position.x = BOARD_WITDTH / 2 - PADDLE_WIDTH_3D / 2;
 
-		if (this.paddleTwo.position.x < -BOARD_WITDTH/2 + PADDLE_WIDTH_3D/2)
-			this.paddleTwo.position.x = -BOARD_WITDTH/2 + PADDLE_WIDTH_3D/2;
-		else if (this.paddleTwo.position.x > BOARD_WITDTH/2 - PADDLE_WIDTH_3D/2)
-			this.paddleTwo.position.x = BOARD_WITDTH/2 - PADDLE_WIDTH_3D/2;
+		if (this.paddleTwo.position.x < -BOARD_WITDTH / 2 + PADDLE_WIDTH_3D / 2)
+			this.paddleTwo.position.x = -BOARD_WITDTH / 2 + PADDLE_WIDTH_3D / 2;
+		else if (this.paddleTwo.position.x > BOARD_WITDTH / 2 - PADDLE_WIDTH_3D / 2)
+			this.paddleTwo.position.x = BOARD_WITDTH / 2 - PADDLE_WIDTH_3D / 2;
 	}
 
 	update() {

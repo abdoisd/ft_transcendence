@@ -5,14 +5,16 @@ const BOARD_HEIGHT = 800;
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 150;
 const BALL_RADIUS = 9;
-const MAX_VELOCITY = 1500;
-const MAX_SCORE = 1;
+const MAX_VELOCITY = 1000;
+const MAX_SCORE = 2;
 
 export class Game {
-
 	io;
 	roomId;
-	players;
+	aiGame;
+	apiGame; // api game
+	player1Id;
+	player2Id;
 	paddles;
 	scores;
 	ball;
@@ -20,26 +22,38 @@ export class Game {
 	running;
 	winnerId;
 	targetY;
-	aiGame;
-	
-	constructor(player1Id, player2Id, io, roomId, ids) {
+
+	constructor(player1Client, player2Client, io, roomId) {
 		this.io = io;
 		this.roomId = roomId;
+		if (player2Client === "player2api") {
+			this.apiGame = true;
+			this.aiGame = false;
+			this.player1Id = player1Client;
+			this.player2Id = player2Client;
+		} else if (player2Client === "AI") {
+			this.aiGame = true;
+			this.apiGame = false;
+			this.player1Id = player1Client.userId;
+			this.player2Id = player2Client;
+		} else {
+			this.player1Id = player1Client.userId;
+			this.player2Id = player2Client.userId;
+			this.apiGame = false;
+			this.aiGame = false;
+		}
 
-		this.ids = ids; //&
-
-		this.players = [player1Id, player2Id];
 		this.paddles = {
-			[player1Id]: { 
+			[this.player1Id]: { 
 					y: BOARD_HEIGHT / 2 - PADDLE_HEIGHT / 2
 				},
-			[player2Id]: { 
+			[this.player2Id]: { 
 					y: BOARD_HEIGHT / 2 - PADDLE_HEIGHT / 2
 				}
 		};
 		this.scores = {
-			left: 0,
-			right: 0
+			[this.player1Id]: 0,
+			[this.player2Id]: 0
 		};
 		this.ball = { 
 			x: BOARD_WIDTH / 2, 
@@ -49,18 +63,14 @@ export class Game {
 		};
 
 		this.keyStates = {
-			[player1Id]: { up: false, down: false },
-			[player2Id]: { up: false, down: false }
+			[this.player1Id]: { up: false, down: false },
+			[this.player2Id]: { up: false, down: false }
 		};
-		this.running = true;
-		this.randomizeBall();
-		this.winnerId = null;
 
-		if (player2Id === "ai")
-			this.aiGame = true;
-		else
-			this.aiGame = false;
-		this.targetY = BOARD_HEIGHT / 2;
+		this.running = true;
+		this.winnerId = null;
+		this.targetY;
+		this.randomizeBall();
 	}
 
 	randomizeBall() {
@@ -87,31 +97,36 @@ export class Game {
 		this.ball.vy = Math.sign(angle) * INITIAL_VELOCITY;
 
 		if (this.aiGame)
-			this.aiPlayer(true, this.ball, this.paddles[this.players[1]], this.keyStates[this.players[1]]);
+			this.aiPlayer(true, this.ball, this.paddles[this.player2Id], this.keyStates[this.player2Id]);
 	}
 
-	score(scorer) {
-		this.scores[scorer] += 1;
-		this.io.to(this.roomId).emit("score-state", this.scores);
-		if (this.scores[scorer] >= MAX_SCORE)
-		{
-			this.io.to(this.roomId).emit("new-winner", this.scores["left"] > this.scores["right"] ? this.ids.id1: this.ids.id2);
+	score(scorerId) {
+		this.scores[scorerId] += 1;
+		if (!this.apiGame) {
+			this.io.to(this.roomId).emit("score-state", this.scores);
+		}
+		if (this.scores[scorerId] >= MAX_SCORE) {
 			this.running = false;
-			this.winnerId = this.scores["left"] > this.scores["right"] ? this.ids.id1: this.ids.id2;
+			if (!this.apiGame) {
+				this.io.to(this.roomId).emit("new-winner", this.scores);
+			}
+			this.winnerId = scorerId;
 		} else {
 			this.randomizeBall();
 		}
 	}
 
 	collidesWithSides() {
-		if (this.ball.y + BALL_RADIUS >= BOARD_HEIGHT
-				|| this.ball.y - BALL_RADIUS <= 0)
+		if (this.ball.y + BALL_RADIUS >= BOARD_HEIGHT || this.ball.y - BALL_RADIUS <= 0) {
 			this.ball.vy *= -1;
+		}
 
-		if (this.ball.x - BALL_RADIUS < 0)
-			this.score("right");
-		if (this.ball.x + BALL_RADIUS > BOARD_WIDTH)
-			this.score("left");
+		if (this.ball.x - BALL_RADIUS < 0) {
+			this.score(this.player2Id);
+		}
+		if (this.ball.x + BALL_RADIUS > BOARD_WIDTH) {
+			this.score(this.player1Id);
+		}
 	}
 
 	collidesWithPaddles(ball, paddle, side) {
@@ -119,9 +134,8 @@ export class Game {
 		const halfHeight = PADDLE_HEIGHT / 2;
 
 		const paddleCenterY = paddle.y + halfHeight;
-		const paddleCenterX = (side === "left") 
-			? 0 + PADDLE_WIDTH / 2
-			: BOARD_WIDTH - PADDLE_WIDTH / 2;
+		const paddleCenterX = (side === "left") ? 
+			0 + PADDLE_WIDTH / 2 : BOARD_WIDTH - PADDLE_WIDTH / 2;
 
 		const dx = Math.abs(ball.x - paddleCenterX);
 		const dy = Math.abs(ball.y - paddleCenterY);
@@ -137,7 +151,7 @@ export class Game {
 
 			if (side === "left") {
 				if (this.aiGame)
-					this.aiPlayer(true, this.ball, this.paddles[this.players[1]], this.keyStates[this.players[1]]);
+					this.aiPlayer(true, this.ball, this.paddles[this.player2Id], this.keyStates[this.player2Id]);
 			} else {
 				this.targetY = BOARD_HEIGHT / 2;
 			}
@@ -168,26 +182,26 @@ export class Game {
 			return;
 
 		if (this.aiGame)
-			this.aiPlayer(false, this.ball, this.paddles[this.players[1]], this.keyStates[this.players[1]]);
+			this.aiPlayer(false, this.ball, this.paddles[this.player2Id], this.keyStates[this.player2Id]);
 
 		const speed = INITIAL_VELOCITY * 1.5;
-		for (const playerId of this.players) {
+		const players = [this.player1Id, this.player2Id];
+		for (const playerId of players) {
 			const paddle = this.paddles[playerId];
 			const keys = this.keyStates[playerId]; 
-
 			if (keys.up)
 				paddle.y -= speed * delta;
 			if (keys.down)
 				paddle.y += speed * delta;
-
 			paddle.y = Math.max(0, Math.min(BOARD_HEIGHT-PADDLE_HEIGHT, paddle.y));
 		}
+
 
 		this.ball.x += this.ball.vx * delta;
 		this.ball.y += this.ball.vy * delta;
 
-		this.collidesWithPaddles(this.ball, this.paddles[this.players[0]], "left");
-		this.collidesWithPaddles(this.ball, this.paddles[this.players[1]], "right");
+		this.collidesWithPaddles(this.ball, this.paddles[this.player1Id], "left");
+		this.collidesWithPaddles(this.ball, this.paddles[this.player2Id], "right");
 		this.collidesWithSides();
 	}
 
@@ -202,7 +216,44 @@ export class Game {
 		return {
 			paddles: this.paddles,
 			ball: this.ball,
-			players: Object.keys(this.paddles)
+			ids: {left: this.player1Id, right: this.player2Id}
 		};
+	}
+
+	getStateApi() {
+		return {
+			paddles: this.paddles,
+			ball: this.ball,
+			ids: {left: this.player1Id, right: this.player2Id},
+			state: this.running,
+			scores: this.scores
+		}
+	}
+
+	startApiGame() {
+		let lastTime = Date.now();
+		const interval = setInterval(() => {
+			const now = Date.now();
+			const delta = (now - lastTime) / 1000;
+			lastTime = now;
+			this.update(delta);
+			if (!this.running)
+				clearInterval(interval);
+		}, 16);
+	}
+
+	moveApiGame(player, move) {
+		if (move === "none") {
+			this.keyStates[player].up = false;
+			this.keyStates[player].down = false;
+		}
+		else if (move === "down") {
+			this.keyStates[player].up = false;
+			this.keyStates[player].down = true;
+		}
+		else if (move === "up") {
+			this.keyStates[player].up = true;
+			this.keyStates[player].down = false;
+		}
 	}
 }

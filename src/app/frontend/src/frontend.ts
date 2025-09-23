@@ -86,7 +86,6 @@ export function route (event: Event | null, path?: string) {
 	}
 	handleView();
 };
-
 window.route = route;
 document.addEventListener('DOMContentLoaded', route);
 
@@ -98,13 +97,12 @@ const getMainPath = (url: string): string => {
 
 function handleView (event?, path?: string | null) {
 	if (window.gameManager) {
+		console.log("window.gameManager")
 		window.gameManager.leaveActiveGame();
 	}
 
 	if (!path)
 		path = window.location.pathname;
-
-	
 	
 	console.log("Handling route: " + path);
 
@@ -144,7 +142,6 @@ function handleView (event?, path?: string | null) {
 
 		// load home
 		HomeView();
-		
 		if (path == '/') // home view is default
 		{
 			window.history.replaceState({}, "", "/");

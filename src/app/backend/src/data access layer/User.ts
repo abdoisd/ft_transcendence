@@ -26,8 +26,8 @@ db.run(`
 	if (err)
 		console.error(red, 'Error creating table Users', err);
 	else {
+		createTables();
 		console.log(green, 'Table Users ready');
-		createTables()
 	}
 });
 
@@ -330,8 +330,12 @@ export function UserRoutes() {
 		User.getById(Id)
 			.then((user) => {
 
+
+				if (user && user.SessionId != request.cookies.sessionId)
+					return reply.status(403).send();
+
 				// get the avatar path
-				db.get("SELECT AvatarPath FROM users WHERE Id = ? LIMIT 1", [Id], (err, row) => {
+				db.get("SELECT AvatarPath FROM users WHERE Id = ?", [Id], (err, row) => {
 
 					const defaultAvatarPath = "./avatars/default-avatar.png";
 

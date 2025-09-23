@@ -63,7 +63,6 @@ EOF
 
 echo VAULT_TOKEN=$ROOT_TOKEN > /me/.env
 
-
 else
     echo "Vault is already initialized."
 fi
