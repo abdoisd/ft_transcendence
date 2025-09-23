@@ -9,7 +9,7 @@ export async function Settings()
 		return response.json();
 	})
 	.then((data) => {
-		console.log("data:", data);
+		// console.log("data:", data);
 
 		const qrCodeElement = document.getElementById("qrcode") as HTMLImageElement;
 		qrCodeElement.src = data.qrCode;

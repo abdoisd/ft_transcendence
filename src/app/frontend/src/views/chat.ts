@@ -34,7 +34,7 @@ const getSocket = () => {
     return socket!;
 }
 
-navigation.addEventListener("navigate", e => {
+window.addEventListener("navigate", e => {
     const newUrl = new URL(e.destination.url);
     if (newUrl.pathname != "/chat")
         disconnectSocket();
