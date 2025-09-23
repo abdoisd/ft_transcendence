@@ -1,24 +1,14 @@
+all:
+	docker compose -f src/docker-compose.yml up
 
-a: addresses
-	mkdir -p ~/goinfre/prometheus
-	mkdir -p ~/goinfre/snapshots
-	mkdir -p ~/goinfre/vault
-	docker compose up -d
-	# ./services/elasticsearch/elasticsearch-init.sh
-b:
-	docker compose build
-d:
-	docker compose down
-e:
-	docker exec -it app-backend sh
-f:
-	docker exec -it app-frontend sh
-v:
-	docker exec -it vault-server bash
-n:
-	docker exec -it nginx-modsecurity sh
-r:
-	docker compose restart
 
-addresses:
-	@echo web-app: https://localhost
+fclean:
+	docker compose -f src/docker-compose.yml down --volumes --rmi all
+
+
+build:
+	docker compose -f src/docker-compose.yml build
+
+
+down:
+	docker compose -f src/docker-compose.yml down

@@ -1,0 +1,429 @@
+import { Game } from "./game.ts";
+import { clsGame } from "./data access layer/game.ts";
+
+import { clsTournament } from "./data access layer/tournament.ts";
+import { red, green, yellow, cyan } from "./global.ts";
+import { ws } from "./server.ts";
+
+export function webSocket() {
+	const wsServerTournament = ws.of("/tournament");
+	const wsServerRemote = ws.of("/remote");
+	const wsServerAI = ws.of("/ai");
+
+	const aiGames = new Map();
+	wsServerAI.on("connection", (client) => {
+		const roomId = `room_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+		client.roomId = roomId;
+		client.join(roomId);
+		
+		client.on("join-game", (msg) => {
+			client.userId = msg.userId;
+			const game = new Game(client, "AI", wsServerAI, roomId);
+			aiGames.set(roomId, game);
+
+			wsServerAI.to(roomId).emit("start-game", game.getFullState());
+			wsServerAI.to(roomId).emit("score-state", game.scores);
+			let lastTime = Date.now();
+			const interval = setInterval(() => {
+				const now = Date.now();
+				const delta = (now - lastTime) / 1000;
+				lastTime = now;
+				game.update(delta);
+				if (game.running)
+					wsServerAI.to(roomId).emit("game-state", game.getState());
+				else
+				{
+					const dbGame = new clsGame({
+						Id: -1,
+						User1Id: client.userId,
+						User2Id: null,
+						Date: Date.now(),
+						WinnerId: game.winnerId,
+						TournamentId: -1
+					});
+					dbGame.add();
+					clearInterval(interval);
+				}
+			}, 16);
+		});
+
+		client.on("disconnect", () => {
+			const roomId = client.roomId;
+			if (!roomId)
+				return;
+			const game = aiGames.get(roomId);
+			if (!game)
+				return;
+			game.running = false;
+			aiGames.delete(roomId);
+		});
+
+		client.on("move", ({key, pressedState}) => {
+			const roomId = client.roomId;
+			if (!roomId)
+				return;
+			const game = aiGames.get(roomId);
+			if (!game)
+				return;
+			const keyStates = game.keyStates[client.userId];
+			if (!keyStates)
+				return;
+			if (key == "ArrowUp" || key == "w")
+				keyStates.up = pressedState;
+			else if (key == "ArrowDown" || key == "s")
+				keyStates.down = pressedState;
+		});
+	});
+
+	const waitingRemotePlayers = [];
+	const remoteGames = new Map();
+	wsServerRemote.on("connection", (client) => {
+		client.roomId = null;
+		client.on("join-game", (msg) => {
+			// if (client.roomId)
+			// 	return;
+			client.userId = msg.userId;
+			if (waitingRemotePlayers.length > 0) {
+				const opponent = waitingRemotePlayers.pop();
+				if (opponent.userId === client.userId) {
+					waitingRemotePlayers.push(opponent);
+					return;
+				}
+				startRemoteGame(opponent, client);
+			} else {
+				waitingRemotePlayers.push(client);
+			}
+		});
+
+		client.on("move", ({key, pressedState}) => {
+			const roomId = client.roomId;
+			if (!roomId)
+				return;
+			const game = remoteGames.get(roomId);
+			if (!game)
+				return;
+			const keyStates = game.keyStates[client.id];
+			if (!keyStates)
+				return;
+			if (key === "ArrowUp" || key === "w")
+				keyStates.up = pressedState;
+			if (key === "ArrowDown" || key === "s")
+				keyStates.down = pressedState;
+		});
+
+		client.on("disconnect", () => handleRemoteDisconnect(client));
+		function handleRemoteDisconnect(leaver) {
+			const leaverIndexInWaitingList = waitingRemotePlayers.indexOf(leaver);
+			if (leaverIndexInWaitingList !== -1) {
+				waitingRemotePlayers.splice(leaverIndexInWaitingList, 1);
+				return;
+			}
+
+			const roomId = leaver.roomId;
+			// if (!roomId)
+			// 	return;
+			const clientsInRoom = wsServerRemote.adapter.rooms.get(roomId);
+			if (!clientsInRoom) {
+				remoteGames.delete(roomId);
+				return; // removed the game after all the players have left
+			}
+
+			const game = remoteGames.get(roomId);
+			if (game)
+				game.running = false;
+			wsServerRemote.to(roomId).emit("opponent-left");
+
+			remoteGames.delete(roomId);
+			leaver.leave(roomId);
+			leaver.roomId = null;
+
+			const validSurvivors = [...clientsInRoom].filter((id) => id !== leaver.id)
+				.map((id) => wsServerRemote.sockets.get(id))
+				.filter((socket) => socket?.connected);
+
+			validSurvivors.forEach((survivor) => {
+				if (!waitingRemotePlayers.includes(survivor)) {
+					waitingRemotePlayers.push(survivor);
+					survivor.roomId = null;
+				}
+			});
+
+			while (waitingRemotePlayers.length >= 2) {
+				const p1 = waitingRemotePlayers.pop();
+				const p2 = waitingRemotePlayers.pop();
+				startRemoteGame(p1, p2);
+			}
+		}
+	});
+	function startRemoteGame(p1, p2) {
+		if (!p1.connected || !p2.connected) {
+			if (p1.connected)
+				waitingRemotePlayers.push(p1);
+			if (p2.connected)
+				waitingRemotePlayers.push(p2)
+			return;
+		}
+
+		const roomId = `room_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+		p1.join(roomId);
+		p2.join(roomId);
+
+		p1.roomId = roomId;
+		p2.roomId = roomId;
+
+		const game = new Game(p1, p2, wsServerRemote, roomId);
+		remoteGames.set(roomId, game);
+
+		wsServerRemote.to(roomId).emit("start-game", game.getFullState());
+		wsServerRemote.to(roomId).emit("score-state", game.scores);
+		let lastTime = Date.now();
+		const interval = setInterval(() => {
+			const now = Date.now();
+			const delta = (now - lastTime) / 1000;
+			lastTime = now;
+			
+			game.update(delta);
+
+			if (game.running) {
+				wsServerRemote.to(roomId).emit("game-state", game.getState());
+			} else {
+				clearInterval(interval);
+
+				// end game ...
+				const dbGame = new clsGame({
+					Id: -1,
+					User1Id: p1.userId,
+					User2Id: p2.userId,
+					Date: Date.now(),
+					WinnerId: game.winnerId,
+					TournamentId: -1
+				});
+				dbGame.add();
+				//
+
+				remoteGames.delete(roomId);
+			}
+		}, 16);
+	}
+
+	const tournaments = new Map();
+	let tournament: any | null = null;
+	let tournamentId: any | null = null;
+	wsServerTournament.on("connection", (client) => {
+		client.on("join-tournament", (msg) => {
+			client.userId = msg.userId;
+			if (!tournament) {
+				tournament = new Tournament(startTournamentGame);
+				tournament.addPlayer(client);
+				tournamentId = `tournament_${Date.now()}_${Math.random().toString(10).slice(2, 7)}`;
+				tournaments.set(tournamentId, tournament);
+				client.tournamentId = tournamentId;
+				client.join(tournamentId);
+			} else if (tournament.players.length <= 4) {
+				const alreadyJoined = tournament.players.some((p) => {
+					return p.userId === client.userId;
+				});
+				if (alreadyJoined) {
+					client.emit("error", "You already joined the tournament.");
+					client.disconnect(true);
+					return;
+				}
+
+				client.tournamentId = tournamentId;
+				client.join(tournamentId);
+				tournament.addPlayer(client);
+				if (tournament.players.length == 4) {
+					tournament.startSemifinals();
+					tournament = null;
+				}
+			}
+		})
+
+		client.on("move", ({key, pressedState}) => {
+			const game = client.game;
+			if (!game)
+				return;
+			const keyStates = game.keyStates[client.userId];
+			if (!keyStates)
+				return;
+			if (key == "ArrowUp" || key == "w")
+				keyStates.up = pressedState;
+			else if (key == "ArrowDown" || key == "s")
+				keyStates.down = pressedState;
+		});
+
+		client.on("disconnect", () => {
+			const leaver = client;
+			const currTournament = tournaments.get(leaver.tournamentId);
+			if (!currTournament)
+				return;
+			if (leaver == currTournament.matches.semi1.loser
+					|| leaver == currTournament.matches.semi2.loser
+					|| leaver == currTournament.matches.final.loser)
+					return;
+			for (const player of currTournament.players) {
+				if (player !== leaver) {
+					player.game.looping = false; // what if 3 have joined and one of them leaves would this be undefined? 
+					player.emit("void");
+				}
+			}
+			currTournament.void = true;
+		});
+	});
+	function startTournamentGame(p1, p2) {
+		if (!p1.connected || !p2.connected) {
+			const tour = tournaments.get(p1.tournamentId);
+			tour.void = true;
+			for (const dp of tour.players) {
+				if (dp.connected) {
+					dp.emit("void");
+				}
+			}
+			return;
+		}
+
+		const roomId = `room_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+		p1.join(roomId);
+		p2.join(roomId);
+		p1.roomId = roomId;
+		p2.roomId = roomId;
+
+		const game = new Game(p1, p2, wsServerTournament, roomId);
+		p1.game = game;
+		p2.game = game;
+
+		wsServerTournament.to(roomId).emit("start-game", game.getFullState());
+		wsServerTournament.to(roomId).emit("score-state", game.scores);
+		let lastTime = Date.now();
+		const interval = setInterval(() => {
+			const now = Date.now();
+			game.update((now - lastTime) / 1000);
+			lastTime = now;
+	
+			if (game.running) {
+					wsServerTournament.to(roomId).emit("game-state", game.getState());
+			} else {
+				clearInterval(interval);
+				const tournamentId = p1.tournamentId;
+				const tournament = tournaments.get(tournamentId);
+				if (tournament && !tournament.void) {
+					if (game.winnerId == p1.userId) {
+						tournament.onGameEnd(p1, p2);
+						console.log(cyan, "P1 WON", p1.userId);
+					} else if (game.winnerId == p2.userId) {
+						tournament.onGameEnd(p2, p1);
+						console.log(cyan, "P2 WON", p2.userId);
+					}
+					
+					if (tournament.matches.semi1.winner && tournament.matches.semi2.winner && !tournament.done) {
+						tournament.matches.semi1.loser.emit("phase", tournament.getState());
+						tournament.matches.semi2.loser.emit("phase", tournament.getState());
+						tournament.startFinal();
+						console.log("STARTED FINAL");
+					} else if (tournament.done) {
+						for (const player of tournament.players) {
+							player.emit("phase", tournament.getState());
+						}
+						console.log("WE ARE DONE");
+						console.log(`winner of the final: ${tournament.matches.final.winner}`);
+					}
+				}
+			}
+		}, 16);
+	}
+}
+
+class Tournament {
+	players: any[];
+	status: string;
+	matches: {
+		semi1: { players: any[]; winner: any | null; loser: any | null };
+		semi2: { players: any[]; winner: any | null; loser: any | null };
+		final: { players: any[]; winner: any | null; loser: any | null };
+	};
+	void: Boolean;
+	starterFunction: Function;
+	done: Boolean;
+    constructor(starter) {
+		this.players = [];
+		this.status = 'waiting';
+		this.matches = {
+			semi1: { players: [], winner: null, loser: null },
+			semi2: { players: [], winner: null, loser: null },
+			final: { players: [], winner: null, loser: null }
+		};
+		this.void = false;
+		this.done = false;
+		this.starterFunction = starter;
+    }
+
+    addPlayer(client) {
+		this.players.push(client);
+		if (this.players.length === 4) {
+			this.setupMatches();
+		}
+    }
+
+    setupMatches() {
+		// const shuffled = [...this.players].sort(() => Math.random() - 0.5);
+		// this.matches.semi1.players = [shuffled[0], shuffled[1]];
+		// this.matches.semi2.players = [shuffled[2], shuffled[3]];
+
+		this.matches.semi1.players = [this.players[0], this.players[1]];
+		this.matches.semi2.players = [this.players[2], this.players[3]];
+
+		this.status = 'ready';
+		console.log("SETUP MATCHES");
+    }
+
+    startSemifinals() {
+		console.log("START SEMIS");
+		this.starterFunction(...this.matches.semi1.players);
+        this.starterFunction(...this.matches.semi2.players);
+        this.status = 'semifinals';
+    }
+
+	startFinal() {
+		this.matches.final.players = [this.matches.semi1.winner, this.matches.semi2.winner];
+		this.starterFunction(...this.matches.final.players);
+		this.status = 'final';
+		this.done = true;
+		console.log("FINAL IS BEING STARTED");
+    }
+	
+    onGameEnd(winner, loser) {
+		if (this.matches.final.players.includes(winner)) {
+			this.matches.final.winner = winner;
+			this.matches.final.loser = loser;
+			this.status = "finished";
+			return;
+		} else if (this.matches.semi1.players.includes(winner)) {
+			this.matches.semi1.winner = winner;
+			this.matches.semi1.loser = loser;
+		} else if (this.matches.semi2.players.includes(winner)) {
+			this.matches.semi2.winner = winner;
+			this.matches.semi2.loser = loser;
+		} 
+	}
+
+	getState() {
+		return {
+			status: this.void ? "void" : this.status,
+			semi1: {
+				one: this.matches.semi1.players[0]?.userId,
+				two: this.matches.semi1.players[1]?.userId,
+				winner: this.matches.semi1.winner?.userId
+			},
+			semi2: {
+				one: this.matches.semi2.players[0]?.userId,
+				two: this.matches.semi2.players[1]?.userId,
+				winner: this.matches.semi2.winner?.userId
+			},
+			final: {
+				one: this.matches.final.players[0]?.userId,
+				two: this.matches.final.players[1]?.userId,
+				winner: this.matches.final.winner?.userId
+			}
+		}
+	}
+}

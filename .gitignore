@@ -1,29 +1,4 @@
-# modules: installed packages (modules), can be installed with npm install
-app/frontend/node_modules
-app/backend/node_modules
-
-# output of building: build with npm build
-app/frontend/public/bundle.js
-
-# any md file
-*.md
-
-# for intra push
-# ignore any .env file
-# .env
-
-# create by itself
 .DS_Store
-.vscode
-
-# for package-lock.json, we are working with an app, so we keep it
-
-# additional
-app/backend/unit tests
-app/backend/test
-me
-
-# backend data
-app/backend/avatars/*
-!app/backend/avatars/default-avatar.png
-app/backend/ft_transcendence
+package-lock.json
+node_modules
+ft_transcendence

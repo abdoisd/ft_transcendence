@@ -1,0 +1,307 @@
+.chat {
+    width: 100%;
+    color: #CCCCCC;
+    margin: 0px;
+}
+
+.flex {
+    display: flex;
+}
+
+.center {
+    align-items: center;
+}
+
+.flex-center {
+    align-items: center;
+    justify-content: center;
+}
+
+.header {
+    border-bottom: 1px solid #20262D;
+    padding: 10px 0px;
+}
+
+.center-v {
+    justify-content: center;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.header h2 {
+    margin: 0px 18px;
+}
+
+.left {
+    border-right: 1px solid #20262D;
+}
+
+.chat .left {
+    flex: 1;
+}
+
+.chat .right {
+    flex: 3;
+}
+
+.input button {
+    margin: 7px;
+    border-radius: 6px;
+    padding: 0px 25px;
+    background-color: #0F66BD;
+    color: white;
+    font-weight: 700;
+}
+
+.chat button {
+    border: none !important;
+}
+
+.gap-small {
+    gap: 8px;
+}
+
+.btn-secondary {
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: #A7AAAF;
+    font-weight: 700;
+    background: #131A24;
+}
+
+.bottom {
+    align-items: end;
+}
+
+.mv-5 {
+    margin: 30px 0;
+}
+
+button {
+    cursor: pointer;
+}
+
+.success {
+    background-color: #329f32;
+    color: white;
+}
+
+.conversation .msg .box {
+    max-width: 300px;
+    background-color: #20262E;
+    padding: 15px;
+    border-radius: 8px;
+    line-height: 20px;
+    line-break: anywhere;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.conversation .box p {
+    font-size: 18px;
+}
+
+.conversation {
+    gap: 20px;
+    margin: 0 18px;
+    flex: 1;
+}
+
+.conversation .msg-me .box {
+    max-width: 300px;
+    background: linear-gradient(to right, #ff1a1a, #990000);
+    padding: 15px;
+    border-radius: 8px;
+    line-height: 20px;
+    line-break: anywhere;
+}
+
+.conversation .msg-me {
+    align-self: flex-end;
+}
+
+.input {
+    background-color: #20262E;
+    height: 50px;
+    border-radius: 8px;
+    padding: 0px;
+}
+
+.m-0 {
+    margin: 0px;
+}
+
+.pl-3 {
+    padding-left: 14px !important;
+}
+
+.mb-3 {
+    margin-bottom: 15px !important;
+}
+
+.mr-5 {
+    margin-right: 13px;
+}
+
+.inline-block {
+    display: inline-block;
+}
+
+.mt-5 {
+    margin-top: 20px !important;
+}
+
+.ml-5 {
+    margin-left: 10px;
+}
+
+.input input {
+    width: 100%;
+    height: 100%;
+    background-color: transparent;
+    border: none;
+    color: white;
+    padding: 0 8px;
+    font-weight: 600;
+    font-size: 16px;
+}
+
+.input svg {
+    color: #76818C;
+    width: 25px;
+    padding-left: 14px;
+}
+
+.input input:focus {
+    outline: none;
+}
+
+.list .active {
+    background-color: #1E0D15;
+}
+
+input::placeholder {
+    color: #76818C;
+}
+
+.chat input:hover {
+    box-shadow: none
+}
+
+.chat button:hover {
+    transform: scale(1.05) !important;
+    box-shadow: none
+}
+
+.chat button {
+    transition: all 0.3s ease !important;
+}
+
+.list-item {
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.list-item:hover {
+    background-color: #1E0D15;
+}
+
+.avatar {
+    height: 45px;
+    width: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.list-item {
+    padding: 10px;
+}
+
+.mh-5 {
+    margin: 0px 20px;
+}
+
+.list-item .list-item-content {
+    margin: 0px 14px;
+}
+
+.list-item .list-item-content h4 {
+    font-size: 14px;
+    font-weight: 700;
+    margin: 0px 0px 2px 0px;
+}
+
+.list-item .list-item-content span {
+    color: #A0A4A8;
+    font-size: 12px;
+}
+
+.list {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.section {
+    height: 85vh;
+    box-sizing: border-box;
+    padding: 25px 0px;
+}
+
+.h-full {
+    height: 100%;
+}
+
+.flex-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.conversation {
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 18px;
+}
+
+.scroll-box {
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.scroll-box::-webkit-scrollbar {
+    display: none;
+}
+
+.pv-5 {
+    padding: 30px 0px;
+}
+
+.small {
+    width: 40px;
+    height: 40px;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
+.overflow-hidden {
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.gap-medium {
+    gap: 12px;
+}
+
+.danger {
+    background-color: #C63434;
+    color: white;
+}
+
+.danger svg {
+    color: white;
+}
