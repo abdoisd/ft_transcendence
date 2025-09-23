@@ -101,12 +101,14 @@ function three3DView() {
 		const game = init3DGame();
 
 		function keyDown(event) {
-			if (event.key in game.pressedKeys)
+			if (event.key in game.pressedKeys) {
 				game.pressedKeys[event.key] = true;
+			}
 		}
 		function keyUp(event) {
-			if (event.key in game.pressedKeys)
+			if (event.key in game.pressedKeys) {
 				game.pressedKeys[event.key] = false;
+			}
 		}
 		window.gameManager.setActiveGame("3d", null, {keyDown, keyUp}, game.engine);
 		game.start();
@@ -185,6 +187,106 @@ function remoteGame() {
 	window.gameManager.setActiveGame("remote", wsClientRemote, {keyDown, keyUp});
 }
 
+function tournamentView() {
+	document.getElementById("main-views")!.innerHTML = tournamentGameViewStaticPart;
+	const startTournamentGameBtn = document.querySelector(".start-tournament-game");
+	startTournamentGameBtn?.addEventListener("click", (event) => {
+		event.target.style.display = "none";
+		tournamentGame();
+	});
+}
+window.tournamentView = tournamentView;
+
+function tournamentGame() {
+	const canvas = document.querySelector(".canvas");
+	const ctx = canvas.getContext("2d");
+	const board = document.querySelector(".board");
+	const rect = board.getBoundingClientRect();
+	canvas.width = rect.width;
+	canvas.height = rect.height;
+
+	const wsClientTournament = io("ws://localhost:3000/tournament");
+	wsClientTournament.emit("join-tournament", {userId: clsGlobal.LoggedInUser.Id});
+
+	let game = null;
+	wsClientTournament.on("start-game", (initialState) => {
+		game = new ClientGame(canvas, ctx, initialState.ids.left, initialState.ids.right);
+		game.state = initialState;
+		game.draw();
+	});
+	wsClientTournament.on("game-state", state => {
+		if (game) {
+			game.state = state;
+			if (game.looping)
+				game.draw();
+		}
+	});
+	wsClientTournament.on("score-state", async (scores) => {
+		const entries = Object.entries(scores) as [string, number][];
+		const leftUsername = (await UserDTO.getById(Number(entries[0][0]))).Username;
+		const rightUsername = (await UserDTO.getById(Number(entries[1][0]))).Username;
+		setScores(entries[0][1], entries[1][1], leftUsername, rightUsername);
+	});
+	wsClientTournament.on("phase", async (data) => {
+		const wrapper = {
+			semi1: {
+				one: (await UserDTO.getById(data.semi1.one)).Username,
+				two: (await UserDTO.getById(data.semi1.two)).Username,
+				winner: null
+			},
+			semi2: {
+				one: (await UserDTO.getById(data.semi2.one)).Username,
+				two: (await UserDTO.getById(data.semi2.two)).Username,
+				winner: null
+			},
+			final: {
+				one: null,
+				two: null,
+				winner: null
+			}
+		};
+		wrapper.semi1.winner = data.semi1.winner ? (await UserDTO.getById(data.semi1.winner)).Username : "To be announced";
+		wrapper.semi2.winner = data.semi2.winner ? (await UserDTO.getById(data.semi2.winner)).Username : "To be announced";
+		
+		wrapper.final.one = data.final.one ? (await UserDTO.getById(data.final.one)).Username : "To be announced";
+		wrapper.final.two = data.final.two ? (await UserDTO.getById(data.final.two)).Username : "To be announced";
+		wrapper.final.winner = data.final.winner ? (await UserDTO.getById(data.final.winner)).Username : "To be announced";
+		tournamentOverview(data.status, wrapper, data.final.winner);
+	});
+	wsClientTournament.on("void", () => {
+		// game.looping = false; 
+		window.gameManager.leaveActiveGame();
+		voidedTournament();
+	});
+	wsClientTournament.on("error", (err) => {
+		console.log("error joined alrady");
+		console.log(err);
+		window.gameManager.leaveActiveGame();
+		GameModesView();
+	});
+
+	wsClientTournament.on("next-game", (data) => {
+		console.log("ANNOUNCED PLAYERS AND COUNTER");
+		const counter = document.querySelector(".counter");
+		counter.innerHTML = `ONE vs TWO in ${data}`;
+	});
+
+	function keyDown(event) {
+		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
+		if (validKeys.includes(event.key)) {
+			wsClientTournament.emit("move", {key: event.key, pressedState: true});
+		}
+	}
+	function keyUp(event) {
+		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
+		if (validKeys.includes(event.key)) {
+			wsClientTournament.emit("move", {key: event.key, pressedState: false});
+		}
+	}
+
+	window.gameManager.setActiveGame("tournament", wsClientTournament, {keyDown, keyUp});
+}
+
 function apiView() {
 	document.getElementById("main-views")!.innerHTML = apiGameStaticPart;
 	const startApiGameBtn = document.querySelector(".start-api-game");
@@ -204,7 +306,10 @@ async function apiGame() {
 	canvas.height = rect.height;
 	setScores(0, 0, "P1", "P2");
 
-	let response = await fetch("/api-game/init")
+	let response = await fetch("/api-game/init");
+	if (!response.ok) {
+		// GameModesView();
+	}
 	let data = await response.json();
 	const gameId = data.gameId;
 
@@ -256,101 +361,6 @@ async function apiGame() {
 	window.gameManager.setActiveGame("api", null, {keyDown, keyUp}, null, interval);
 }
 
-function tournamentView() {
-	document.getElementById("main-views")!.innerHTML = tournamentGameViewStaticPart;
-	const startTournamentGameBtn = document.querySelector(".start-tournament-game");
-	startTournamentGameBtn?.addEventListener("click", (event) => {
-		event.target.style.display = "none";
-		tournamentGame();
-	});
-}
-window.tournamentView = tournamentView;
-
-function tournamentGame() {
-	const canvas = document.querySelector(".canvas");
-	const ctx = canvas.getContext("2d");
-	const board = document.querySelector(".board");
-	const rect = board.getBoundingClientRect();
-	canvas.width = rect.width;
-	canvas.height = rect.height;
-
-	const wsClientTournament = io("ws://localhost:3000/tournament");
-	wsClientTournament.emit("join-tournament", {userId: clsGlobal.LoggedInUser.Id});
-
-	let game = null;
-	wsClientTournament.on("start-game", (initialState) => {
-		game = new ClientGame(canvas, ctx, initialState.ids.left, initialState.ids.right);
-		game.state = initialState;
-		game.draw();
-	});
-	wsClientTournament.on("game-state", state => {
-		if (game) {
-			game.state = state;
-			if (game.looping)
-				game.draw();
-		}
-	});
-	wsClientTournament.on("score-state", async (scores) => {
-		const entries = Object.entries(scores) as [string, number][];
-		console.log(entries);
-		const leftUsername = (await UserDTO.getById(Number(entries[0][0]))).Username;
-		const rightUsername = (await UserDTO.getById(Number(entries[1][0]))).Username;
-		setScores(entries[0][1], entries[1][1], leftUsername, rightUsername);
-	});
-	wsClientTournament.on("phase", async (data) => {
-		const wrapper = {
-			semi1: {
-				one: (await UserDTO.getById(data.semi1.one)).Username,
-				two: (await UserDTO.getById(data.semi1.two)).Username,
-				winner: null
-			},
-			semi2: {
-				one: (await UserDTO.getById(data.semi2.one)).Username,
-				two: (await UserDTO.getById(data.semi2.two)).Username,
-				winner: null
-			},
-			final: {
-				one: null,
-				two: null,
-				winner: null
-			}
-		};
-		wrapper.semi1.winner = data.semi1.winner ? (await UserDTO.getById(data.semi1.winner)).Username : "To be announced";
-		wrapper.semi2.winner = data.semi2.winner ? (await UserDTO.getById(data.semi2.winner)).Username : "To be announced";
-		
-		wrapper.final.one = data.final.one ? (await UserDTO.getById(data.final.one)).Username : "To be announced";
-		wrapper.final.two = data.final.two ? (await UserDTO.getById(data.final.two)).Username : "To be announced";
-		wrapper.final.winner = data.final.winner ? (await UserDTO.getById(data.final.winner)).Username : "To be announced";
-		tournamentOverview(data.status, wrapper, data.final.winner);
-	});
-	wsClientTournament.on("void", () => {
-		game.looping = false;
-		window.gameManager.leaveActiveGame();
-		voidedTournament();
-	});
-	wsClientTournament.on("error", (err) => {
-		console.log("error joined alrady");
-		console.log(err);
-		window.gameManager.leaveActiveGame();
-		GameModesView();
-	});
-
-	function keyDown(event) {
-		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
-		if (validKeys.includes(event.key)) {
-			wsClientTournament.emit("move", {key: event.key, pressedState: true});
-		}
-	}
-	function keyUp(event) {
-		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
-		if (validKeys.includes(event.key)) {
-			wsClientTournament.emit("move", {key: event.key, pressedState: false});
-		}
-	}
-
-	window.gameManager.setActiveGame("tournament", wsClientTournament, {keyDown, keyUp});
-}
-
 class GameManager {
 	activeGame: null | "ai" | "remote" | "tournament" | "3d" | "api" = null;
 	activeSocket: null | any = null;
@@ -379,20 +389,20 @@ class GameManager {
 		if (this.activeSocket) {
 			this.activeSocket.disconnect();
 			this.activeSocket = null;
-			console.log("here we go AGAIN");
 		}
 
-		if (this.keyListeners.keyDown)
+		if (this.keyListeners.keyDown) {
 			window.removeEventListener("keydown", this.keyListeners.keyDown);
-		if (this.keyListeners.keyUp)
+		}
+		if (this.keyListeners.keyUp) {
 			window.removeEventListener("keyup", this.keyListeners.keyUp);
+		}
 
 		if (this.engine) {
 			this.engine.stopRenderLoop();
 		}
 
 		if (this.interval) {
-			console.log("CLEARED INTERVAL");
 			clearInterval(this.interval);
 		}
 

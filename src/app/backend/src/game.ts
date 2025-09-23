@@ -12,7 +12,7 @@ export class Game {
 	io;
 	roomId;
 	aiGame;
-	apiGame; // api game
+	apiGame;
 	player1Id;
 	player2Id;
 	paddles;
@@ -22,6 +22,7 @@ export class Game {
 	running;
 	winnerId;
 	targetY;
+	apiState;
 
 	constructor(player1Client, player2Client, io, roomId) {
 		this.io = io;
@@ -70,6 +71,7 @@ export class Game {
 		this.running = true;
 		this.winnerId = null;
 		this.targetY;
+		this.apiState = "inited";
 		this.randomizeBall();
 	}
 
@@ -111,14 +113,19 @@ export class Game {
 				this.io.to(this.roomId).emit("new-winner", this.scores);
 			}
 			this.winnerId = scorerId;
+			this.running = false;
 		} else {
 			this.randomizeBall();
 		}
 	}
 
 	collidesWithSides() {
-		if (this.ball.y + BALL_RADIUS >= BOARD_HEIGHT || this.ball.y - BALL_RADIUS <= 0) {
+		if (this.ball.y - BALL_RADIUS <= 0) {
 			this.ball.vy *= -1;
+			this.ball.y = BALL_RADIUS;
+		} else if (this.ball.y + BALL_RADIUS >= BOARD_HEIGHT) {
+			this.ball.vy *= -1;
+			this.ball.y = BOARD_HEIGHT - BALL_RADIUS;
 		}
 
 		if (this.ball.x - BALL_RADIUS < 0) {
@@ -237,8 +244,11 @@ export class Game {
 			const delta = (now - lastTime) / 1000;
 			lastTime = now;
 			this.update(delta);
-			if (!this.running)
+			if (!this.running) {
 				clearInterval(interval);
+				this.apiState = "ended";
+				console.log("CLEARED AN INTERVAL");
+			}
 		}, 16);
 	}
 

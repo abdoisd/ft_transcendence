@@ -2,13 +2,28 @@ import { guid } from "../global.ts";
 import { server } from "../server.ts"
 import { Game } from "../game.ts";
 
-
 const apiGames = new Map();
 
 export function gameRoutes()
 {
 	server.get("/api-game/init", (request, reply) => {
+		let activeGames = 0;
+		for (const [key, value] of apiGames) {
+			if (value.apiState === "started") {
+				activeGames++;
+			} else if (value.apiState === "ended") {
+				apiGames.delete(key);
+			}
+		}
+		console.log(`number of active Games: ${activeGames}`);
+		if (activeGames > 3) {
+			console.log(`we got ${apiGames.size} games`);
+			console.log("Too many active api games");
+			reply.status(403).send({ error: "Too many active games" });
+			return;
+		}
 		const game = new Game("player1api", "player2api", null, null);
+		game.apiState = "inited";
 		const gameId = guid();
 		apiGames.set(gameId, game);
 
@@ -26,6 +41,7 @@ export function gameRoutes()
 		}
 
 		game.startApiGame();
+		game.apiState = "started";
 
 		reply.send({
 			gameId: request.params.id,

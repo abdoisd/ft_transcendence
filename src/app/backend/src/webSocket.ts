@@ -102,7 +102,8 @@ export function webSocket() {
 			const game = remoteGames.get(roomId);
 			if (!game)
 				return;
-			const keyStates = game.keyStates[client.id];
+			console.log("HERE KEY STATES");
+			const keyStates = game.keyStates[client.userId];
 			if (!keyStates)
 				return;
 			if (key === "ArrowUp" || key === "w")
@@ -263,10 +264,16 @@ export function webSocket() {
 					return;
 			for (const player of currTournament.players) {
 				if (player !== leaver) {
-					player.game.looping = false; // what if 3 have joined and one of them leaves would this be undefined? 
+					// player.game.looping = false; // what if 3 have joined and one of them leaves would this be undefined?
 					player.emit("void");
+				} else {
+					const idx = currTournament.players.findIndex((p) => p === leaver);
+					if (idx !== -1) {
+						currTournament.players.splice(idx, 1);
+					}
 				}
 			}
+
 			currTournament.void = true;
 		});
 	});
@@ -318,8 +325,24 @@ export function webSocket() {
 					if (tournament.matches.semi1.winner && tournament.matches.semi2.winner && !tournament.done) {
 						tournament.matches.semi1.loser.emit("phase", tournament.getState());
 						tournament.matches.semi2.loser.emit("phase", tournament.getState());
-						tournament.startFinal();
-						console.log("STARTED FINAL");
+
+						// setTimeout(() => {
+						// 	tournament.startFinal();
+						// }, 5000);
+						
+						let count = 0;
+						const counter = setInterval(() => {
+							if (count === 5) {
+								clearInterval(counter);
+								tournament.startFinal();
+								console.log("STARTED FINAL");
+							}
+							tournament.matches.semi1.loser.emit("next-game", 5 - count);
+							tournament.matches.semi1.loser.emit("next-game", 5 - count);
+							console.log(count);
+							count++;
+						}, 1000);
+
 					} else if (tournament.done) {
 						for (const player of tournament.players) {
 							player.emit("phase", tournament.getState());

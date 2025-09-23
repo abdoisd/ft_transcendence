@@ -1,6 +1,24 @@
 import { GameModesView } from "./game";
 import { gameOverView } from "./game";
 
+export function setScores(left, right, leftUsername, rightUsername) {
+	const scoreLeft = document.querySelector(".score-p1");
+	const scoreRight = document.querySelector(".score-p2");
+	if (!scoreLeft || !scoreRight) {
+		return;
+	}
+	scoreLeft.textContent = left;
+	scoreRight.textContent = right;
+
+	const pLeft = document.querySelector(".p1");
+	const pRight = document.querySelector(".p2");
+	if (!pLeft || !pRight) {
+		return;
+	}
+	pLeft.textContent = leftUsername;
+	pRight.textContent = rightUsername;
+}
+
 export function tournamentOverview(status, data, noFurtherUpdates) {
 	document.getElementById("main-views")!.innerHTML = `
 	<h1>Tournament has status: ${status}</h1>
@@ -142,6 +160,7 @@ export const tournamentGameViewStaticPart = `
 	<canvas class="canvas"></canvas>
 </div>
 <button class="start-tournament-game">Join Tournament</button>
+<div class="counter"></div>
 `;
 
 const BALL_RADIUS = 9;
@@ -223,25 +242,7 @@ export class ClientGame {
 	}
 }
 
-export function setScores(left, right, leftUsername, rightUsername) {
-	const scoreLeft = document.querySelector(".score-p1");
-	const scoreRight = document.querySelector(".score-p2");
-	if (!scoreLeft || !scoreRight) {
-		return;
-	}
-	scoreLeft.textContent = left;
-	scoreRight.textContent = right;
-
-	const pLeft = document.querySelector(".p1");
-	const pRight = document.querySelector(".p2");
-	if (!pLeft || !pRight) {
-		return;
-	}
-	pLeft.textContent = leftUsername;
-	pRight.textContent = rightUsername;
-}
-
-import { Engine, Scene, FreeCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Camera, Light, Mesh, Color3, Texture } from "@babylonjs/core";
+import { Engine, Scene, FreeCamera, Vector3, HemisphericLight, MeshBuilder, StandardMaterial, Camera, Light, Mesh, Color3, DynamicTexture } from "@babylonjs/core";
 
 const WHITE = "#FFFFFF";
 const CYAN = "#00FFFF";
@@ -326,10 +327,18 @@ export function init3DGame() {
 	paddleTwo.position = PAD_TWO_POS;
 
 	const ballMaterial = new StandardMaterial("ball", scene);
-	// ballMaterial.diffuseColor = Color3.FromHexString(BRIGHT_YELLOW);
-	// ballMaterial.specularColor = new Color3(0.5, 0.5, 0.5);
-	// ballMaterial.specularPower = 32;
-	// ballMaterial.diffuseTexture = new Texture("strips.jpg", scene);
+	// ballMaterial.diffuseColor = Color3.FromHexString("#FFFF00");
+	const ballTexture = new DynamicTexture("stripes", 512, scene, false)
+	const ctx = ballTexture.getContext();
+	ctx.fillStyle = "red";
+	ctx.fillRect(0, 0, 512, 512);
+	ctx.fillStyle = "black";
+	for (let i = 0; i < 512; i += 50) {
+		ctx.fillRect(i, 0, 20, 512);
+	}
+	ballTexture.update();
+	ballMaterial.diffuseTexture = ballTexture;
+
 	const ball = MeshBuilder.CreateSphere("ball", { diameter: BALL_DIAMETER, segments: 32 }, scene);
 	ball.material = ballMaterial;
 	ball.position = BALL_POS;
@@ -399,9 +408,8 @@ class Game {
 	randomizeBall() {
 		this.ball.mesh.position = new Vector3(0, BALL_DIAMETER, 0);
 
-		const dirX = (Math.random() - 0.5) * 2;
+		const dirX = (Math.random() - 0.5) * 2.5;
 		const dirZ = Math.random() > 0.5 ? 1 : -1;
-		console.log(dirX);
 
 		const length = Math.sqrt(dirZ * dirZ + dirX * dirX);
 		this.ball.velocity.x = dirX / length * INITIAL_VELOCITY;
@@ -430,9 +438,13 @@ class Game {
 	}
 
 	collidesWithSides() {
-		if (this.ball.mesh.position.x > BOARD_WITDTH / 2 - BALL_RADIUS_3D
-			|| this.ball.mesh.position.x < -BOARD_WITDTH / 2 + BALL_RADIUS_3D)
+		if (this.ball.mesh.position.x > BOARD_WITDTH / 2 - BALL_RADIUS_3D) {
 			this.ball.velocity.x *= -1;
+			this.ball.mesh.position.x = BOARD_WITDTH / 2 - BALL_RADIUS_3D;
+		} else if (this.ball.mesh.position.x < -BOARD_WITDTH / 2 + BALL_RADIUS_3D) {
+			this.ball.velocity.x *= -1;
+			this.ball.mesh.position.x = -BOARD_WITDTH / 2 + BALL_RADIUS_3D;
+		}
 
 		if (this.ball.mesh.position.z > BOARD_DEPTH / 2 + BALL_RADIUS_3D) {
 			this.scores.farther++;
@@ -443,10 +455,10 @@ class Game {
 			this.randomizeBall();
 		}
 		setScores(this.scores.farther, this.scores.closer, "P1", "P2");
-		if (this.scores.closer == 5) {
+		if (this.scores.closer == 2) {
 			this.looping = false;
 			gameOverView("P1", "P2");
-		} else if (this.scores.farther == 5) {
+		} else if (this.scores.farther == 2) {
 			this.looping = false;
 			gameOverView("P2", "P1");
 		}
@@ -499,6 +511,7 @@ class Game {
 				this.scene.render();
 			} else {
 				this.engine.stopRenderLoop();
+				window.gameManager.leaveActiveGame();
 			}
 		});
 	}
