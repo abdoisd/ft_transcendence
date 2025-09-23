@@ -1,5 +1,6 @@
 import { authGet, authPost } from "../utils/http_utils";
 import { io } from "socket.io-client";
+import { getQuery } from "../utils/utils";
 
 
 export async function Chat() {
@@ -110,10 +111,8 @@ const initUsers = async () => {
 
 
 const currentChatId = () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get("id");
+    return getQuery("id");
 }
-
 
 
 const updateChat = async () => {

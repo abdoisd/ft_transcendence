@@ -330,10 +330,6 @@ export function UserRoutes() {
 		User.getById(Id)
 			.then((user) => {
 
-
-				if (user && user.SessionId != request.cookies.sessionId)
-					return reply.status(403).send();
-
 				// get the avatar path
 				db.get("SELECT AvatarPath FROM users WHERE Id = ?", [Id], (err, row) => {
 

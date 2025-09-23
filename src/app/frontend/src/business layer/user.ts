@@ -47,7 +47,7 @@ export class UserDTO
 		return users;
 	}
 
-	static async getById(Id: number)
+	static async getById(Id)
 	{
 		return get("/data/user/getById", { Id: Id }); //? changed this to 2
 	}
