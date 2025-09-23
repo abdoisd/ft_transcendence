@@ -227,6 +227,14 @@ function tournamentGame() {
 		const rightUsername = (await UserDTO.getById(Number(entries[1][0]))).Username;
 		setScores(entries[0][1], entries[1][1], leftUsername, rightUsername);
 	});
+	wsClientTournament.on("next-game", (data) => {
+		const counter = document.querySelector(".counter");
+		console.log(counter);
+		if (data.count)
+			counter.innerHTML = `Final Game: ${data.one} vs ${data.two} in ${data.count}`;
+		else
+			counter.innerHTML = ``;
+	});
 	wsClientTournament.on("phase", async (data) => {
 		const wrapper = {
 			semi1: {
@@ -265,12 +273,6 @@ function tournamentGame() {
 		GameModesView();
 	});
 
-	wsClientTournament.on("next-game", (data) => {
-		console.log("ANNOUNCED PLAYERS AND COUNTER");
-		const counter = document.querySelector(".counter");
-		counter.innerHTML = `ONE vs TWO in ${data}`;
-	});
-
 	function keyDown(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
@@ -283,9 +285,116 @@ function tournamentGame() {
 			wsClientTournament.emit("move", {key: event.key, pressedState: false});
 		}
 	}
-
 	window.gameManager.setActiveGame("tournament", wsClientTournament, {keyDown, keyUp});
 }
+
+// new 
+import { inviteGameViewStaticPart } from "./gameViews";
+import { chatIO } from "./chat";
+
+function inviteGameView() {
+	document.getElementById("main-view")!.innerHTML = inviteGameViewStaticPart;
+	inviteGame();
+}
+window.inviteGameView = inviteGameView;
+
+chatIO.on("yay", () => {
+	const wsClientInvite = io("ws//localhost:3000/invite");
+	inviteGameView();
+	inviteGame(wsClientInvite);
+});
+
+function acceptGame(acceptor, inviter) {
+	const wsClientInvite = io("ws//localhost:3000/invite");
+	
+	wsClientInvite.emit("available", {acceptor, inviter});
+	wsClientInvite.on("nay", () => {
+		wsClientInvite.disconnect();
+	});
+	wsClientInvite.on("yay", () => {
+		inviteGameView();
+		inviteGame(wsClientInvite);
+	});
+}
+window.acceptGame = acceptGame;
+
+function inviteGame(wsClientInvite) {
+
+	wsClientInvite.emit("enter-game");
+	const canvas = document.querySelector(".canvas");
+	const ctx = canvas.getContext("2d");
+	const board = document.querySelector(".board");
+	const rect = board?.getBoundingClientRect();
+	canvas.width = rect.width;
+	canvas.height = rect.height;
+	
+	let game = null;
+	wsClientInvite.on("start-game", (initialState) => {
+		game = new ClientGame(canvas, ctx initialState.ids.left, initialState.ids.right);
+		game.state = initialState;
+		game.draw();
+	});
+	wsClientInvite.on("game-state", (state) => {
+		if (game) {
+			game.state = state;
+			if (game.looping)
+				game.draw();
+		}
+	});
+	wsClientInvite.on("score-state", async (scores) => {
+		const entries = Object.entries(scores) as [string, number][];
+		const leftUsername = (await UserDTO.getById(Number(entries[0][0]))).Username;
+		const rightUsername = (await UserDTO.getById(Number(entries[1][0]))).Username;
+		setScores(entries[0][1], entries[1][1], leftUsername, rightUsername);
+	});
+	wsClientInvite.on("new-winner", async (scores) => {
+		const entries = Object.entries(scores) as [string, number][];
+		const leftUsername = (await UserDTO.getById(Number(entries[0][0]))).Username;
+		const rightUsername = (await UserDTO.getById(Number(entries[1][0]))).Username;
+		const winnerName = entries[0][1] > entries[1][1] ? leftUsername : rightUsername;
+		const loserName = winnerName == leftUsername ? rightUsername : leftUsername;
+		gameOverView(winnerName, loserName);
+		window.gameManager.leaveActiveGame();
+	});
+	wsClientInvite.on("opponent-left", () => {
+		game.looping = false;
+		window.gameManager.leaveActiveGame();
+		opponentLeftGame();
+	});
+
+	function keyDown(event) {
+		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
+		if (validKeys.includes(event.key)) {
+			wsClientInvite.emit("move", {key: event.key, pressedState: true});
+		}
+	}
+	function keyUp(event) {
+		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
+		if (validKeys.includes(event.key)) {
+			wsClientInvite.emit("move", {key: event.key, pressedState: false});
+		}
+	}
+
+	window.wsClientInvite.setActiveGame("remote", wsClientInvite, {keyDown, keyUp});
+}
+// new
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function apiView() {
 	document.getElementById("main-views")!.innerHTML = apiGameStaticPart;
@@ -295,7 +404,7 @@ function apiView() {
 		apiGame();
 	});
 }
-window.apiView = apiView;
+window.apiView = apiGame;
 
 async function apiGame() {
 	const canvas = document.querySelector(".canvas");

@@ -2,7 +2,7 @@ import { authGet, authPost } from "../utils/http_utils";
 import { io } from "socket.io-client";
 import { getQuery } from "../utils/utils";
 
-const chatIO = io("ws://localhost:3000/chat", {
+export const chatIO = io("ws://localhost:3000/chat", {
     auth: {
         token: localStorage.getItem("jwt")
     }
@@ -30,7 +30,6 @@ chatIO.on("connect", function () {
     });
 });
 
-
 export async function Chat() {
     document.getElementById("main-views")!.innerHTML = ChatView;
 
@@ -38,7 +37,6 @@ export async function Chat() {
     initUsers();
     updateChat();
 }
-
 
 const updateConversations = async () => {
     const conversaionsDiv = document.getElementById("conversations");
@@ -108,7 +106,6 @@ const initUsers = async () => {
 const currentChatId = () => {
     return getQuery("id");
 }
-
 
 const updateChat = async () => {
     const element = document.getElementById("conversation");
@@ -182,6 +179,7 @@ const updateChat = async () => {
     </div>
     </div>
     `;
+
     document.getElementById("invite")!.onclick = async function (event) {
         await sendMessage(event, id, "INVITE");
     }
@@ -192,7 +190,6 @@ const updateChat = async () => {
     };
     await updateMessages(id);
 }
-
 
 const updateMessages = async (other) => {
     const conversationDiv = document.getElementById("chat");
@@ -225,7 +222,7 @@ const appendMessage = (msg, prepend: boolean, conversationDiv) => {
         <div class="box">
             <p>${msg.sender.username} invited you to play pong</p>
     
-            <button class="btn-secondary success" id="invite">
+            <button class="btn-secondary success" id="accept" onclick="acceptGame(${msg.receiver.id}, ${msg.sender.id})">
             <div class="flex center gap-small center-v">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -234,7 +231,6 @@ const appendMessage = (msg, prepend: boolean, conversationDiv) => {
                     <path stroke-linecap="round" stroke-linejoin="round"
                         d="M12 18a3.75 3.75 0 0 0 .495-7.468 5.99 5.99 0 0 0-1.925 3.547 5.975 5.975 0 0 1-2.133-1.001A3.75 3.75 0 0 0 12 18Z" />
                 </svg>
-    
                 Accept
             </div>
         </button>
@@ -255,8 +251,6 @@ const appendMessage = (msg, prepend: boolean, conversationDiv) => {
     `;
     }
 
-
-
     if (prepend) {
         conversationDiv?.prepend(newElement)
         conversationDiv?.scrollTo({
@@ -267,7 +261,6 @@ const appendMessage = (msg, prepend: boolean, conversationDiv) => {
     else
         conversationDiv?.appendChild(newElement)
 }
-
 
 const sendMessage = async (event, userId, type) => {
     event.preventDefault();
@@ -292,7 +285,6 @@ const getMessage = () => {
     input.value = "";
     return message;
 }
-
 
 const ChatView: string = `
 <section class="chat flex">

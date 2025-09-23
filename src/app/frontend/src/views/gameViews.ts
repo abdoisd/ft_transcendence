@@ -128,6 +128,24 @@ export const remoteGameViewStaticPart = `
 <button class="start-remote-game">Find Opponent</button>
 `;
 
+export const inviteGameViewStaticPart = `
+<div class="scores">
+	<div>
+		<p class="p1">P1</p>
+		<p class="score-p1">0</p>
+	</div>
+	<div>
+		<p class="score-p2">0</p>
+		<p class="p2">P2</p>
+	</div>
+</div>
+<div class="board body">
+	<canvas class="canvas">
+		Your Browser Is Not Supported; It's doesn't support canvas
+	</canvas>
+</div>
+`;
+
 export const Three3DGameViewStaticPart = `
 <div class="scores">
 <div>
@@ -156,11 +174,11 @@ export const tournamentGameViewStaticPart = `
 		<p class="p2">P2</p>
 	</div>
 </div>
+<div class="counter"></div>
 <div class="board body">
 	<canvas class="canvas"></canvas>
 </div>
 <button class="start-tournament-game">Join Tournament</button>
-<div class="counter"></div>
 `;
 
 const BALL_RADIUS = 9;
