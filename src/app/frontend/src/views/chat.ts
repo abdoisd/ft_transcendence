@@ -54,6 +54,9 @@ const updateConversations = async () => {
             const newElement = document.createElement("a");
             newElement.classList.add('flex', 'list-item');
             newElement.onclick = function () {
+                const shouldUpdate = currentChatId() != user.id
+                if (!shouldUpdate)
+                    return
                 history.pushState(null, '', `/chat?id=${user.id}`);
                 updateChat();
             };
@@ -85,9 +88,10 @@ const initUsers = async () => {
             newElement.classList.add('flex', 'list-item');
             newElement.onclick = function () {
                 const shouldUpdate = currentChatId() != user.id
+                if (!shouldUpdate)
+                    return
                 history.pushState(null, '', `/chat?id=${user.id}`);
-                if (shouldUpdate)
-                    updateChat();
+                updateChat();
             };
             newElement.innerHTML = `
                 <img class="avatar" src="/data/user/getAvatarById?Id=${user.id}" alt="">
@@ -152,7 +156,7 @@ const updateChat = async () => {
             </div>
         </button>
     
-       <a href="/profile?id=${user.id}">
+       <a href="/profile?id=${user.id}" onclick="route()">
         <button class="btn-secondary">
             <div class="flex center gap-small">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -314,10 +318,9 @@ const ChatView: string = `
 </section>
 `;
 
-function connectToServer()
-{
+function connectToServer() {
     let inviteIO = io("ws://localhost:3000/invite");
 
     // frontend listeners
-    
+
 }
