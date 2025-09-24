@@ -9,7 +9,8 @@ RUN apt update && apt install nginx libnginx-mod-http-modsecurity \
 WORKDIR /etc/nginx
 
 RUN git clone https://github.com/coreruleset/coreruleset.git && \
-	mv coreruleset/crs-setup.conf.example coreruleset/crs-setup.conf
+	mv coreruleset/crs-setup.conf.example coreruleset/crs-setup.conf && \
+	sed -i "s/setvar:'tx.allowed_methods=GET HEAD POST OPTIONS'/setvar:'tx.allowed_methods=GET HEAD POST OPTIONS PUT'/g" coreruleset/rules/REQUEST-901-INITIALIZATION.conf
 
 RUN mkdir -p /etc/nginx/ssl && openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
 	-keyout /etc/nginx/ssl/nginx.key -out /etc/nginx/ssl/nginx.crt \

@@ -23,13 +23,24 @@ export default class ChatRepository {
         });
     }
 
-
     static getConversations = async (userId: number) => {
         const conversations = await chatDao.getConversations(userId);
         return conversations.map((e) => {
             return this.messageMapper(e, userId)
         });
     }
+
+
+    static acceptInviteChecker = async (msgId: number, meId: number) => {
+        const msg = await chatDao.getMessage(msgId);
+        if (!msg)
+            throw new Error("NO_MSG_FOUND");
+        const result = this.messageMapper(await chatDao.getMessage(msgId), meId);
+        if (result.sender_id != meId)
+            throw new Error("FORBIDDEN");
+        return result;
+    }
+
 
     static messageMapper = (message: Message | null, me: number) => {
         if (!message)
