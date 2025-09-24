@@ -37,3 +37,14 @@ export const emitMessage = (userId: number, msg) => {
         return ;
     io.to(users[userId]).emit("msg", msg);
 }
+
+// new
+export const emitMessageWithType = (userId: number, msgType: string, msg) => {
+    const io = ws.of("/chat");
+
+    if (!users[userId])
+        return false;
+    io.to(users[userId]).emit(msgType, msg);
+    return true;
+}
+// new

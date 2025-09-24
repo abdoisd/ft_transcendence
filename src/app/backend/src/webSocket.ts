@@ -1,9 +1,10 @@
 import { Game } from "./game.ts";
 import { clsGame } from "./data access layer/game.ts";
 
-import { clsTournament } from "./data access layer/tournament.ts";
 import { red, green, yellow, cyan } from "./global.ts";
 import { ws } from "./server.ts";
+
+import { emitMessageWithType } from "./chat.ts";
 
 const playingUsersId = new Set();
 
@@ -247,15 +248,16 @@ export function webSocket() {
 				tournaments.set(tournamentId, tournament);
 				client.tournamentId = tournamentId;
 				client.join(tournamentId);
+				console.log(red, `FIRST USER: ${client.userId}`);
 			} else if (tournament.players.length <= 4) {
-				const alreadyJoined = tournament.players.some((p) => {
-					return p.userId === client.userId;
-				});
-				if (alreadyJoined) {
-					client.emit("error", "You already joined the tournament.");
-					client.disconnect(true);
-					return;
-				}
+				// const alreadyJoined = tournament.players.some((p) => {
+				// 	return p.userId === client.userId;
+				// });
+				// if (alreadyJoined) {
+				// 	client.emit("error", "You already joined the tournament.");
+				// 	client.disconnect(true);
+				// 	return;
+				// }
 
 				client.tournamentId = tournamentId;
 				client.join(tournamentId);
@@ -264,8 +266,9 @@ export function webSocket() {
 					tournament.startSemifinals();
 					tournament = null;
 				}
+				console.log(red, `added non first user: ${client.userId}`);
 			}
-		})
+		});
 
 		client.on("move", ({key, pressedState}) => {
 			const game = client.game;
@@ -281,6 +284,7 @@ export function webSocket() {
 		});
 
 		client.on("disconnect", () => {
+			tournament = null;
 			const leaver = client;
 
 			playingUsersId.delete(leaver.userId);
@@ -290,17 +294,20 @@ export function webSocket() {
 				return;
 			if (leaver == currTournament.matches.semi1.loser
 					|| leaver == currTournament.matches.semi2.loser
-					|| leaver == currTournament.matches.final.loser)
+					|| leaver == currTournament.matches.final?.loser)
 					return;
 			for (const player of currTournament.players) {
 				if (player !== leaver) {
+					console.log("SENT VOID");
 					// player.game.looping = false; // what if 3 have joined and one of them leaves would this be undefined?
 					player.emit("void");
 				} else {
-					const idx = currTournament.players.findIndex((p) => p === leaver);
-					if (idx !== -1) {
-						currTournament.players.splice(idx, 1);
-					}
+					console.log("TRYING TO SPLICE?")
+					// const idx = currTournament.players.findIndex((p) => p === leaver);
+					// if (idx !== -1) {
+					// 	currTournament.players.splice(idx, 1);
+					// 	console.log(red, `leaver was taken out of oturnament players: ${leaver.userId}`);
+					// }
 				}
 			}
 
@@ -333,6 +340,7 @@ export function webSocket() {
 		wsServerTournament.to(roomId).emit("score-state", game.scores);
 		let lastTime = Date.now();
 		const interval = setInterval(() => {
+			console.log("EVENT LOOP: TOURNAMENT");
 			const now = Date.now();
 			game.update((now - lastTime) / 1000);
 			lastTime = now;
@@ -390,26 +398,32 @@ export function webSocket() {
 		}, 16);
 	}
 
-	const inviteGames = new Map();
-	wsServerInvite.on("connection", (client) => {
-		client.on("available", (msg) => {
-			if (playingUsersId.has(msg.acceptor) || playingUsersId.has(msg.inviter)) {
-				client.emit("nay");
-				return;
-			} else {
-				client.emit("yay");
-				// emit it for the clients socket as well.
-			}
-		});
+	// const inviteGames = new Map();
+	// const connectedUsers = new Map();
+	// wsServerInvite.on("connection", (client) => {
+	// 	client.on("available", (msg) => {
+	// 		if (playingUsersId.has(msg.acceptor) || playingUsersId.has(msg.inviter)) {
+	// 			client.emit("nay");
+	// 		} else if (emitMessageWithType(msg.inviter, "yay", "")) {
+	// 			client.emit("yay");
+	// 			connectedUsers.set(msg.acceptor, client);
+	// 		}
+	// 	});
 
-		client.on("enter-game", (msg) => {
-			client.userId = msg.userId;
-			playingUsersId.add(client.userId);
+	// 	client.on("enter-game", (msg) => {
+	// 		client.userId = msg.userId;
+	// 		playingUsersId.add(client.userId);
 
-			startRemoteGame(opponent, client);
-		});
-	});
+	// 		// startRemoteGame(opponent, client);
+	// 	});
+	// });
 }
+
+// class InviteGames {
+// 	constructor(inviterClient, acceptorClient) {
+
+// 	}
+// }
 
 class Tournament {
 	players: any[];
