@@ -16,8 +16,8 @@ import { voidedTournament } from "./gameViews";
 import { wrap } from "module";
 
 export function GameModesView() {
-	if (!window.gameManager)
-		window.gameManager = new GameManager();
+	// if (!window.gameManager)
+	// 	window.gameManager = new GameManager();
 	document.getElementById("main-views")!.innerHTML = gameModesViewStaticPart;
 }
 
@@ -46,7 +46,11 @@ function aiGame() {
 	canvas.width = rect.width;
 	canvas.height = rect.height;
 
-	const wsClientAI = io("ws://localhost:3000/ai");
+	const wsClientAI = io("ws://localhost:3000/ai", {
+		auth: {
+			token: localStorage.getItem("jwt")
+		}
+	});
 	wsClientAI.emit("join-game", {userId: clsGlobal.LoggedInUser.Id})
 
 	let game = null;
@@ -134,7 +138,11 @@ function remoteGame() {
 	canvas.width = rect.width;
 	canvas.height = rect.height;
 
-	const wsClientRemote = io("ws://localhost:3000/remote");
+	const wsClientRemote = io("ws://localhost:3000/remote", {
+		auth: {
+			token: localStorage.getItem("jwt")
+		}
+	});
 	wsClientRemote.emit("join-game", {userId: clsGlobal.LoggedInUser.Id});
 
 	let game = null;
@@ -205,7 +213,11 @@ function tournamentGame() {
 	canvas.width = rect.width;
 	canvas.height = rect.height;
 
-	const wsClientTournament = io("ws://localhost:3000/tournament");
+	const wsClientTournament = io("ws://localhost:3000/tournament", {
+		auth: {
+			token: localStorage.getItem("jwt")
+		}
+	});
 	wsClientTournament.emit("join-tournament", {userId: clsGlobal.LoggedInUser.Id});
 
 	let game = null;
@@ -288,22 +300,31 @@ function tournamentGame() {
 	window.gameManager.setActiveGame("tournament", wsClientTournament, {keyDown, keyUp});
 }
 
-// new
 import { inviteGameViewStaticPart } from "./gameViews";
 import { chatIO } from "./chat";
 
 chatIO.on("yes", () => {
-	document.getElementById("main-view")!.innerHTML = inviteGameViewStaticPart;
+	if (window.gameManager.activeGame) {
+		console.log("I cannot play right now");
+		return;
+	}
+	console.log("GOT BACK YES");
+	document.getElementById("main-views")!.innerHTML = inviteGameViewStaticPart;
 	inviteGame();
 });
 
-function acceptGame(msg) {	
-	chatIO.emit("server-check-invite", msg);
+function acceptGame(msgId) {	
+	console.log("sent the invitation checker to server");
+	chatIO.emit("check-invite", msgId);
 }
 window.acceptGame = acceptGame;
 
 function inviteGame() {
-	const wsClientInvite = io("ws//localhost:3000/invite");
+	const wsClientInvite = io("ws://localhost:3000/invite", {
+		auth: {
+			token: localStorage.getItem("jwt")
+		}
+	});
 	
 	const canvas = document.querySelector(".canvas");
 	const ctx = canvas.getContext("2d");
@@ -359,26 +380,8 @@ function inviteGame() {
 		}
 	}
 
-	window.wsClientInvite.setActiveGame("remote", wsClientInvite, {keyDown, keyUp});
+	window.gameManager.setActiveGame("remote", wsClientInvite, {keyDown, keyUp});
 }
-// new
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 function apiView() {
 	document.getElementById("main-views")!.innerHTML = apiGameStaticPart;
@@ -454,7 +457,7 @@ async function apiGame() {
 	window.gameManager.setActiveGame("api", null, {keyDown, keyUp}, null, interval);
 }
 
-class GameManager {
+export class GameManager {
 	activeGame: null | "ai" | "remote" | "tournament" | "3d" | "api" = null;
 	activeSocket: null | any = null;
 	keyListeners: {keyDown?: EventListener, keyUp?: EventListener} = {};

@@ -32,29 +32,23 @@ export const chatWs = () => {
             delete users[socket.userId];
         });
 
-        socket.on('server-accepted-game', (msg) => {
-
-            try
-            {
-                const result = ChatRepository.acceptInviteChecker(msg, socket.userId);
-
-                // if s or r in array
-                if (playingUsersId.has(socket.userId) || playingUsersId.has(result.sender.id))
+        socket.on('check-invite', async (msg) => {
+            try {
+                const result = await ChatRepository.acceptInviteChecker(msg, socket.userId);
+                // console.log(result);
+                if (playingUsersId.has(socket.userId) || playingUsersId.has(result.sender_id))
                 {
+                    console.log("USER IS ALREADY PLAYING");
                     return ;
                 }
-
                 emitMessageWithType(socket.userId, "yes", "");
-                emitMessageWithType(result.sender.id, "yes", "");
-                userIdUserId.set(socket.userId, result.sender.id);
-                userIdUserId.set(result.sender.id, socket.userId);
-
+                emitMessageWithType(result.sender_id, "yes", "");
+                userIdUserId.set(socket.userId, result.sender_id);
+                userIdUserId.set(result.sender_id, socket.userId);
+                console.log("SENT THEM YES");
+            } catch (err) {
+                console.log(err);
             }
-            catch (err)
-            {
-                
-            }
-            
         });
     });
 }
@@ -67,7 +61,6 @@ export const emitMessage = (userId: number, msg) => {
     io.to(users[userId]).emit("msg", msg);
 }
 
-// new
 export const emitMessageWithType = (userId: number, msgType: string, msg) => {
     const io = ws.of("/chat");
 
@@ -76,4 +69,3 @@ export const emitMessageWithType = (userId: number, msgType: string, msg) => {
     io.to(users[userId]).emit(msgType, msg);
     return true;
 }
-// new

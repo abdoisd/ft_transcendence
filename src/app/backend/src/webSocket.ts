@@ -4,7 +4,6 @@ import { red, green, yellow, cyan } from "./global.ts";
 import { ws, server } from "./server.ts";
 
 export const playingUsersId = new Set();
-
 export const userIdUserId = new Map();
 export const userIdSocket = new Map();
 
@@ -13,34 +12,67 @@ export function webSocket() {
 	const wsServerRemote = ws.of("/remote");
 	const wsServerInvite = ws.of("/invite");
 	const wsServerAI = ws.of("/ai");
-
+	
+	wsServerTournament.use((socket, next) => {
+		const token = socket.handshake.auth.token;
+		if (!token)
+			return next(new Error('Authentication error: No token provided'));
+		try {
+			const payload = server.jwt.verify(token);
+			socket.userId = payload.Id;
+			return next();
+		} catch {
+			return next(new Error('Authentication error: token invalid'));
+		}
+	});
+	wsServerRemote.use((socket, next) => {
+		const token = socket.handshake.auth.token;
+		if (!token)
+			return next(new Error('Authentication error: No token provided'));
+		try {
+			const payload = server.jwt.verify(token);
+			socket.userId = payload.Id;
+			return next();
+		} catch {
+			return next(new Error('Authentication error: token invalid'));
+		}
+	});
 	wsServerInvite.use((socket, next) => {
-        const token = socket.handshake.auth.token;
-        if (!token)
-            return next(new Error('Authentication error: No token provided'));
-        try {
-            const payload = server.jwt.verify(token);
-            socket.userId = payload.Id;
-            return next();
-        } catch {
-            return next(new Error('Authentication error: token invalid'));
-        }
-    });
+		const token = socket.handshake.auth.token;
+		if (!token)
+			return next(new Error('Authentication error: No token provided'));
+		try {
+			const payload = server.jwt.verify(token);
+			socket.userId = payload.Id;
+			return next();
+		} catch {
+			return next(new Error('Authentication error: token invalid'));
+		}
+	});
+	wsServerAI.use((socket, next) => {
+		const token = socket.handshake.auth.token;
+		if (!token)
+			return next(new Error('Authentication error: No token provided'));
+		try {
+			const payload = server.jwt.verify(token);
+			socket.userId = payload.Id;
+			return next();
+		} catch {
+			return next(new Error('Authentication error: token invalid'));
+		}
+	});
+
 
 	const aiGames = new Map();
 	wsServerAI.on("connection", (client) => {
+		playingUsersId.add(client.userId);
 		const roomId = `room_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 		client.roomId = roomId;
 		client.join(roomId);
 		
-		client.on("join-game", (msg) => {
-			client.userId = msg.userId;
-
-			playingUsersId.add(client.userId);
-
+		client.on("join-game", () => {
 			const game = new Game(client, "AI", wsServerAI, roomId);
 			aiGames.set(roomId, game);
-
 			wsServerAI.to(roomId).emit("start-game", game.getFullState());
 			wsServerAI.to(roomId).emit("score-state", game.scores);
 			let lastTime = Date.now();
@@ -53,6 +85,8 @@ export function webSocket() {
 					wsServerAI.to(roomId).emit("game-state", game.getState());
 				else
 				{
+					clearInterval(interval);
+					playingUsersId.delete(client.userId);
 					const dbGame = new clsGame({
 						Id: -1,
 						User1Id: client.userId,
@@ -62,18 +96,12 @@ export function webSocket() {
 						TournamentId: -1
 					});
 					dbGame.add();
-					clearInterval(interval);
-
-					playingUsersId.delete(client.userId);
-
 				}
 			}, 16);
 		});
 
 		client.on("disconnect", () => {
-
-			playingUsersId.add(client.userId);
-
+			playingUsersId.delete(client.userId);
 			const roomId = client.roomId;
 			if (!roomId)
 				return;
@@ -104,15 +132,10 @@ export function webSocket() {
 	const waitingRemotePlayers = [];
 	const remoteGames = new Map();
 	wsServerRemote.on("connection", (client) => {
+		playingUsersId.add(client.userId);
 		client.roomId = null;
 		client.on("join-game", (msg) => {
-			// if (client.roomId)
-			// 	return;
 			client.userId = msg.userId;
-
-			// add ids
-			playingUsersId.add(client.userId);
-
 			if (waitingRemotePlayers.length > 0) {
 				const opponent = waitingRemotePlayers.pop();
 				if (opponent.userId === client.userId) {
@@ -144,9 +167,7 @@ export function webSocket() {
 
 		client.on("disconnect", () => handleRemoteDisconnect(client));
 		function handleRemoteDisconnect(leaver) {
-
-			playingUsersId.add(leaver.userId);
-
+			playingUsersId.delete(leaver.userId);
 			const leaverIndexInWaitingList = waitingRemotePlayers.indexOf(leaver);
 			if (leaverIndexInWaitingList !== -1) {
 				waitingRemotePlayers.splice(leaverIndexInWaitingList, 1);
@@ -222,7 +243,8 @@ export function webSocket() {
 				wsServerRemote.to(roomId).emit("game-state", game.getState());
 			} else {
 				clearInterval(interval);
-
+				playingUsersId.delete(p1.userId);
+				playingUsersId.delete(p2.userId);
 				// end game ...
 				const dbGame = new clsGame({
 					Id: -1,
@@ -233,14 +255,9 @@ export function webSocket() {
 					TournamentId: -1
 				});
 				dbGame.add();
-				//
 
 				remoteGames.delete(roomId);
-
 				// delete ids
-				playingUsersId.delete(p1.userId);
-				playingUsersId.delete(p2.userId);
-
 			}
 		}, 16);
 	}
@@ -249,10 +266,9 @@ export function webSocket() {
 	let tournament: any | null = null;
 	let tournamentId: any | null = null;
 	wsServerTournament.on("connection", (client) => {
+		playingUsersId.add(client.userId);
 		client.on("join-tournament", (msg) => {
 			client.userId = msg.userId;
-
-			playingUsersId.add(client.userId);
 
 			if (!tournament) {
 				tournament = new Tournament(startTournamentGame);
@@ -296,10 +312,8 @@ export function webSocket() {
 		});
 
 		client.on("disconnect", () => {
+			playingUsersId.delete(client.userId);
 			const leaver = client;
-			
-			playingUsersId.delete(leaver.userId);
-			
 			const currTournament = tournaments.get(leaver.tournamentId);
 			if (!currTournament)
 				return;
@@ -366,9 +380,11 @@ export function webSocket() {
 				if (tournament && !tournament.void) {
 					if (game.winnerId == p1.userId) {
 						tournament.onGameEnd(p1, p2);
+						playingUsersId.delete(p2.userId);
 						console.log(cyan, "P1 WON", p1.userId);
 					} else if (game.winnerId == p2.userId) {
 						tournament.onGameEnd(p2, p1);
+						playingUsersId.delete(p2.userId);
 						console.log(cyan, "P2 WON", p2.userId);
 					}
 					
@@ -413,15 +429,16 @@ export function webSocket() {
 	//new
 	const inviteGames = new Map();
 	wsServerInvite.on("connection", (client) => {
-
+		console.log(`CONNECTED TO ME ${client.userId}`);
 		playingUsersId.add(client.userId);
-
 		const opponentId = userIdUserId.get(client.userId);
 		const opponentClient = userIdSocket.get(opponentId);
 		if (opponentClient) {
 			startInviteGame(opponentClient, client);
+			console.log("GAME START");
 		} else {
 			userIdSocket.set(client.userId, client);
+			console.log("OTHER STILL HASN'T JOINED");
 		}
 
 		client.on("move", ({key, pressedState}) => {
@@ -442,15 +459,15 @@ export function webSocket() {
 		});
 
 		client.on("disconnect", () => {
+			playingUsersId.delete(client.userId);
 			const leaver = client;
 			const roomId = leaver.roomId;
 			const game = inviteGames.get(roomId);
 			if (game)
 				game.running = false;
 			wsServerInvite.to(roomId).emit("opponent-left");
-			
+
 			inviteGames.delete(roomId);
-			playingUsersId.delete(client.userId);
 
 			userIdSocket.delete(leaver.userId);
 			userIdUserId.delete(leaver.userId);
@@ -490,6 +507,7 @@ export function webSocket() {
 			if (game.running) {
 				wsServerInvite.to(roomId).emit("game-state", game.getState());
 			} else {
+				inviteGames.delete(roomId);
 				clearInterval(interval);
 
 				// end game ...
@@ -502,14 +520,10 @@ export function webSocket() {
 					TournamentId: -1
 				});
 				dbGame.add();
-				//
-
-				inviteGames.delete(roomId);
 
 				// delete ids
 				playingUsersId.delete(p1.userId);
 				playingUsersId.delete(p2.userId);
-
 			}
 		}, 16);
 	}

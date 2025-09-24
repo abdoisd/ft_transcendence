@@ -12,8 +12,10 @@ import { GameModesView } from './views/game.ts';
 // import { Tournament } from './views/tournament.ts';
 
 import { UserDTO } from './business layer/user.ts';
-
 import { Chat } from './views/chat.ts';
+
+import { GameManager } from './views/game.ts';
+window.gameManager = new GameManager();
 
 type RoutePath = keyof typeof routes;
 export var routes = {
