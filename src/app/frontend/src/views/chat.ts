@@ -222,7 +222,7 @@ const appendMessage = (msg, prepend: boolean, conversationDiv) => {
         <div class="box">
             <p>${msg.sender.username} invited you to play pong</p>
     
-            <button class="btn-secondary success" id="accept" onclick="acceptGame(${msg.receiver.id}, ${msg.sender.id})">
+            <button class="btn-secondary success" id="accept" onclick="acceptGame(${msg.id})">
             <div class="flex center gap-small center-v">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -320,3 +320,11 @@ const ChatView: string = `
 </div>
 </section>
 `;
+
+function connectToServer()
+{
+    let inviteIO = io("ws://localhost:3000/invite");
+
+    // frontend listeners
+    
+}

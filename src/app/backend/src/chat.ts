@@ -48,3 +48,13 @@ export const emitMessageWithType = (userId: number, msgType: string, msg) => {
     return true;
 }
 // new
+
+function    ft()
+{
+    let s = 1;
+    let r = 2;
+
+    // if s and r are available
+
+    
+}

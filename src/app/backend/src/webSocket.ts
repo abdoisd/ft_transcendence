@@ -397,25 +397,29 @@ export function webSocket() {
 		}, 16);
 	}
 
-	// const inviteGames = new Map();
-	// const connectedUsers = new Map();
-	// wsServerInvite.on("connection", (client) => {
-	// 	client.on("available", (msg) => {
-	// 		if (playingUsersId.has(msg.acceptor) || playingUsersId.has(msg.inviter)) {
-	// 			client.emit("nay");
-	// 		} else if (emitMessageWithType(msg.inviter, "yay", "")) {
-	// 			client.emit("yay");
-	// 			connectedUsers.set(msg.acceptor, client);
-	// 		}
-	// 	});
+	const inviteGames = new Map();
+	const connectedUsers = new Map();
+	wsServerInvite.on("connection", (client) => {
 
-	// 	client.on("enter-game", (msg) => {
-	// 		client.userId = msg.userId;
-	// 		playingUsersId.add(client.userId);
+		// client.on("available", (msg) => {
+		// 	if (playingUsersId.has(msg.acceptor) || playingUsersId.has(msg.inviter)) {
+		// 		client.emit("nay");
+		// 	} else if (emitMessageWithType(msg.inviter, "yay", "")) {
+		// 		client.emit("yay");
+		// 		connectedUsers.set(msg.acceptor, client);
+		// 	}
+		// });
 
-	// 		// startRemoteGame(opponent, client);
-	// 	});
-	// });
+		// client.on("enter-game", (msg) => {
+		// 	client.userId = msg.userId;
+		// 	playingUsersId.add(client.userId);
+
+		// 	// startRemoteGame(opponent, client);
+		// });
+		
+		// server listeners
+		
+	});
 }
 
 // class InviteGames {

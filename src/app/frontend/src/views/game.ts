@@ -288,37 +288,24 @@ function tournamentGame() {
 	window.gameManager.setActiveGame("tournament", wsClientTournament, {keyDown, keyUp});
 }
 
-// new 
+// new
 import { inviteGameViewStaticPart } from "./gameViews";
 import { chatIO } from "./chat";
 
-function inviteGameView() {
+chatIO.on("server-accepted-game", () => {
 	document.getElementById("main-view")!.innerHTML = inviteGameViewStaticPart;
 	inviteGame();
-}
-window.inviteGameView = inviteGameView;
-
-chatIO.on("yay", () => {
-	const wsClientInvite = io("ws//localhost:3000/invite");
-	inviteGameView();
-	inviteGame(wsClientInvite);
 });
+chatIO.on("")
 
-function acceptGame(acceptor, inviter) {
-	const wsClientInvite = io("ws//localhost:3000/invite");
-	
-	wsClientInvite.emit("available", {acceptor, inviter});
-	wsClientInvite.on("nay", () => {
-		wsClientInvite.disconnect();
-	});
-	wsClientInvite.on("yay", () => {
-		inviteGameView();
-		inviteGame(wsClientInvite);
-	});
+function acceptGame(id) {	
+	chatIO.emit("server-check-invite", id);
 }
 window.acceptGame = acceptGame;
 
-function inviteGame(wsClientInvite) {
+function inviteGame() {
+
+	const wsClientInvite = io("ws//localhost:3000/invite");
 	
 	wsClientInvite.emit("enter-game");
 	const canvas = document.querySelector(".canvas");
