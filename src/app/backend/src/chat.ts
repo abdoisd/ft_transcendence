@@ -1,5 +1,4 @@
 import { server, ws } from "./server.ts";
-import { playingUsersId } from "./webSocket.ts";
 import { userIdUserId } from "./webSocket.ts";
 import ChatRepository from "./repositories/ChatRepository.ts"
 
@@ -32,22 +31,24 @@ export const chatWs = () => {
             delete users[socket.userId];
         });
 
-        socket.on('check-invite', async (msg) => {
+        socket.on('check-invite', async (msgId) => {
             try {
-                const result = await ChatRepository.acceptInviteChecker(msg, socket.userId);
-                // console.log(result);
-                if (playingUsersId.has(socket.userId) || playingUsersId.has(result.sender_id))
-                {
-                    console.log("USER IS ALREADY PLAYING");
-                    return ;
-                }
-                emitMessageWithType(socket.userId, "yes", "");
-                emitMessageWithType(result.sender_id, "yes", "");
+                const result = await ChatRepository.acceptInviteChecker(msgId, socket.userId);
+                emitMessageWithType(result.sender_id, "check-game", "");
                 userIdUserId.set(socket.userId, result.sender_id);
                 userIdUserId.set(result.sender_id, socket.userId);
-                console.log("SENT THEM YES");
             } catch (err) {
                 console.log(err);
+            }
+        });
+
+        socket.on("ready", (status) => {
+            if (status) {
+                emitMessageWithType(socket.userId, "start", "");
+                emitMessageWithType(userIdUserId.get(socket.userId), "start", "");
+            } else {
+                userIdUserId.delete(userIdUserId.get(socket.userId));
+                userIdUserId.delete(socket.userId);
             }
         });
     });

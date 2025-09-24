@@ -303,18 +303,22 @@ function tournamentGame() {
 import { inviteGameViewStaticPart } from "./gameViews";
 import { chatIO } from "./chat";
 
-chatIO.on("yes", () => {
+chatIO.on("check-game", () => {
 	if (window.gameManager.activeGame) {
-		console.log("I cannot play right now");
-		return;
+		console.log("NOT READY");
+		chatIO.emit("ready", false);
+	} else {
+		console.log("READY");
+		chatIO.emit("ready", true);
 	}
-	console.log("GOT BACK YES");
+});
+
+chatIO.on("start", () => {
 	document.getElementById("main-views")!.innerHTML = inviteGameViewStaticPart;
 	inviteGame();
 });
 
 function acceptGame(msgId) {	
-	console.log("sent the invitation checker to server");
 	chatIO.emit("check-invite", msgId);
 }
 window.acceptGame = acceptGame;

@@ -3,7 +3,6 @@ import { clsGame } from "./data access layer/game.ts";
 import { red, green, yellow, cyan } from "./global.ts";
 import { ws, server } from "./server.ts";
 
-export const playingUsersId = new Set();
 export const userIdUserId = new Map();
 export const userIdSocket = new Map();
 
@@ -65,7 +64,6 @@ export function webSocket() {
 
 	const aiGames = new Map();
 	wsServerAI.on("connection", (client) => {
-		playingUsersId.add(client.userId);
 		const roomId = `room_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 		client.roomId = roomId;
 		client.join(roomId);
@@ -86,7 +84,6 @@ export function webSocket() {
 				else
 				{
 					clearInterval(interval);
-					playingUsersId.delete(client.userId);
 					const dbGame = new clsGame({
 						Id: -1,
 						User1Id: client.userId,
@@ -101,7 +98,6 @@ export function webSocket() {
 		});
 
 		client.on("disconnect", () => {
-			playingUsersId.delete(client.userId);
 			const roomId = client.roomId;
 			if (!roomId)
 				return;
@@ -132,7 +128,6 @@ export function webSocket() {
 	const waitingRemotePlayers = [];
 	const remoteGames = new Map();
 	wsServerRemote.on("connection", (client) => {
-		playingUsersId.add(client.userId);
 		client.roomId = null;
 		client.on("join-game", (msg) => {
 			client.userId = msg.userId;
@@ -167,7 +162,6 @@ export function webSocket() {
 
 		client.on("disconnect", () => handleRemoteDisconnect(client));
 		function handleRemoteDisconnect(leaver) {
-			playingUsersId.delete(leaver.userId);
 			const leaverIndexInWaitingList = waitingRemotePlayers.indexOf(leaver);
 			if (leaverIndexInWaitingList !== -1) {
 				waitingRemotePlayers.splice(leaverIndexInWaitingList, 1);
@@ -243,8 +237,6 @@ export function webSocket() {
 				wsServerRemote.to(roomId).emit("game-state", game.getState());
 			} else {
 				clearInterval(interval);
-				playingUsersId.delete(p1.userId);
-				playingUsersId.delete(p2.userId);
 				// end game ...
 				const dbGame = new clsGame({
 					Id: -1,
@@ -266,7 +258,6 @@ export function webSocket() {
 	let tournament: any | null = null;
 	let tournamentId: any | null = null;
 	wsServerTournament.on("connection", (client) => {
-		playingUsersId.add(client.userId);
 		client.on("join-tournament", (msg) => {
 			client.userId = msg.userId;
 
@@ -312,7 +303,6 @@ export function webSocket() {
 		});
 
 		client.on("disconnect", () => {
-			playingUsersId.delete(client.userId);
 			const leaver = client;
 			const currTournament = tournaments.get(leaver.tournamentId);
 			if (!currTournament)
@@ -380,11 +370,9 @@ export function webSocket() {
 				if (tournament && !tournament.void) {
 					if (game.winnerId == p1.userId) {
 						tournament.onGameEnd(p1, p2);
-						playingUsersId.delete(p2.userId);
 						console.log(cyan, "P1 WON", p1.userId);
 					} else if (game.winnerId == p2.userId) {
 						tournament.onGameEnd(p2, p1);
-						playingUsersId.delete(p2.userId);
 						console.log(cyan, "P2 WON", p2.userId);
 					}
 					
@@ -430,7 +418,6 @@ export function webSocket() {
 	const inviteGames = new Map();
 	wsServerInvite.on("connection", (client) => {
 		console.log(`CONNECTED TO ME ${client.userId}`);
-		playingUsersId.add(client.userId);
 		const opponentId = userIdUserId.get(client.userId);
 		const opponentClient = userIdSocket.get(opponentId);
 		if (opponentClient) {
@@ -459,7 +446,6 @@ export function webSocket() {
 		});
 
 		client.on("disconnect", () => {
-			playingUsersId.delete(client.userId);
 			const leaver = client;
 			const roomId = leaver.roomId;
 			const game = inviteGames.get(roomId);
@@ -521,9 +507,6 @@ export function webSocket() {
 				});
 				dbGame.add();
 
-				// delete ids
-				playingUsersId.delete(p1.userId);
-				playingUsersId.delete(p2.userId);
 			}
 		}, 16);
 	}
