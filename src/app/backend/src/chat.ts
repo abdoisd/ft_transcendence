@@ -1,4 +1,8 @@
 import { server, ws } from "./server.ts";
+import { playingUsersId } from "./webSocket.ts";
+import { userIdUserId } from "./webSocket.ts";
+import ChatRepository from "./repositories/ChatRepository.ts"
+
 
 let users = {};
 
@@ -27,6 +31,31 @@ export const chatWs = () => {
 
             delete users[socket.userId];
         });
+
+        socket.on('server-accepted-game', (msg) => {
+
+            try
+            {
+                const result = ChatRepository.acceptInviteChecker(msg, socket.userId);
+
+                // if s or r in array
+                if (playingUsersId.has(socket.userId) || playingUsersId.has(result.sender.id))
+                {
+                    return ;
+                }
+
+                emitMessageWithType(socket.userId, "yes", "");
+                emitMessageWithType(result.sender.id, "yes", "");
+                userIdUserId.set(socket.userId, result.sender.id);
+                userIdUserId.set(result.sender.id, socket.userId);
+
+            }
+            catch (err)
+            {
+                
+            }
+            
+        });
     });
 }
 
@@ -48,13 +77,3 @@ export const emitMessageWithType = (userId: number, msgType: string, msg) => {
     return true;
 }
 // new
-
-function    ft()
-{
-    let s = 1;
-    let r = 2;
-
-    // if s and r are available
-
-    
-}

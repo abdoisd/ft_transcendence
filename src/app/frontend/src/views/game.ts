@@ -292,22 +292,19 @@ function tournamentGame() {
 import { inviteGameViewStaticPart } from "./gameViews";
 import { chatIO } from "./chat";
 
-chatIO.on("server-accepted-game", () => {
+chatIO.on("yes", () => {
 	document.getElementById("main-view")!.innerHTML = inviteGameViewStaticPart;
 	inviteGame();
 });
-chatIO.on("")
 
-function acceptGame(id) {	
-	chatIO.emit("server-check-invite", id);
+function acceptGame(msg) {	
+	chatIO.emit("server-check-invite", msg);
 }
 window.acceptGame = acceptGame;
 
 function inviteGame() {
-
 	const wsClientInvite = io("ws//localhost:3000/invite");
 	
-	wsClientInvite.emit("enter-game");
 	const canvas = document.querySelector(".canvas");
 	const ctx = canvas.getContext("2d");
 	const board = document.querySelector(".board");
@@ -317,7 +314,7 @@ function inviteGame() {
 	
 	let game = null;
 	wsClientInvite.on("start-game", (initialState) => {
-		game = new ClientGame(canvas, ctx initialState.ids.left, initialState.ids.right);
+		game = new ClientGame(canvas, ctx, initialState.ids.left, initialState.ids.right);
 		game.state = initialState;
 		game.draw();
 	});

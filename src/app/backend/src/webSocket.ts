@@ -1,18 +1,31 @@
 import { Game } from "./game.ts";
 import { clsGame } from "./data access layer/game.ts";
-
 import { red, green, yellow, cyan } from "./global.ts";
-import { ws } from "./server.ts";
+import { ws, server } from "./server.ts";
 
-import { emitMessageWithType } from "./chat.ts";
+export const playingUsersId = new Set();
 
-const playingUsersId = new Set();
+export const userIdUserId = new Map();
+export const userIdSocket = new Map();
 
 export function webSocket() {
 	const wsServerTournament = ws.of("/tournament");
 	const wsServerRemote = ws.of("/remote");
 	const wsServerInvite = ws.of("/invite");
 	const wsServerAI = ws.of("/ai");
+
+	wsServerInvite.use((socket, next) => {
+        const token = socket.handshake.auth.token;
+        if (!token)
+            return next(new Error('Authentication error: No token provided'));
+        try {
+            const payload = server.jwt.verify(token);
+            socket.userId = payload.Id;
+            return next();
+        } catch {
+            return next(new Error('Authentication error: token invalid'));
+        }
+    });
 
 	const aiGames = new Map();
 	wsServerAI.on("connection", (client) => {
@@ -397,36 +410,110 @@ export function webSocket() {
 		}, 16);
 	}
 
+	//new
 	const inviteGames = new Map();
-	const connectedUsers = new Map();
 	wsServerInvite.on("connection", (client) => {
 
-		// client.on("available", (msg) => {
-		// 	if (playingUsersId.has(msg.acceptor) || playingUsersId.has(msg.inviter)) {
-		// 		client.emit("nay");
-		// 	} else if (emitMessageWithType(msg.inviter, "yay", "")) {
-		// 		client.emit("yay");
-		// 		connectedUsers.set(msg.acceptor, client);
-		// 	}
-		// });
+		playingUsersId.add(client.userId);
 
-		// client.on("enter-game", (msg) => {
-		// 	client.userId = msg.userId;
-		// 	playingUsersId.add(client.userId);
+		const opponentId = userIdUserId.get(client.userId);
+		const opponentClient = userIdSocket.get(opponentId);
+		if (opponentClient) {
+			startInviteGame(opponentClient, client);
+		} else {
+			userIdSocket.set(client.userId, client);
+		}
 
-		// 	// startRemoteGame(opponent, client);
-		// });
-		
-		// server listeners
-		
+		client.on("move", ({key, pressedState}) => {
+			const roomId = client.roomId;
+			if (!roomId)
+				return;
+			const game = inviteGames.get(roomId);
+			if (!game)
+				return;
+			console.log("HERE KEY STATES");
+			const keyStates = game.keyStates[client.userId];
+			if (!keyStates)
+				return;
+			if (key === "ArrowUp" || key === "w")
+				keyStates.up = pressedState;
+			if (key === "ArrowDown" || key === "s")
+				keyStates.down = pressedState;
+		});
+
+		client.on("disconnect", () => {
+			const leaver = client;
+			const roomId = leaver.roomId;
+			const game = inviteGames.get(roomId);
+			if (game)
+				game.running = false;
+			wsServerInvite.to(roomId).emit("opponent-left");
+			
+			inviteGames.delete(roomId);
+			playingUsersId.delete(client.userId);
+
+			userIdSocket.delete(leaver.userId);
+			userIdUserId.delete(leaver.userId);
+			userIdUserId.delete(leaver.userId);
+		});
 	});
+
+	function startInviteGame(p1, p2) {
+		if (!p1.connected || !p2.connected) {
+			userIdSocket.delete(p1.userId);
+			userIdSocket.delete(p2.userId);
+			userIdUserId.delete(p1.userId);
+			userIdUserId.delete(p2.userId);
+			return;
+		}
+
+		const roomId = `room_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+		p1.join(roomId);
+		p2.join(roomId);
+
+		p1.roomId = roomId;
+		p2.roomId = roomId;
+
+		const game = new Game(p1, p2, wsServerInvite, roomId);
+		inviteGames.set(roomId, game);
+
+		wsServerInvite.to(roomId).emit("start-game", game.getFullState());
+		wsServerInvite.to(roomId).emit("score-state", game.scores);
+		let lastTime = Date.now();
+		const interval = setInterval(() => {
+			const now = Date.now();
+			const delta = (now - lastTime) / 1000;
+			lastTime = now;
+			
+			game.update(delta);
+
+			if (game.running) {
+				wsServerInvite.to(roomId).emit("game-state", game.getState());
+			} else {
+				clearInterval(interval);
+
+				// end game ...
+				const dbGame = new clsGame({
+					Id: -1,
+					User1Id: p1.userId,
+					User2Id: p2.userId,
+					Date: Date.now(),
+					WinnerId: game.winnerId,
+					TournamentId: -1
+				});
+				dbGame.add();
+				//
+
+				inviteGames.delete(roomId);
+
+				// delete ids
+				playingUsersId.delete(p1.userId);
+				playingUsersId.delete(p2.userId);
+
+			}
+		}, 16);
+	}
 }
-
-// class InviteGames {
-// 	constructor(inviterClient, acceptorClient) {
-
-// 	}
-// }
 
 class Tournament {
 	players: any[];

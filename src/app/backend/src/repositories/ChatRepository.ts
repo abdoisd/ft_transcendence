@@ -36,8 +36,10 @@ export default class ChatRepository {
         if (!msg)
             throw new Error("NO_MSG_FOUND");
         const result = this.messageMapper(await chatDao.getMessage(msgId), meId);
-        if (result.sender_id != meId)
+        if (result.receiver.id != meId)
             throw new Error("FORBIDDEN");
+        if (result.type != "INVITE")
+            throw new Error("NOT VALID");
         return result;
     }
 
