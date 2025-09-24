@@ -250,14 +250,13 @@ export function webSocket() {
 				client.join(tournamentId);
 				console.log(red, `FIRST USER: ${client.userId}`);
 			} else if (tournament.players.length <= 4) {
-				// const alreadyJoined = tournament.players.some((p) => {
-				// 	return p.userId === client.userId;
-				// });
-				// if (alreadyJoined) {
-				// 	client.emit("error", "You already joined the tournament.");
-				// 	client.disconnect(true);
-				// 	return;
-				// }
+				const alreadyJoined = tournament.players.some(p => p.userId === client.userId);
+				if (alreadyJoined) {
+					client.emit("error", "You already joined the tournament.");
+					client.disconnect(true);
+					console.log(red, `YOU AREADY JOINED ${client.userId}`);
+					return;
+				}
 
 				client.tournamentId = tournamentId;
 				client.join(tournamentId);
@@ -284,18 +283,18 @@ export function webSocket() {
 		});
 
 		client.on("disconnect", () => {
-			tournament = null;
 			const leaver = client;
-
+			
 			playingUsersId.delete(leaver.userId);
-
+			
 			const currTournament = tournaments.get(leaver.tournamentId);
 			if (!currTournament)
 				return;
 			if (leaver == currTournament.matches.semi1.loser
-					|| leaver == currTournament.matches.semi2.loser
-					|| leaver == currTournament.matches.final?.loser)
-					return;
+				|| leaver == currTournament.matches.semi2.loser
+				|| leaver == currTournament.matches.final?.loser)
+				return;
+			tournament = null;
 			for (const player of currTournament.players) {
 				if (player !== leaver) {
 					console.log("SENT VOID");
