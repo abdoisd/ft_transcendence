@@ -22,58 +22,52 @@ export var routes = {
 	'/newUser': NewUser,
 	'/existingUser': existingUser,
 	'/friends': friendsView,
-		'/addFriend': addFriendView,
-		'/listFriends': listFriendsView,
+	'/addFriend': addFriendView,
+	'/listFriends': listFriendsView,
 	'/profile': ProfileView,
-		'/profileEdit': ProfileEditView,
-		// '/profile/matchHistory': ProfileMatchHistoryView,
+	'/profileEdit': ProfileEditView,
+	// '/profile/matchHistory': ProfileMatchHistoryView,
 	'/game': GameModesView,
-		// '/gameRemote': GameRemoteView,
-		// '/tournament': Tournament,
+	// '/gameRemote': GameRemoteView,
+	// '/tournament': Tournament,
 	"/settings": Settings,
 	"/chat": Chat
 };
 
-export async function autoLogin()
-{
+export async function autoLogin() {
 	console.debug("autoLogin()");
 
 	return fetch("/validateSession", {
 		method: "POST",
 		credentials: "include", // to send cookies
 	})
-	.then(response => {
-		if (response.ok)
-			return response.json();
-		else
-			return null;
-	})
-	.then((user) => {
-		if (!user)
-			clsGlobal.LoggedInUser = null;
-		else
-		{
-			clsGlobal.LoggedInUser = Object.assign(new UserDTO(-1, "", "", "", -1, -1, null, null), user);
+		.then(response => {
+			if (response.ok)
+				return response.json();
+			else
+				return null;
+		})
+		.then((user) => {
+			if (!user)
+				clsGlobal.LoggedInUser = null;
+			else {
+				clsGlobal.LoggedInUser = Object.assign(new UserDTO(-1, "", "", "", -1, -1, null, null), user);
 
-			console.debug("Filling User: ", clsGlobal.LoggedInUser);
-		}
-	});
+				console.debug("Filling User: ", clsGlobal.LoggedInUser);
+			}
+		});
 }
 
 // for clients writing url's directly
 // or for buttons/links to prevent default
 // otherwise, I called it for a view, provide route(null, "/home") , it's me that called it
-export function route (event: Event | null, path?: string) {
-
-	console.log("route()");
-	
+export function route(event: Event | null, path?: string) {
 	var pushToHistory = event == null;;
 
-	if (path)
-	{
+	if (path) {
 		// should push to history ! risky to do something now
 		handleView(null, path);
-		return ;
+		return;
 	}
 
 	// buttons
@@ -82,11 +76,16 @@ export function route (event: Event | null, path?: string) {
 
 	event!.preventDefault();
 
-	if (pushToHistory)
-	{
-		//  new location         					   old location
-		if ((new URL(event!.target!.href)).pathname != window.location.pathname)
-			window.history.pushState({}, "", event!.target!.href); // add to history
+	if (pushToHistory) {
+		const target = event?.currentTarget!.href;
+		const targetURL = new URL(target);
+		const currentURL = new URL(window.location.href);
+
+		if (
+			targetURL.pathname !== currentURL.pathname ||
+			targetURL.search !== currentURL.search
+		)
+			window.history.pushState({}, "", target); // add to history
 	}
 	handleView();
 };
@@ -95,11 +94,11 @@ document.addEventListener('DOMContentLoaded', route);
 
 
 const getMainPath = (url: string): string => {
-    return url.split('?')[0];
+	return url.split('?')[0];
 }
 
 
-function handleView (event?, path?: string | null) {
+function handleView(event?, path?: string | null) {
 	if (window.gameManager) {
 		console.log("window.gameManager")
 		window.gameManager.leaveActiveGame();
@@ -107,59 +106,56 @@ function handleView (event?, path?: string | null) {
 
 	if (!path)
 		path = window.location.pathname;
-	
+
 	console.log("Handling route: " + path);
 
 	autoLogin()
-	.then(() => {
+		.then(() => {
 
-		if (path != "/newUser" && path != "/existingUser")
-		{
-			// check auto login
-			if (!clsGlobal.LoggedInUser)
-			{
-				console.debug("LoggedInUser not filled");
-				LoginWithGoogle(); // this send to me to new user or existing user
-				return ;
+			if (path != "/newUser" && path != "/existingUser") {
+				// check auto login
+				if (!clsGlobal.LoggedInUser) {
+					console.debug("LoggedInUser not filled");
+					LoginWithGoogle(); // this send to me to new user or existing user
+					return;
+				}
+				else
+					console.debug("LoggedInUser filled");
 			}
-			else
-				console.debug("LoggedInUser filled");
-		}
-		
-		// if (path == "/existingUser")
-		// {
-		// 	// just protect frontend view
-		// 	fetch("/validateSession", {
-		// 		method: "POST",
-		// 		credentials: "include", // to send cookies
-		// 	})
-		// 	.then(response => {
-		// 		if (!response.ok)
-		// 		{
-		// 			LoginWithGoogle();
-		// 			return ;
-		// 		}
-		// 	})
-		// }
 
-		clsGlobal.LoggedInUser?.update(); // what
+			// if (path == "/existingUser")
+			// {
+			// 	// just protect frontend view
+			// 	fetch("/validateSession", {
+			// 		method: "POST",
+			// 		credentials: "include", // to send cookies
+			// 	})
+			// 	.then(response => {
+			// 		if (!response.ok)
+			// 		{
+			// 			LoginWithGoogle();
+			// 			return ;
+			// 		}
+			// 	})
+			// }
 
-		// load home
-		HomeView();
-		if (path == '/') // home view is default
-		{
-			window.history.replaceState({}, "", "/");
-			return;
-		}
+			clsGlobal.LoggedInUser?.update(); // what
 
-		if (routes[getMainPath(path)])
-			routes[path]();
-		else
-		{
-			window.history.replaceState({}, "", "/");
+			// load home
 			HomeView();
-		}
-	});
+			if (path == '/') // home view is default
+			{
+				window.history.replaceState({}, "", "/");
+				return;
+			}
+
+			if (routes[getMainPath(path)])
+				routes[path]();
+			else {
+				window.history.replaceState({}, "", "/");
+				HomeView();
+			}
+		});
 };
 window.onpopstate = handleView; // on <- / ->, call handleLocation
 
