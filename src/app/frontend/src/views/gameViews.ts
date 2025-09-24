@@ -217,12 +217,12 @@ export class ClientGame {
 			return;
 
 		const ctx = this.ctx;
-		ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
 		const scaleX = this.canvas.width / SERVER_WIDTH;
 		const scaleY = this.canvas.height / SERVER_HEIGHT;
 
 		// board
-		ctx.fillStyle = "#000000";
+		// ctx.fillStyle = "#000000";
+		ctx.fillStyle = "rgba(0,0,0,0.2";
 		ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 		ctx.setLineDash([12 * scaleX, 12 * scaleY]);
 		ctx.strokeStyle = "#FFFFFF";

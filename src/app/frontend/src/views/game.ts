@@ -388,6 +388,7 @@ function inviteGame() {
 }
 
 function apiView() {
+	console.log("changed to api view");
 	document.getElementById("main-views")!.innerHTML = apiGameStaticPart;
 	const startApiGameBtn = document.querySelector(".start-api-game");
 	startApiGameBtn?.addEventListener("click", (event) => {
@@ -395,9 +396,10 @@ function apiView() {
 		apiGame();
 	});
 }
-window.apiView = apiGame;
+window.apiView = apiView;
 
 async function apiGame() {
+	console.log("l9lawi");
 	const canvas = document.querySelector(".canvas");
 	const ctx = canvas.getContext("2d");
 	const board = document.querySelector(".board");
