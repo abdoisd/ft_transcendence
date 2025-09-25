@@ -70,6 +70,10 @@
     justify-content: center;
 }
 
+p {
+    line-height:26px;
+}
+
 .text-center {
     text-align: center;
 }
@@ -129,8 +133,18 @@
     border-radius: 6px;
     padding: 8px 12px;
     color: #A7AAAF;
-    font-weight: 700;
+    font-weight: 600;
+    transition: all 0.3s ease !important;
     background: #131A24;
+}
+
+.btn-primary {
+    border-radius: 6px;
+    transition: all 0.3s ease !important;
+    padding: 8px 12px;
+    color: #A7AAAF;
+    font-weight: 600;
+    background: #DC2626;
 }
 
 .bottom {
@@ -202,6 +216,10 @@ button {
 
 .mb-3 {
     margin-bottom: 15px !important;
+}
+
+.mt-2 {
+    margin-top: 8px !important;
 }
 
 .mr-5 {
@@ -280,13 +298,10 @@ input::placeholder {
     box-shadow: none
 }
 
-.chat button:hover {
+.btn-secondary:hover, .btn-primary:hover {
     transform: scale(1.05) !important;
-    box-shadow: none
-}
-
-.chat button {
-    transition: all 0.3s ease !important;
+    box-shadow: none !important;
+    border: none;
 }
 
 .list-item {
@@ -314,9 +329,18 @@ input::placeholder {
     object-fit: cover;
 }
 
+.mb-6 {
+    margin-bottom: 35px !important;
+}
 
 .mh-5 {
-    margin: 0px 20px;
+    margin-left: 20px;
+    margin-right: 20px;
+}
+
+.mh-7 {
+    margin-left: 35px;
+    margin-right: 35px;
 }
 
 .list-item .list-item-content {
@@ -341,7 +365,7 @@ input::placeholder {
 }
 
 .section {
-    height: 85vh;
+    height: 80vh;
     box-sizing: border-box;
     padding: 25px 0px;
 }
@@ -419,6 +443,13 @@ h6 {
     margin-bottom: 5px !important;
 }
 
+.mv-4 {
+    margin-bottom: 20px;
+    margin-top: 20px;
+}
+
+
+
 .item-center {
     display: flex;
     flex-direction: column;
@@ -427,7 +458,8 @@ h6 {
 
 .text-secondary {
     color: #9CA3AF;
-    font-size: 16px;
+    font-size: 15px;
+    font-weight: 400;
 }
 
 .overflow-hidden {

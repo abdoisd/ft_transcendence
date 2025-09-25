@@ -1,145 +1,55 @@
 
-import { get } from "./request.ts"
-import { UserDTO } from "../business layer/user.ts"
-import { Relationship } from "../business layer/relationship.ts";
-
 export function friendsView()
 {
 	document.getElementById("main-views")!.innerHTML = friendsViewStaticPart;
 }
 
 const friendsViewStaticPart: string = `
-<p>Friends View:</p>
-<a class="anchor-general" href="/addFriend" onclick="route()">Add Friend</a>
-<br>
-<a class="anchor-general" href="/listFriends" onclick="route()">List Friends</a>
+	<div class="card center">
+
+		<svg xmlns="http://www.w3.org/2000/svg" class="mv-5 mb-6" width="80px" height="80px" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" ">
+			<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z" />
+		</svg>
+
+
+		<h2>Friends</h2>
+
+		<p class="text-center text-secondary mv-4 mh-7">Connect with your friends, manage your friends list, and stay in touch.</p>
+
+
+		<div class="flex gap-medium mb-3 mt-2">
+
+		<a href="/addFriend" onclick="route()">
+			<button class="btn-primary">
+				<div class="flex center gap-small">
+					<svg width="22px" height="22px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
+					</svg>
+
+
+					Add Friend
+				</div>
+			</button>
+		</a>
+
+		<a href="/listFriends" onclick="route()">
+			<button class="btn-secondary">
+				<div class="flex center gap-small">
+				<svg width="22px" height="22px" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
+				</svg>
+			
+					List Friends
+				</div>
+			</button>
+		</a>
+		</div>
+	</div>
 `;
 
-/**
- * go to another view: <a href="#/another-view">Another view</a>
- */
 
-// SUB VIEWS
 
-// ADD FRIEND VIEW
-
-export function addFriendView()
-{
-	document.getElementById("main-views")!.innerHTML = addFriendViewStaticPart;
-	const input = document.getElementById("txtUsername") as HTMLInputElement;
-	input.focus();
-}
-
-const addFriendViewStaticPart: string = `
-<form onsubmit="searchUserButton(event);"> <!-- passing the event -->
-	<label for="name">Find user by id:</label>
-	<input type="text" id="txtUsername" placeholder="Username" required>
-	<input type="submit" value="Search">
-</form>
-<div id="result"></div>
-`;
-
-function userMiniProfile(user: UserDTO)
-{
-	const btnAddFriend = "<button onclick='addFriend()'>add as friend</button>";
-	const divContent = "user: id: " + user.Id + " username: " + user.Username + " " + btnAddFriend;
-	return divContent;
-}
-
-var foundUser: UserDTO;
-
-async function searchUserButton(event?: Event)
-{
-	event?.preventDefault();
-	// display user mini profile / user not found
-
-	const resultDiv = document.getElementById("result")!;
-
-	//?
-	const jwt = localStorage.getItem("jwt");
-	console.debug("setting jwt to request: ", jwt);
-	
-	// get
-	foundUser = await UserDTO.getByUsername((document.getElementById("txtUsername") as HTMLInputElement).value);
-	// foundUser = await get("/data/user/getByUsername", { username: (document.getElementById("txtUsername") as HTMLInputElement).value }, jwt)
-	if (foundUser)
-		resultDiv.innerHTML = userMiniProfile(foundUser);
-	else
-		resultDiv.innerHTML = "User not found";
-}
-window.searchUserButton = searchUserButton;
-
-async function addFriend()
-{
-	if (clsGlobal.LoggedInUser.Id == foundUser.Id)
-	{
-		alert("You cannot add yourself as a friend");
-		return;
-	}
-
-	const UsersFriends = await clsGlobal.LoggedInUser.getFriends();
-	UsersFriends.forEach((userFriend) => {
-		if (userFriend.Id == foundUser.Id)
-		{
-			alert("You are already friends with this user");
-		}
-	});
-	
-	const relationship: Relationship = new Relationship(-1, clsGlobal.LoggedInUser.Id, foundUser.Id, 1);
-	const response = await relationship.add();
-	if (response.ok)
-		alert("Friend added");
-	else
-		alert("Error adding friend");
-}
-window.addFriend = addFriend;
-
-// LIST FRIENDS VIEW
-
-export async function listFriendsView()
-{
-	document.getElementById("main-views")!.innerHTML = listFriendsViewStaticPart;
-
-	// code to fill list
-	const list = document.getElementById("lstFriends");
-	const template = document.getElementById("user-template");
-
-	// relationships
-		// get all relationships per user
-	// user
-		// get all friends
-	
-	// frontend
-	const users = await clsGlobal.LoggedInUser.getFriends();
-	if (users.length == 0)
-	{
-		list!.innerHTML = "No friends yet";
-		return;
-	}
-	users.forEach((user) => {
-		const newListItem = template.content.cloneNode(true); // clone template automatically
-		newListItem.querySelector(".user-id").textContent = user.Id;
-		newListItem.querySelector(".username").textContent = user.Username;
-
-		var online = true;
-		if ((new Date().getTime() - user.LastActivity) >= 1000 * 60 * 2)
-			online = false;
-		newListItem.querySelector(".online-status").textContent = online ? "online" : "offline";
-		
-		list.appendChild(newListItem);
-	});
-}
-
-const listFriendsViewStaticPart: string = `
-<template id="user-template">
-<li>
-	id: <span class="user-id"></span>
-	username: <span class="username"></span>
-	online: <span class="online-status">unknown</span>
-	<!-- <button>Add as Friend</button> -->
-</li>
-</template>
-<p>list:</p>
-<ul id="lstFriends">
-</ul>
-`;
+// <p>Friends View:</p>
+// <a class="anchor-general" href="/addFriend" onclick="route()">Add Friend</a>
+// <br>
+// <a class="anchor-general" href="/listFriends" onclick="route()">List Friends</a>
