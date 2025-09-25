@@ -129,21 +129,25 @@ p {
     gap: 8px;
 }
 
-.btn-secondary {
+.btn {
+    padding: 12px 12px;
+    font-size: 16px;
     border-radius: 6px;
-    padding: 8px 12px;
-    color: #A7AAAF;
-    font-weight: 600;
     transition: all 0.3s ease !important;
+    font-weight: 600;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+}
+
+.btn-secondary {
+    color: white;
     background: #131A24;
 }
 
 .btn-primary {
-    border-radius: 6px;
-    transition: all 0.3s ease !important;
-    padding: 8px 12px;
-    color: #A7AAAF;
-    font-weight: 600;
+    color: white;
     background: #DC2626;
 }
 
@@ -299,7 +303,7 @@ input::placeholder {
 }
 
 .btn-secondary:hover, .btn-primary:hover {
-    transform: scale(1.05) !important;
+    transform: scale(1.01) !important;
     box-shadow: none !important;
     border: none;
 }
@@ -441,6 +445,11 @@ h6 {
 
 .mb-1 {
     margin-bottom: 5px !important;
+}
+
+.headline {
+    font-size: 30px;
+    font-weight: 700;
 }
 
 .mv-4 {

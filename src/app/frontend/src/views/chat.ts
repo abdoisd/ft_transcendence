@@ -164,7 +164,7 @@ const updateChat = async () => {
     </div>
     
     <div class="mt-5 inline-block gap-medium">
-        <button class="btn-secondary" id="invite">
+        <button class="btn btn-secondary" id="invite">
             <div class="flex center gap-small">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -179,7 +179,7 @@ const updateChat = async () => {
         </button>
     
        <a href="/profile?id=${user.id}" onclick="route()">
-        <button class="btn-secondary">
+        <button class="btn btn-secondary">
             <div class="flex center gap-small">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -193,7 +193,7 @@ const updateChat = async () => {
        </a>
     
     
-        <button class="btn-secondary danger" id="block">
+        <button class="btn btn-secondary danger" id="block">
             <div class="flex center gap-small">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -293,7 +293,7 @@ const appendMessage = (msg, prepend: boolean, conversationDiv) => {
         <div class="box">
             <p>${msg.sender.username} invited you to play pong</p>
     
-            <button class="btn-secondary success" id="accept" onclick="acceptGame(${msg.id})">
+            <button class="btn btn-secondary success" id="accept" onclick="acceptGame(${msg.id})">
             <div class="flex center gap-small center-v">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
