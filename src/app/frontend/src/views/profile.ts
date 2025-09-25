@@ -18,16 +18,7 @@ export async function ProfileView() {
 		document.getElementById("Wins")!.textContent = user.Wins.toString();
 		document.getElementById("Losses")!.textContent = user.Losses.toString();
 
-		// select by html tag
-		// const container = document.querySelector("div")!;
-		// select by class
 		const container = document.getElementById("Histories")!;
-
-		/**
-		 * if ai, in db:
-		 * User2Id = null
-		 * WinnerId = null (if ai wins) or User1Id (if user wins)
-		 */
 
 		const matches = await user.getMatchHistory();
 
@@ -177,12 +168,3 @@ const meProfileViewStaticPart = `
 		
 	</div>
 `;
-
-
-// 
-// <a class="anchor-general" href="/profileEdit" onclick="route()" id="edit">Edit</a></div>
-//
-// <div>Wins: <span id="Wins"></span></div>
-// <div>Losses: <span id="Losses"></span></div>
-// <p>Match history:</p>
-// <div class="match-history">

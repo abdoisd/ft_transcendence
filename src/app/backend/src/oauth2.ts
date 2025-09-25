@@ -28,7 +28,6 @@ export function setSessionIdCookie(user: User, reply: FastifyReply)
 			console.error(red, "Error setting sessionId for user");
 	});
 
-	// set cookie to browser
 	console.debug(blue, "Setting sessionId for browser");
 	reply.setCookie('sessionId', sessionId, {
 		httpOnly: true,       // client JS cannot access
@@ -47,12 +46,10 @@ export function createJwt(Id: number)
 	}, { expiresIn: '1d' });
 }
 
-// you can to register routes
 export function OAuth2Routes() {
 	
 	server.get('/loginGoogle', (req, reply) => {
 	
-		// this is never reached
 		console.debug(blue, "/loginGoogle");
 	
 		const queryString = querystring.stringify({
@@ -62,14 +59,9 @@ export function OAuth2Routes() {
 		  scope: 'openid email profile',
 		});
 
-		// nginx is proxying to here
-		// google only knows nginx
-		// configure google with nginx
 		reply.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${queryString}`);
 	});
 	
-	// google redirect user to config.WEBSITE_URL/loginGoogleCallback
-	// and browser send request to our server
 	server.get('/loginGoogleCallback', async (req, reply) => { //!
 
 		console.debug(blue, "/loginGoogleCallback");
@@ -94,7 +86,6 @@ export function OAuth2Routes() {
 			headers: { Authorization: `Bearer ${tokens.access_token}` }
 		});
 		const userObjFromGoogle = await userRes.json();
-		// console.log("User info:", userObjFromGoogle); // GOT USER INFO
 
 		var response = await fetch(config.WEBSITE_URL + `/data/user/getByGoogleId?GoogleId=${encodeURIComponent(userObjFromGoogle.id)}`, { headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` } }); // full url here, bc the browser that handle that is the frontend
 
@@ -116,41 +107,21 @@ export function OAuth2Routes() {
 			else
 			{
 				console.debug(blue, "User has username");
-				// user already registered in website
 
-				// 2FA 2
-				// if user enabled 2FA
 				const userr = Object.assign(new User(-1, "", "", "", -1, -1), user);
 				if (userr.enabled2FA())
 				{
-					// console.debug(yellow, "userr.enabled2FA(), no session and no jwt");
-					
-					// no session and no jwt
-					//*
-					// const sanitizedUser = {
-					// 	...user,
-					// 	ExpirationDate: user.ExpirationDate ? user.ExpirationDate.toISOString() : null,
-					// 	LastActivity: user.LastActivity ? user.LastActivity.toISOString() : null
-					// };
 					const params = querystring.stringify({...user});
 
 					reply.redirect("https://localhost" + `/existingUser?Id=${user.Id}`); // removed all query params
 					return ;
 				}
 
-				// SESSION ID
 				setSessionIdCookie(user, reply);
 
-				// 2FA
 				const jwt = createJwt(user.Id);
 				console.debug(yellow, "server set jwt=" + jwt); // this return jwt, hhhhhhh
 				
-				//*
-				// const sanitizedUser = {
-				// 	...user,
-				// 	ExpirationDate: user.ExpirationDate ? user.ExpirationDate.toISOString() : null,
-				// 	LastActivity: user.LastActivity ? user.LastActivity.toISOString() : null
-				// };
 				const params = querystring.stringify({...user});
 				reply.redirect("https://localhost" + `/existingUser?${params}&jwt=${jwt}`); // redirect to home
 				return ;
@@ -173,7 +144,6 @@ export function OAuth2Routes() {
 				console.debug(yellow, );
 				console.debug(yellow, "server set jwt=" + jwt);
 
-				// 2FA
 				reply.redirect(`https://localhost/newUser?Id=${userId}&jwt=${jwt}`);
 			}
 			else
@@ -184,161 +154,6 @@ export function OAuth2Routes() {
 		}
 
 	});
-
-	// server.post("/uploadProfile/:id", { preHandler: (server as any).byItsOwnUser }, async (req, reply) => {
-
-	// 	console.debug(blue, "/uploadProfile");
-		
-	// 	// Get the parts of the multipart form
-	// 	const parts = req.parts();
-
-	// 	let username = null;
-	// 	let avatarPath = null;
-	// 	let Id = req.params.id;
-
-	// 	var fileName: string | null = null;
-
-	// 	const savedFiles: string[] = [];
-
-	// 	for await (const part of parts) {
-	// 		if (part.type == "file") {
-
-	// 			for await (const _ of part.file) {
-	// 				// ignore chunks
-	// 			}
-
-	// 			// doesn’t wait for more chunks
-	// 			// while (part.file.read())
-	// 			// {
-
-	// 			// }
-				
-	// 			// part.file.read();
-	// 			// await pipeline(part.file, fs.createWriteStream("/dev/null"));
-
-	// 		} else {
-	// 			if (part.type === "field" && part.fieldname === "username") {
-	// 				username = (part as any).value;
-	// 			}
-	// 		}
-	// 	}
-	
-	// 	// only avatar
-	// 	if (username == null)
-	// 	{
-	// 		console.debug(blue, "username is null");
-
-	// 		const user: User = await User.getById(Id);
-	// 		if (user)
-	// 		{
-	// 			if (user.AvatarPath)
-	// 			{
-	// 				// update existing avatar
-	// 				fileName = user.AvatarPath;
-	// 			}
-	// 			else
-	// 			{
-	// 				// first avatar
-	// 				fileName = Guid() + ".png";
-
-	// 				user.AvatarPath = fileName;
-	// 				user.update(); // Ensure update is awaited and user is an instance of a class with update method
-					
-	// 				//! HERE
-	// 				// fetch(config.WEBSITE_URL + `/data/user/update`,{
-	// 				// 	method: "PUT",
-	// 				// 	headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }, // is this important, for fastify I think
-	// 				// 	body: JSON.stringify(new User(user.Id, user.GoogleId, user.Username, fileName!, user.Wins, user.Losses, user.SessionId, user.ExpirationDate)), //?
-	// 				// })
-	// 			}
-	// 			for (const file of savedFiles) {
-	// 				if (file) {
-	// 					const avatarPath = path.join(process.cwd(), "Avatars", fileName); //!
-	// 					// Save the file in server local storage
-	// 					const writeStream = fs.createWriteStream(avatarPath);
-	// 					(file as any).pipe(writeStream);
-	// 				}
-	// 			}
-	// 		}
-
-	// 		return ;
-	// 	}
-
-	// 	if (username)
-	// 	{
-	// 		if (username.length > 20 || username.length < 3 || username.trim() === "" || !/^[a-zA-Z0-9_]+$/.test(username))
-	// 			return reply.status(400).send();
-	// 	}
-	  
-	// 	// use saved files objects
-	// 	for await (const file of savedFiles) {
-	// 		if (file) {
-	// 			// It's a file
-	// 			fileName = Guid() + ".png"; // filename: date_filename, not unique but good for now
-	// 			const avatarPath = path.join(process.cwd(), "Avatars", fileName); //!
-		
-	// 			// Save the file
-	// 			const writeStream = fs.createWriteStream(avatarPath); // open file in process and create it in disk
-	// 			await (file as any).pipe(writeStream); // write to it
-	// 			break ;
-	// 		}
-	// 	}
-
-	// 	if (Id == null || (username == null || username.trim() == "")) {
-	// 		console.error(red, "Missing Id or username");
-	// 		reply.status(400).send("Error: Missing Id or username");
-	// 		return ;
-	// 	}
-
-	// 	// Now you have both
-	// 	console.debug(blue, "Id:", Id);
-	// 	console.debug(blue, "Username:", username);
-	// 	console.debug(blue, "Avatar saved at:", fileName);
-		
-	// 	//! keep file path when no avatar
-	// 	if (fileName == null)
-	// 	{
-	// 		// const response = await fetch(config.WEBSITE_URL + `/data/user/getById?Id=${Id}`, {headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }});
-	// 		// if (response.ok) // user found
-	// 		// {
-	// 		// 	const user: User = await response.json();
-	// 		// 	fileName = user.AvatarPath;
-	// 		// }
-	// 		const user: User = await User.getById(Id);
-	// 		if (user)
-	// 		{
-	// 			fileName = user.AvatarPath;
-	// 		}
-	// 	}
-
-	// 	const userr: User = await User.getById(Id); // Ensure userr is declared and typed
-
-	// 	if (!userr)
-	// 		return reply.status(404).send();
-
-	// 	// update user username and avatar path in db
-	// 	console.debug(blue, "Updating user in db, fileName:", fileName);
-	// 	const user: User = new User(Id!, userr.GoogleId, username!, fileName!, 0, 0);
-	// 	//! HERE
-	// 	// const response = await fetch(config.WEBSITE_URL + `/data/user/update`,{ // server domain
-	// 	// 	method: "PUT",
-	// 	// 	headers: { "Content-Type": "application/json", "Authorization": `Bearer ${process.env.ROOT_TOKEN}` }, // is this important, for fastify I think
-	// 	// 	body: JSON.stringify(user),
-	// 	// });
-
-	// 	const response = await user.update();
-
-	// 	if (response)
-	// 	{
-	// 		// SESSION ID
-	// 		setSessionIdCookie(user, reply);
-			
-	// 		reply.send();
-	// 	}
-	// 	else
-	// 		reply.status(500).send("Error: failure updating user");
-
-	// });
 
 	server.post("/uploadProfile/:id", { preHandler: (server as any).byItsOwnUser }, async (req, reply) => {
 
@@ -380,7 +195,6 @@ export function OAuth2Routes() {
 		const success = await user.update();
 		if (success)
 		{
-			// SESSION ID
 			setSessionIdCookie(user, reply);
 			return reply.send();
 		}
@@ -390,8 +204,6 @@ export function OAuth2Routes() {
 	});
 
 	server.post("/validateSession", (request, reply) => {
-
-		// console.debug(yellow, "/validateSession");
 
 		const { sessionId } = request.cookies;
 
@@ -409,9 +221,6 @@ export function OAuth2Routes() {
 			}
 			if (row)
 			{
-				// console.debug(blue, "User in db found by SessionId");
-
-				//*
 				const userRow = row as { ExpirationDate: number }; // Type assertion
 
 				if (userRow.ExpirationDate < (new Date()).getTime())

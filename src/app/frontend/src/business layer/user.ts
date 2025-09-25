@@ -1,6 +1,4 @@
 
-// TOKENS ARE NOT SET HERE
-
 class clsGame {
 	Id;
 	User1Id;
@@ -13,26 +11,20 @@ class clsGame {
 export class UserDTO
 {
 	Id: number;
-	// GoogleId: string;
 	Username: string | null;
 	AvatarPath: string | null;
 	Wins: number;
 	Losses: number;
-	// SessionId: string | null;
-	// ExpirationDate: Date | null;
 	LastActivity: Date | null;
 
 	constructor(id: number, googleOpenID: string, username: string | null, avatarPath: string | null,
 		wins: number, losses: number, sessionId: string | null = null, expirationDate: Date | null = null)
 	{
 		this.Id = id;
-		// this.GoogleId = googleOpenID;
 		this.Username = username;
 		this.AvatarPath = avatarPath;
 		this.Wins = wins;
 		this.Losses = losses;
-		// this.SessionId = sessionId;
-		// this.ExpirationDate = expirationDate;
 	}
 
 	static async getAllUsers()
@@ -55,25 +47,9 @@ export class UserDTO
 	static async getByUsername(username: string)
 	{
 		const tmp = username;
-
-		// const response = await fetch(`/data/user/getByUsername?username=${encodeURIComponent(username)}`);
-		// if (!response.ok) return null;
-		// const userObject = await response.json();
-		// return Object.assign(new User(-1, "", "", "", -1, -1), userObject);
 		
 		return await get("/data/user/getByUsername", { username: tmp });
 	}
-
-	// async add(): Promise<boolean> {
-    //     const response = await fetch(`/data/user/add`, {
-    //         method: "POST",
-    //         headers: { "Content-Type": "application/json" },
-    //         body: JSON.stringify(this),
-    //     });
-    //     if (!response.ok) return false;
-    //     this.Id = (await response.json()).Id;
-	// 	return true;
-    // }
 
 	async update(): Promise<boolean> {
 		if (this.Id < 0)
@@ -110,7 +86,6 @@ export class UserDTO
 		});
 	}
 
-	//?
 	getMatchHistory(): Promise<clsGame[] | null>
 	{
 		return get("/users/" + this.Id + "/games");

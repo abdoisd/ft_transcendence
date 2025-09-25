@@ -9,38 +9,23 @@ export function LoginWithGoogle() {
 }
 
 function requestBackend() {
-	// browser send request to server
 	window.location.pathname = '/loginGoogle';
 }
 
 export function NewUser() {
 
 	const params = new URLSearchParams(window.location.search);
-
-	// // just protect frontend view
-	// getOnlyFetch("/data/user/getById2", {Id: params.get("Id")})
-	// .then((response) => {
-	// 	if (!response.ok)
-	// 	{
-			
-			
-	// 		LoginWithGoogle();
-	// 		return ;
-	// 	}
-	// });
 	
 	const jwt = params.get('jwt');
 	console.debug("setting jwt in localStorage: ", jwt);
 	localStorage.setItem("jwt", jwt);
 	console.debug("jwt in localStorage: ", localStorage.getItem("jwt"));
 
-	// just protect frontend view
 	getOnlyFetch("/data/user/getById", {Id: params.get("Id")})
 	.then((response) => {
 		if (!response.ok)
 		{
 
-			// validate session first
 			fetch("/validateSession", {
 				method: "POST",
 				credentials: "include", // to send cookies
@@ -66,27 +51,19 @@ export function NewUser() {
 	document.getElementById("body")!.innerHTML = usernameAvatarForm;
 };
 
-// this shows home view
-
-// 2FA
 export async function existingUser() { // cookie is set automatically
 
 	console.debug("existingUser()");
 
-	// get user from query string
 	const params = new URLSearchParams(window.location.search);
 
 	if (!params.has('Id')) {
-		// console.error("Invalid user data in query");
-        // globalThis.clsGlobal.LoggedInUser = null;
 		LoginWithGoogle();
 		return ;
     }
 
 	const userId = Number(params.get('Id'));
 
-	// 2FA
-	// ask server is user enabled 2fa
 	const response = await getOnlyFetch("/data/user/enabled2FA", { Id: userId });
 	if (response.ok)
 	{
@@ -98,13 +75,10 @@ export async function existingUser() { // cookie is set automatically
 	else
 		console.debug("User has NOT 2FA enabled, access grant");
 
-	// EVERYTHING IS COOL, USER AUTHENTICATED
-	// setting jwt in localStorage
 	const jwt = params.get('jwt');
 	console.debug("setting jwt in localStorage: ", jwt);
 	localStorage.setItem("jwt", jwt);
 
-	// if invalid query?
 	console.debug("Filling loggedInUser");
 	globalThis.clsGlobal.LoggedInUser = new UserDTO(
         Number(params.get('Id')),
@@ -122,7 +96,6 @@ export async function existingUser() { // cookie is set automatically
 	HomeView();
 }
 
-// user must be in the database
 async function usernameAvatarFormHandleSubmit(event: Event)
 {
 	event.preventDefault();
@@ -176,13 +149,10 @@ async function usernameAvatarFormHandleSubmit(event: Event)
 				const user: UserDTO = await UserDTO.getById(Number(Id));
 				globalThis.clsGlobal.LoggedInUser = user;
 
-				//!
 				window.history.replaceState({}, '', '/');
 				HomeView();
-				// document.write("Profile finished, redirecting to home...");
 			}
 			else
-				// document.write("Error uploading profile. Please try again.");
 				alert("Error uploading profile: Invalid input.");
 		})
     	.catch(error => {
@@ -191,15 +161,6 @@ async function usernameAvatarFormHandleSubmit(event: Event)
 	}
 
 }
-
-/**
- * THE RULE IS:
- * don't fill globalThis.loggedInUser when a new user until you send username to server and you have response.ok
- * 
- * if user in db:
- * 	if username == null, the server must redirect to /newUser
- * else the server must redirect to /existingUser
- */
 
 window.requestBackend = requestBackend;
 window.usernameAvatarFormHandleSubmit = usernameAvatarFormHandleSubmit;
@@ -210,7 +171,6 @@ const profileViewStaticPart = `
 </div>
 `;
 
-// ask for username and avatar
 const usernameAvatarForm = `
 <form id="edit-profile-form" class="full-in-grid" style="color: white; display: flex; flex-direction: column; align-items: center; justify-content: center;" onsubmit="usernameAvatarFormHandleSubmit(event)">
 <h1>Continue profile:</h1>
