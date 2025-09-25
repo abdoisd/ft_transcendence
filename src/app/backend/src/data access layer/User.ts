@@ -230,9 +230,6 @@ export function UserRoutes() {
 			await request.jwtVerify();
 			const payload = request.user;
 
-			// console.log(yellow, 'JWT payload:', payload);
-
-			// tmp
 			if (payload.IsRoot) {
 				console.log(yellow, 'Admin access granted');
 				return;

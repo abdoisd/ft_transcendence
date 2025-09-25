@@ -6,7 +6,7 @@ const apiGames = new Map();
 
 export function gameRoutes()
 {
-	server.get("/api-game/init", (request, reply) => {
+	server.get("/api-game/init", { preHandler: server.mustHaveToken }, (request, reply) => {
 		let activeGames = 0;
 		for (const [key, value] of apiGames) {
 			if (value.apiState === "started") {
@@ -33,7 +33,7 @@ export function gameRoutes()
 		});
 	});
 
-	server.get("/api-game/start/:id", (request, reply) => {
+	server.get("/api-game/start/:id", { preHandler: server.mustHaveToken }, (request, reply) => {
 		const game = apiGames.get(request.params.id);
 		if (!game) {
 			reply.code(404).send({error: "Game not found"});
@@ -50,7 +50,7 @@ export function gameRoutes()
 		});
 	});
 
-	server.get("/api-game/state/:id", (request, reply) => {
+	server.get("/api-game/state/:id", { preHandler: server.mustHaveToken }, (request, reply) => {
 		const game = apiGames.get(request.params.id);
 		if (!game) {
 			reply.code(404).send({error: "Game not found"});
@@ -64,7 +64,7 @@ export function gameRoutes()
 		});
 	});
 
-	server.post("/api-game/:id/:player/:move", (request, reply) => {
+	server.post("/api-game/:id/:player/:move", { preHandler: server.mustHaveToken }, (request, reply) => {
 		const game = apiGames.get(request.params.id);
 		if (!game) {
 			reply.code(404).send({error: "Game not found"});
@@ -80,5 +80,4 @@ export function gameRoutes()
 		game.moveApiGame(player, move);
 		reply.send({success: true});
 	});
-
 }
