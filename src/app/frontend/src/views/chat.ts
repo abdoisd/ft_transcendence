@@ -2,6 +2,9 @@ import { authGet, authPost } from "../utils/http_utils";
 import { io } from "socket.io-client";
 import { getQuery } from "../utils/utils";
 
+const BLOCKED_MSG = "You are blocked and cannot send messages to this person.";
+const UNKNOWN_ERROR_MSG = "Unknown error, please try again.";
+
 export const chatIO = io("ws://localhost:3000/chat", {
     auth: {
         token: localStorage.getItem("jwt")
@@ -109,6 +112,22 @@ const currentChatId = () => {
     return getQuery("id");
 }
 
+const displayMessage = (msg: string) => {
+    const div = document.getElementById('sticky-header');
+    if (!div)
+        return;
+
+    if (!div.classList.contains('show')) {
+
+        div.classList.add('show');
+        div.innerText = msg;
+
+        setTimeout(() => {
+            div.classList.remove('show');
+        }, 3000);
+    }
+}
+
 const updateChat = async () => {
     const element = document.getElementById("conversation");
     if (!element)
@@ -120,9 +139,16 @@ const updateChat = async () => {
 
     const user = await authGet(`/api/users/${id}`);
 
+    console.table(user);
+
     element.innerHTML = `
-    <div class="header">
-    <h2>${user.username ?? "-"}</h2>
+    <div class="header flex center">
+        <img class="avatar small" src="/data/user/getAvatarById?Id=${user.id}" alt="">
+        <h2>${user.username ?? "-"}</h2>
+    </div>
+
+    <div class="sticky-header danger-text" id="sticky-header">
+        
     </div>
     
     <div id="chat" class="conversation scroll-box pv-5">
@@ -175,19 +201,21 @@ const updateChat = async () => {
                         d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
                 </svg>
     
-                <p id="block-text">Block User</p>
+                <p id="block-text"></p>
             </div>
         </button>
     </div>
     </div>
     `;
 
-    updateBlockButton(user.blocked);
+    if (user.im_blocked)
+        displayMessage(BLOCKED_MSG);
+
+    updateBlockButton(user.blocked, user.im_blocked);
 
     document.getElementById("invite")!.onclick = async function (event) {
         await sendMessage(event, id, "INVITE");
     }
-
 
     const blockEl = document.getElementById("block");
 
@@ -197,7 +225,7 @@ const updateChat = async () => {
         blockEl!.disabled = true;
         const result = await authPost(`/api/users/${id}/block`, {});
         if (result)
-            updateBlockButton(result.is_blocked);
+            updateBlockButton(result.is_blocked, user.im_blocked);
         blockEl!.disabled = false;
     }
 
@@ -208,23 +236,31 @@ const updateChat = async () => {
     await updateMessages(id);
 }
 
-const updateBlockButton = (blocked: boolean) => {
+const updateBlockButton = (blocked: boolean, imBlocked: boolean) => {
     const blockEl = document.getElementById("block-text");
-    const input = document.getElementById("input");
-    if (!blockEl || !input)
+    if (!blockEl)
         return;
 
-    if (blocked) {
+    if (blocked)
         blockEl.textContent = "Unblock";
+    else
+        blockEl.textContent = "Block User";
+
+    updateInputEnabled(blocked || imBlocked);
+}
+
+const updateInputEnabled = (blocked: boolean) => {
+    const input = document.getElementById("input");
+    if (!input)
+        return;
+    if (blocked) {
         input.value = "";
         input.disabled = true;
-    }
-    else {
-        blockEl.textContent = "Block User";
+    } else {
         input.disabled = false;
     }
-
 }
+
 
 const updateMessages = async (other) => {
     const conversationDiv = document.getElementById("chat");
@@ -309,9 +345,13 @@ const sendMessage = async (event, userId, type) => {
         message = null;
     else
         return;
-    const msg = await authPost(`/api/conversations/${userId}`, { message: message, type: type });
-    appendMessage(msg, true, null);
-    updateConversations();
+    try {
+        const msg = await authPost(`/api/conversations/${userId}`, { message: message, type: type });
+        appendMessage(msg, true, null);
+        updateConversations();
+    } catch (error) {
+        displayMessage(error.error || UNKNOWN_ERROR_MSG);
+    }
 }
 
 const getMessage = () => {

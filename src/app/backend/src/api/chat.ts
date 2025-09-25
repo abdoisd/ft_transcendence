@@ -1,5 +1,5 @@
-import { emitMessage } from "../chat.ts";
 import chatRepository from "../repositories/ChatRepository.ts";
+import userRepository from "../repositories/UserRepository.ts";
 import { server } from "../server.ts";
 
 
@@ -11,8 +11,11 @@ export default function chatApi(): void {
         const user = request.user;
         if ((type != "MSG" && type != "INVITE") || (type == "MSG" && (!message || message === "")))
             return (reply.code(422).send({ error: "Invalid message or type" }));
+        
+        if (!(await userRepository.canSendMessage(user.Id, id)))
+            return (reply.code(400).send({ error: "You can't send messages to this user!" }));
+
         const result = await chatRepository.storeMessage(user.Id, id, message, type);
-        emitMessage(id, await chatRepository.getMessage(result.id, id));
         reply.send(result);
     });
 

@@ -23,6 +23,6 @@ export const authPost = async (path: string, body: any) => {
         body: JSON.stringify(body)
     });
     if (!response.ok)
-        throw response.statusText;
+        throw await response.json();
     return await response.json();
 }

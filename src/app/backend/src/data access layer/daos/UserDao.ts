@@ -50,6 +50,16 @@ export default class UserDao {
         });
     });
 
+    static getBlockedOrBlockingUser = async (id1: number, id2: number) => new Promise((resolve, reject) => {
+        let sql = `SELECT * FROM blocked_users WHERE (id1 = ? AND id2 = ?) OR (id1 = ? AND id2 = ?) LIMIT 1`;
+
+        return db.get(sql, [id1, id2, id2, id1], function (err, row) {
+            if (err)
+                return reject(err.message);
+            return resolve(row);
+        });
+    });
+
 
     static deleteBlockedUser = async (id: number) => new Promise<boolean>((resolve, reject) => {
         let sql = `DELETE FROM blocked_users WHERE id = ?`;

@@ -16,6 +16,11 @@ export default class UserRepository {
         return record != null;
     }
 
+    static canSendMessage = async (id1: number, id2: number) => {
+        const record = await userDao.getBlockedOrBlockingUser(id1, id2);
+        return !record;
+    }
+
     static toggleUserBlock = async (id1: number, id2: number) => {
         const record = await userDao.getBlockedUser(id1, id2);
         if (record)

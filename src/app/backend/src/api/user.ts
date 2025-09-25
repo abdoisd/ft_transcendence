@@ -15,13 +15,15 @@ export default function userApi(): void {
         const me = request.user;
         const user = await userRepository.getUser(id);
         const didBlock = await userRepository.getDidBlock(me.Id, id);
+        const imBlocked = await userRepository.getDidBlock(id, me.Id);
 
         reply.send(
             {
                 id: user.id,
                 username: user.username,
                 avatar: user.avatar,
-                blocked: didBlock
+                blocked: didBlock,
+                im_blocked: imBlocked
             }
         );
     });

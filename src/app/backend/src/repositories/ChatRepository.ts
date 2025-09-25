@@ -1,5 +1,6 @@
 import chatDao from "../data access layer/daos/ChatDao.ts"
 import type Message from "../entities/Message.ts";
+import { emitMessage } from "../chat.ts";
 
 export default class ChatRepository {
 
@@ -7,7 +8,9 @@ export default class ChatRepository {
         const id = await chatDao.storeMessage(me, receiverId, message, type);
         if (!id)
             return null;
-        return this.messageMapper(await chatDao.getMessage(id), me);
+        const result = this.messageMapper(await chatDao.getMessage(id), me);
+        emitMessage(receiverId, await this.getMessage(result.id, receiverId));
+        return result;
     }
 
     static getMessage = async (id: number, userId: number) => {
