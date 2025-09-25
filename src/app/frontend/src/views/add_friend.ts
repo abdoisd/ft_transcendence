@@ -30,17 +30,13 @@ var foundUser: UserDTO;
 async function searchUserButton(event?: Event)
 {
 	event?.preventDefault();
-	// display user mini profile / user not found
 
 	const resultDiv = document.getElementById("result")!;
 
-	//?
 	const jwt = localStorage.getItem("jwt");
 	console.debug("setting jwt to request: ", jwt);
 	
-	// get
 	foundUser = await UserDTO.getByUsername((document.getElementById("txtUsername") as HTMLInputElement).value);
-	// foundUser = await get("/data/user/getByUsername", { username: (document.getElementById("txtUsername") as HTMLInputElement).value }, jwt)
 	if (foundUser)
 		resultDiv.innerHTML = userMiniProfile(foundUser);
 	else

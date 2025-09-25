@@ -1,8 +1,6 @@
 
-// response must be json
 export async function get(path: string, params = {})
 {
-	// get client token from local storage
 	const jwt = localStorage.getItem('jwt');
 
     const queryString = new URLSearchParams(params).toString();
@@ -21,10 +19,8 @@ export async function get(path: string, params = {})
 	});
 }
 
-// await this
 export async function getOnlyFetch(path: string, params = {})
 {
-	// get client token from local storage
 	const jwt = localStorage.getItem('jwt');
 
     const queryString = new URLSearchParams(params).toString();
@@ -37,7 +33,6 @@ export async function getOnlyFetch(path: string, params = {})
 	})
 }
 
-// option to post multipart form data
 export async function post(path: string, obj: any)
 {
 	const jwt = localStorage.getItem('jwt');

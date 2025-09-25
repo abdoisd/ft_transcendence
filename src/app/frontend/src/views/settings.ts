@@ -9,7 +9,6 @@ export async function Settings()
 		return response.json();
 	})
 	.then((data) => {
-		// console.log("data:", data);
 
 		const qrCodeElement = document.getElementById("qrcode") as HTMLImageElement;
 		qrCodeElement.src = data.qrCode;
@@ -34,13 +33,12 @@ async function verify(event)
 	event.preventDefault();
 
 	const code = (document.getElementById("2fa-code") as HTMLInputElement).value;
-	// send server to verify
 	const response = await getOnlyFetch("/auth/2fa/enable", { code: code, Id: clsGlobal.LoggedInUser.Id });
 	if (response.ok)
 	{
 		document.getElementById("result")!.innerText = "2FA Enabled Successfully";
 		const data = await response.json();
-		localStorage.setItem("jwt", data.jwt); // update jwt with new one
+		localStorage.setItem("jwt", data.jwt);
 	}
 	else
 		document.getElementById("result")!.innerText = "invalid";

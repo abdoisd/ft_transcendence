@@ -10,8 +10,6 @@ import { Server } from "socket.io";
 import dotenv from 'dotenv';
 dotenv.config({path: './env/.env'});
 dotenv.config({path: './.env'});
-console.log(yellow, process.env.VAULT_TOKEN);
-console.log(yellow, process.env.JWT_SECRET);
 
 // config
 import { config } from "./global.ts";
@@ -28,13 +26,12 @@ import { OAuth2Routes } from "./oauth2.ts";
 import { relationshipRoutes } from "./data access layer/relationship.ts"
 import { Enable2faRoutes } from "./2fa.ts";
 
-export const server = Fastify({bodyLimit: 3048576}); // 1mb
+export const server = Fastify({bodyLimit: 3048576});
 export const ws = new Server(server.server, {
 	cors: {
 		origin: "https://localhost",
 	},
 });
-
 
 // REGISTER PLUGINS
 server.register(cookie, {});
@@ -44,7 +41,7 @@ server.register(fastifyStatic, {
 });
 server.setNotFoundHandler((request, reply) => {
 	if (request.url.split("/").length > 2)
-		return reply.status(404).send();
+		return reply.status(404).send('Not Found');
 	reply.sendFile("index.html");
 });
 server.register(fastifyJwt, {
@@ -53,10 +50,8 @@ server.register(fastifyJwt, {
 
 // game / socket.io
 import { webSocket } from "./webSocket.ts";
-
 webSocket();
 chatWs();
-
 
 // prometheus
 import client from 'prom-client';
@@ -98,7 +93,7 @@ import vaultFactory from 'node-vault';
 const vault = vaultFactory({
 	apiVersion: 'v1',
 	endpoint: 'https://vault-server:8200',
-	token: process.env.VAULT_TOKEN || '', //*
+	token: process.env.VAULT_TOKEN,
 	requestOptions: {
 		strictSSL: false
 	}
@@ -111,23 +106,10 @@ export async function vaultGoogleClientSecret(): Promise<string>
 	});
 }
 
-
-// ==================================================================================================
-
-
-// request and it's response
 server.addHook('onSend', async (request, reply, payload) => {
 	console.info(magenta, "Request to server: " + request.method + " " + request.url);
 	console.info(magenta, "Server response: " + reply.statusCode);
 });
-
-// // for timing things
-// server.addHook('onRequest', async (request) => {
-// 	console.info(magenta, "Request to server: " + request.method + " " + request.url);
-// });
-// server.addHook('onResponse', async (request, reply) => {
-// 	console.info(magenta, "Server response: " + reply.statusCode);
-// });
 
 import { gameRoutes } from "./game api/game api.ts";
 import { chatWs } from "./chat.ts";
@@ -137,7 +119,6 @@ const start = async () =>
 {
     try
     {
-
 		console.log("Starting server...");
 		
 		// register routes
@@ -153,8 +134,8 @@ const start = async () =>
 			console.log(server.printRoutes())
 		});
 		
-        const host = config.HOST || 'localhost'; //*
-        const port = config.PORT ? Number(config.PORT) : 3000; //*
+        const host = config.HOST;
+        const port = Number(config.PORT);
         await server.listen({port, host});
     }
     catch (err)

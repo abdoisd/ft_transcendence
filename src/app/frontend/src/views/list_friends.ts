@@ -1,20 +1,12 @@
 
-// LIST FRIENDS VIEW
 
 export async function listFriendsView()
 {
 	document.getElementById("main-views")!.innerHTML = listFriendsViewStaticPart;
 
-	// code to fill list
 	const list = document.getElementById("lstFriends");
 	const template = document.getElementById("user-template");
 
-	// relationships
-		// get all relationships per user
-	// user
-		// get all friends
-	
-	// frontend
 	const users = await clsGlobal.LoggedInUser.getFriends();
 	if (users.length == 0)
 	{

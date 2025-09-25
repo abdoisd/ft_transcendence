@@ -46,10 +46,3 @@ const friendsViewStaticPart: string = `
 		</div>
 	</div>
 `;
-
-
-
-// <p>Friends View:</p>
-// <a class="anchor-general" href="/addFriend" onclick="route()">Add Friend</a>
-// <br>
-// <a class="anchor-general" href="/listFriends" onclick="route()">List Friends</a>

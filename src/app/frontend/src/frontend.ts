@@ -1,26 +1,19 @@
 
 import './global.ts'; // import a file
-// views
 import { HomeView } from './views/home.ts';
 import { ProfileView } from './views/profile.ts';
 import { ProfileEditView } from './views/profileEdit.ts';
 import { LoginWithGoogle, existingUser, NewUser } from './views/loginWithGoogle.ts';
 import { friendsView } from './views/friends.ts';
 import { Settings } from './views/settings.ts';
-// import { GameRemoteView } from './views/gameRemote.ts';
 import { GameModesView } from './views/game.ts';
-// import { Tournament } from './views/tournament.ts';
-
 import { UserDTO } from './business layer/user.ts';
 import { Chat } from './views/chat.ts';
-
 import { GameManager } from './views/game.ts';
 import { addFriendView } from './views/add_friend.ts';
 import { listFriendsView } from './views/list_friends.ts';
 
-
 window.gameManager = new GameManager();
-
 
 type RoutePath = keyof typeof routes;
 export var routes = {
@@ -31,10 +24,7 @@ export var routes = {
 	'/listFriends': listFriendsView,
 	'/profile': ProfileView,
 	'/profileEdit': ProfileEditView,
-	// '/profile/matchHistory': ProfileMatchHistoryView,
 	'/game': GameModesView,
-	// '/gameRemote': GameRemoteView,
-	// '/tournament': Tournament,
 	"/settings": Settings,
 	"/chat": Chat
 };
@@ -63,21 +53,15 @@ export async function autoLogin() {
 		});
 }
 
-// for clients writing url's directly
-// or for buttons/links to prevent default
-// otherwise, I called it for a view, provide route(null, "/home") , it's me that called it
 export function route(event: Event | null, path?: string) {
 	var pushToHistory = event == null;;
 
 	if (path) {
-		// should push to history ! risky to do something now
 		handleView(null, path);
 		return;
 	}
 
-	// buttons
 	event = event || window.event; // window.event link event, event passed by addEventListener
-
 
 	event!.preventDefault();
 
@@ -118,7 +102,6 @@ function handleView(event?, path?: string | null) {
 		.then(() => {
 
 			if (path != "/newUser" && path != "/existingUser") {
-				// check auto login
 				if (!clsGlobal.LoggedInUser) {
 					console.debug("LoggedInUser not filled");
 					LoginWithGoogle(); // this send to me to new user or existing user
@@ -128,25 +111,8 @@ function handleView(event?, path?: string | null) {
 					console.debug("LoggedInUser filled");
 			}
 
-			// if (path == "/existingUser")
-			// {
-			// 	// just protect frontend view
-			// 	fetch("/validateSession", {
-			// 		method: "POST",
-			// 		credentials: "include", // to send cookies
-			// 	})
-			// 	.then(response => {
-			// 		if (!response.ok)
-			// 		{
-			// 			LoginWithGoogle();
-			// 			return ;
-			// 		}
-			// 	})
-			// }
-
 			clsGlobal.LoggedInUser?.update(); // what
 
-			// load home
 			HomeView();
 			if (path == '/') // home view is default
 			{
@@ -157,15 +123,10 @@ function handleView(event?, path?: string | null) {
 			if (routes[getMainPath(path)])
 				routes[path]();
 			else {
-				window.history.replaceState({}, "", "/");
-				HomeView();
+				// window.history.replaceState({}, "", "/");
+				// HomeView();
+				document.getElementById("body")!.innerHTML = `<h1>not found</h1>`; //&
 			}
 		});
 };
 window.onpopstate = handleView; // on <- / ->, call handleLocation
-
-/**
- * Attention:
- * any click to change view, must go through route()
- * if something very simple, just call workflow
- */

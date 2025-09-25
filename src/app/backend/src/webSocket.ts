@@ -3,7 +3,7 @@ import { clsGame } from "./data access layer/game.ts";
 import { red, green, yellow, cyan } from "./global.ts";
 import { ws, server } from "./server.ts";
 import ChatRepository from "./repositories/ChatRepository.ts";
-import { TOURNAMENT_ID } from "./data access layer/user.ts";
+import { TOURNAMENT_ID, User } from "./data access layer/user.ts";
 
 export const userIdUserId = new Map();
 export const userIdSocket = new Map();
@@ -76,7 +76,7 @@ export function webSocket() {
 			wsServerAI.to(roomId).emit("start-game", game.getFullState());
 			wsServerAI.to(roomId).emit("score-state", game.scores);
 			let lastTime = Date.now();
-			const interval = setInterval(() => {
+			const interval = setInterval(async () => {
 				const now = Date.now();
 				const delta = (now - lastTime) / 1000;
 				lastTime = now;
@@ -95,6 +95,12 @@ export function webSocket() {
 						TournamentId: -1
 					});
 					dbGame.add();
+					const user1 = await User.getById(client.userId);
+					if (game.winnerId == user1.Id)
+						user1.Wins++;
+					else
+						user1.Losses++;
+					user1.update();
 				}
 			}, 16);
 		});
@@ -226,7 +232,7 @@ export function webSocket() {
 		wsServerRemote.to(roomId).emit("start-game", game.getFullState());
 		wsServerRemote.to(roomId).emit("score-state", game.scores);
 		let lastTime = Date.now();
-		const interval = setInterval(() => {
+		const interval = setInterval( async () => {
 			const now = Date.now();
 			const delta = (now - lastTime) / 1000;
 			lastTime = now;
@@ -237,6 +243,7 @@ export function webSocket() {
 				wsServerRemote.to(roomId).emit("game-state", game.getState());
 			} else {
 				clearInterval(interval);
+
 				// end game ...
 				const dbGame = new clsGame({
 					Id: -1,
@@ -247,6 +254,21 @@ export function webSocket() {
 					TournamentId: -1
 				});
 				dbGame.add();
+				const user1 = await User.getById(p1.userId);
+				const user2 = await User.getById(p2.userId);
+				if (game.winnerId == user1.Id)
+				{
+					user1.Wins++;
+					user2.Losses++;
+				}
+				else
+				{
+					user1.Losses++;
+					user2.Wins++;
+				}
+				user1.update();
+				user2.update();
+				// end game ...
 
 				remoteGames.delete(roomId);
 				// delete ids
@@ -479,7 +501,7 @@ export function webSocket() {
 		wsServerInvite.to(roomId).emit("start-game", game.getFullState());
 		wsServerInvite.to(roomId).emit("score-state", game.scores);
 		let lastTime = Date.now();
-		const interval = setInterval(() => {
+		const interval = setInterval(async () => {
 			const now = Date.now();
 			const delta = (now - lastTime) / 1000;
 			lastTime = now;
@@ -503,6 +525,20 @@ export function webSocket() {
 				});
 				dbGame.add();
 
+				const user1 = await User.getById(p1.userId);
+				const user2 = await User.getById(p2.userId);
+				if (game.winnerId == user1.Id)
+				{
+					user1.Wins++;
+					user2.Losses++;
+				}
+				else
+				{
+					user1.Losses++;
+					user2.Wins++;
+				}
+				user1.update();
+				user2.update();
 			}
 		}, 16);
 	}

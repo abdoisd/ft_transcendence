@@ -27,7 +27,6 @@ server.addHook('onSend', (request, reply, payload, done) => {
 		},
 	};
 
-	// post log to logstash
 	fetch('http://logstash:5044', {
 	method: 'POST',
 	headers: {
@@ -37,7 +36,7 @@ server.addHook('onSend', (request, reply, payload, done) => {
 	})
 	.catch(error => console.error('Error:', error));
   
-	done(); // call done to continue the response
+	done();
 });
 
 }

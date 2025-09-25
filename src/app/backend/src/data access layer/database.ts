@@ -2,8 +2,6 @@ import sqlite3 from "sqlite3";
 import { green, red } from "../global.ts";
 import { connectedToSqlite } from "../server.ts"; // import variable
 
-// create/connect to database AND create tables
-
 export const db = new sqlite3.Database('ft_transcendence', (err) => //!
 {
 	if (err)

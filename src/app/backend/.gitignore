@@ -1,4 +1,5 @@
-./src/avatars/*
-!./src/avatars/default-avatar.png
+src/avatars/*
+!src/avatars/default-avatar.png
+!src/avatars/tournament-avatar.png
 env
 public

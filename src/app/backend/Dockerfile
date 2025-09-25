@@ -6,4 +6,6 @@ COPY ./src/package.json /
 
 RUN npm install && npm install -g nodemon
 
-CMD [ "npm", "run", "dev" ]
+COPY ./backend-init.sh /usr/local/bin/backend-init.sh
+RUN chmod +x /usr/local/bin/backend-init.sh && apt update && apt install -y tini
+CMD ["tini", "--", "/bin/bash", "/usr/local/bin/backend-init.sh"]
