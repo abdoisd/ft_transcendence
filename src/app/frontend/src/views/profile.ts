@@ -51,6 +51,7 @@ export async function ProfileView() {
 
 
 			if (match.User2Id == null) {
+				const lost = match.WinnerId == "AI";
 				recordDiv.innerHTML = `
 					<div class="flex-1">
 						<h6 class="mb-1 title-medium">Player #${user.Username} VS AI</h6>
@@ -58,7 +59,7 @@ export async function ProfileView() {
 						<span class="text-secondary">${formatEpochMillis(match.Date)}</span>
 					</div>
 
-					<h6 class="${match.WinnerId == null ? "danger-text" : "success-text"}">${match.WinnerId == null ? "LOSS" : "Win"}</h6>
+					<h6 class="${lost ? "danger-text" : "success-text"}">${lost ? "LOSS" : "Win"}</h6>
 				`
 			}
 			else {

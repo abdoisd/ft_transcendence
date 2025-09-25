@@ -293,8 +293,8 @@ const getMessage = () => {
 const ChatView: string = `
 <section class="chat flex">
 <div class="left section scroll-box">
-    <div class="mv-5">
-        <h6 class="mh-5 mb-4">Conversations</h6>
+    <div>
+        <h6 class="mh-5 mb-4 mt-1">Conversations</h6>
 
         <div id="conversations" class="list mb-7">
         </div>
