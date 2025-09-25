@@ -27,13 +27,12 @@ a {
 }
 
 .footer {
-    margin-top: 30px;
-    display: flex;
-    background: #1d2531;
     grid-area: footer;
-    padding-top: 22px;
-    padding-bottom: 40px;
+    display: flex;
     justify-content: center;
+    align-items: center;
+    margin-top: 30px;
+    background: #1d2531;
     font-size: 16px;
     color: #9CA3AF;
 }
@@ -72,13 +71,14 @@ body {
         "nav nav nav"
         "main main main"
         "footer footer footer";
-    grid-template-rows: 200px 1fr 25px;
+    grid-template-rows: 200px auto 80px;
     grid-template-columns: 100px 1fr;
     background-image: radial-gradient(circle at 10% 20%, rgba(220, 38, 38, 0.1), transparent 25%), radial-gradient(circle at 90% 80%, rgba(220, 38, 38, 0.1), transparent 25%);
 }
 
 html {
     background: #111827;
+    height: 100%;
 }
 
 
@@ -105,29 +105,15 @@ input[type="text"] {
     grid-row: 1 / -1;
 }
 
-.body {
-    margin: 0;
-    padding: 0;
-    background-color: #0d0d0d;
-    color: #fff;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    overflow: hidden;
-}
-
 .board {
+    overflow: hidden;
     width: 80vw;
     height: 40vw;
     min-width: 300px;
     min-height: 260px;
     max-width: 900px;
     max-height: 600px;
-    border: 3px solid #b30000;
-    box-shadow: 0 0 25px #ff0000;
-    background: radial-gradient(circle at center, #111 0%, #000 100%);
+    box-shadow: 0 0 10px 5px #ff0000;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -137,7 +123,6 @@ input[type="text"] {
 .scores {
     display: flex;
     gap: 60px;
-    margin-bottom: 10px;
 }
 
 .scores div {
@@ -149,13 +134,13 @@ input[type="text"] {
 .scores .p1,
 .scores .p2 {
     color: #ff1a1a;
-    font-weight: 700;
     font-size: 1.2rem;
+    font-weight: 700;
 }
 
 .scores .score-p1,
 .scores .score-p2 {
-    font-weight: 900;
-    font-size: 32px;
     color: white;
+    font-size: 1.2rem;
+    font-weight: 900;
 }
