@@ -9,7 +9,6 @@ export default function userApi(): void {
         reply.send(users);
     });
 
-
     server.get("/api/users/:id", { preHandler: server.mustHaveToken }, async (request, reply) => {
         const { id } = request.params;
         const me = request.user;
