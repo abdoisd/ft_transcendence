@@ -2,6 +2,8 @@ import { Game } from "./game.ts";
 import { clsGame } from "./data access layer/game.ts";
 import { red, green, yellow, cyan } from "./global.ts";
 import { ws, server } from "./server.ts";
+import ChatRepository from "./repositories/ChatRepository.ts";
+import { TOURNAMENT_ID } from "./data access layer/user.ts";
 
 export const userIdUserId = new Map();
 export const userIdSocket = new Map();
@@ -255,8 +257,8 @@ export function webSocket() {
 	}
 
 	const tournaments = new Map();
-	let tournament: any | null = null;
-	let tournamentId: any | null = null;
+	let tournament;
+	let tournamentId;
 	wsServerTournament.on("connection", (client) => {
 		client.on("join-tournament", (msg) => {
 			client.userId = msg.userId;
@@ -379,11 +381,9 @@ export function webSocket() {
 					if (tournament.matches.semi1.winner && tournament.matches.semi2.winner && !tournament.done) {
 						tournament.matches.semi1.loser.emit("phase", tournament.getState());
 						tournament.matches.semi2.loser.emit("phase", tournament.getState());
-
-						// setTimeout(() => {
-						// 	tournament.startFinal();
-						// }, 5000);
 						
+						ChatRepository.storeMessage(TOURNAMENT_ID, tournament.matches.semi1.winner.userId, "Finale starts soon...", "MSG");
+						ChatRepository.storeMessage(TOURNAMENT_ID, tournament.matches.semi2.winner.userId, "Finale starts soon...", "MSG");
 						let count = 0;
 						const counter = setInterval(() => {
 							if (count === 5) {
@@ -414,7 +414,6 @@ export function webSocket() {
 		}, 16);
 	}
 
-	//new
 	const inviteGames = new Map();
 	wsServerInvite.on("connection", (client) => {
 		console.log(`CONNECTED TO ME ${client.userId}`);
