@@ -12,13 +12,16 @@ export default function userApi(): void {
 
     server.get("/api/users/:id", { preHandler: server.mustHaveToken }, async (request, reply) => {
         const { id } = request.params;
+        const me = request.user;
         const user = await userRepository.getUser(id);
+        const didBlock = await userRepository.getDidBlock(me.Id, id);
 
         reply.send(
             {
                 id: user.id,
                 username: user.username,
-                avatar: user.avatar
+                avatar: user.avatar,
+                blocked: didBlock
             }
         );
     });

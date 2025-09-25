@@ -11,6 +11,11 @@ export default class UserRepository {
         return await userDao.getUser(id);
     }
 
+    static getDidBlock = async (id1: number, id2: number) => {
+        const record = await userDao.getBlockedUser(id1, id2);
+        return record != null;
+    }
+
     static toggleUserBlock = async (id1: number, id2: number) => {
         const record = await userDao.getBlockedUser(id1, id2);
         if (record)

@@ -120,8 +120,6 @@ const updateChat = async () => {
 
     const user = await authGet(`/api/users/${id}`);
 
-    console.table(user);
-
     element.innerHTML = `
     <div class="header">
     <h2>${user.username ?? "-"}</h2>
@@ -183,6 +181,8 @@ const updateChat = async () => {
     </div>
     </div>
     `;
+
+    updateBlockButton(user.blocked);
 
     document.getElementById("invite")!.onclick = async function (event) {
         await sendMessage(event, id, "INVITE");
