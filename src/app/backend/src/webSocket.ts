@@ -131,8 +131,7 @@ export function webSocket() {
 	const remoteGames = new Map();
 	wsServerRemote.on("connection", (client) => {
 		client.roomId = null;
-		client.on("join-game", (msg) => {
-			client.userId = msg.userId;
+		client.on("join-game", () => {
 			if (waitingRemotePlayers.length > 0) {
 				const opponent = waitingRemotePlayers.pop();
 				if (opponent.userId === client.userId) {
@@ -260,9 +259,7 @@ export function webSocket() {
 	let tournament;
 	let tournamentId;
 	wsServerTournament.on("connection", (client) => {
-		client.on("join-tournament", (msg) => {
-			client.userId = msg.userId;
-
+		client.on("join-tournament", () => {
 			if (!tournament) {
 				tournament = new Tournament(startTournamentGame);
 				tournament.addPlayer(client);

@@ -51,7 +51,7 @@ function aiGame() {
 			token: localStorage.getItem("jwt")
 		}
 	});
-	wsClientAI.emit("join-game", {userId: clsGlobal.LoggedInUser.Id})
+	wsClientAI.emit("join-game");
 
 	let game = null;
 	wsClientAI.on("start-game", (initialState) => {		
@@ -143,7 +143,7 @@ function remoteGame() {
 			token: localStorage.getItem("jwt")
 		}
 	});
-	wsClientRemote.emit("join-game", {userId: clsGlobal.LoggedInUser.Id});
+	wsClientRemote.emit("join-game");
 
 	let game = null;
 	wsClientRemote.on("start-game", (initialState) => {
@@ -218,7 +218,7 @@ function tournamentGame() {
 			token: localStorage.getItem("jwt")
 		}
 	});
-	wsClientTournament.emit("join-tournament", {userId: clsGlobal.LoggedInUser.Id});
+	wsClientTournament.emit("join-tournament");
 
 	let game = null;
 	wsClientTournament.on("start-game", (initialState) => {
