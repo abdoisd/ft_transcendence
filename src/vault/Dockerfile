@@ -25,5 +25,6 @@ COPY ./src/vault-init2.sh /usr/local/bin/vault-init2.sh
 RUN chmod +x /usr/local/bin/vault-init.sh && chmod +x /usr/local/bin/vault-init2.sh
 
 CMD ["tini", "--", "/bin/bash", "vault-init.sh"]
+
 # ENTRYPOINT ["tini", "--"]
 # CMD ["tail", "-f", "/dev/null"]

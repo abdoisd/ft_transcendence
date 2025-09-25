@@ -10,8 +10,8 @@ import { Server } from "socket.io";
 import dotenv from 'dotenv';
 dotenv.config({path: './env/.env'});
 dotenv.config({path: './.env'});
-console.log(yellow, process.env.VAULT_TOKEN);
-console.log(yellow, process.env.JWT_SECRET);
+// console.log(yellow, process.env.VAULT_TOKEN);
+// console.log(yellow, process.env.JWT_SECRET);
 
 // config
 import { config } from "./global.ts";

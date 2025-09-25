@@ -181,3 +181,5 @@ volumes:
 networks:
   app:
     driver: bridge
+  
+#       - ./src/vault/data:/opt/vault/data
