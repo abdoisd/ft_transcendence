@@ -277,38 +277,33 @@ export function webSocket() {
 	}
 
 	const tournaments = new Map();
-	let tournament;
-	let tournamentId;
 	wsServerTournament.on("connection", (client) => {
 		client.on("join-tournament", () => {
-			if (!tournament) {
-				tournament = new Tournament(startTournamentGame);
-				tournament.addPlayer(client);
-				tournamentId = `tournament_${Date.now()}_${Math.random().toString(10).slice(2, 7)}`;
-				tournaments.set(tournamentId, tournament);
-				client.tournamentId = tournamentId;
-				client.join(tournamentId);
-				console.log(red, `FIRST USER: ${client.userId}`);
-			} else if (tournament.players.length <= 4) {
-				const alreadyJoined = tournament.players.some(p => p.userId === client.userId);
-				if (alreadyJoined) {
-					client.emit("error", "You already joined the tournament.");
-					client.disconnect(true);
-					console.log(red, `YOU AREADY JOINED ${client.userId}`);
-					return;
-				}
+			let tourId = [...tournaments.keys()].find(id => tournaments.get(id).players.length < 4);
+			let tour;
 
-				client.tournamentId = tournamentId;
-				client.join(tournamentId);
-				tournament.addPlayer(client);
-				if (tournament.players.length == 4) {
-					tournament.startSemifinals();
-					tournament = null;
-				}
-				console.log(red, `added non first user: ${client.userId}`);
+			if (!tourId) {
+				tourId = `tournament_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+				tour = new Tournament(startTournamentGame);
+				tournaments.set(tourId, tour);
+			} else {
+				tour = tournaments.get(tourId);
+			}
+
+			if (tour.players.some(p => p.userId === client.userId)) {
+				client.emit("error", "You already joined the tournament.");
+				client.disconnect(true);
+				return;
+			}
+
+			client.tournamentId = tourId;
+			client.join(tourId);
+			tour.addPlayer(client);
+
+			if (tour.players.length === 4) {
+				tour.startSemifinals();
 			}
 		});
-
 		client.on("move", ({key, pressedState}) => {
 			const game = client.game;
 			if (!game)
@@ -321,7 +316,6 @@ export function webSocket() {
 			else if (key == "ArrowDown" || key == "s")
 				keyStates.down = pressedState;
 		});
-
 		client.on("disconnect", () => {
 			const leaver = client;
 			const currTournament = tournaments.get(leaver.tournamentId);
@@ -331,25 +325,18 @@ export function webSocket() {
 				|| leaver == currTournament.matches.semi2.loser
 				|| leaver == currTournament.matches.final?.loser)
 				return;
-			tournament = null;
+			currTournament.void = true;
 			for (const player of currTournament.players) {
 				if (player !== leaver) {
 					player.emit("void");
 				}
 			}
-			tournaments.delete(tournamentId);
+			tournaments.delete(leaver.tournamentId);
 		});
 	});
 	function startTournamentGame(p1, p2) {
-		if (!p1.connected || !p2.connected) {
-			const tour = tournaments.get(p1.tournamentId);
-			if (tour) {
-				for (const dp of tour?.players) {
-					if (dp.connected) {
-						dp.emit("void");
-					}
-				}
-			}
+		const tournament = tournaments.get(p1.tournamentId);
+		if (!p1.connected || !p2.connected || !tournament) {
 			return;
 		}
 
@@ -365,20 +352,19 @@ export function webSocket() {
 
 		wsServerTournament.to(roomId).emit("start-game", game.getFullState());
 		wsServerTournament.to(roomId).emit("score-state", game.scores);
+
 		let lastTime = Date.now();
 		const interval = setInterval(() => {
-			console.log("EVENT LOOP: TOURNAMENT");
+			console.log(`${lastTime} EVENT LOOP: TOURNAMENT`);
 			const now = Date.now();
 			game.update((now - lastTime) / 1000);
 			lastTime = now;
 	
-			if (game.running) {
+			if (game.running && !tournament.void) {
 					wsServerTournament.to(roomId).emit("game-state", game.getState());
 			} else {
 				clearInterval(interval);
-				const tournamentId = p1.tournamentId;
-				const tournament = tournaments.get(tournamentId);
-				if (tournament /*&& !tournament.void*/) {
+				if (!tournament.void) {
 					if (game.winnerId == p1.userId) {
 						tournament.onGameEnd(p1, p2);
 						console.log(cyan, "P1 WON", p1.userId);
@@ -418,6 +404,7 @@ export function webSocket() {
 						}
 						console.log("WE ARE DONE");
 						console.log(`winner of the final: ${tournament.matches.final.winner}`);
+						tournaments.delete(p1.tournamentId);
 					}
 				}
 			}
@@ -545,7 +532,6 @@ class Tournament {
 	};
 	starterFunction: Function;
 	done: Boolean;
-	// void: Boolean;
     constructor(starter) {
 		this.players = [];
 		this.status = 'waiting';
@@ -554,7 +540,6 @@ class Tournament {
 			semi2: { players: [], winner: null, loser: null },
 			final: { players: [], winner: null, loser: null }
 		};
-		// this.void = false;
 		this.done = false;
 		this.starterFunction = starter;
     }
@@ -610,7 +595,6 @@ class Tournament {
 
 	getState() {
 		return {
-			// status: this.void ? "void" : this.status,
 			semi1: {
 				one: this.matches.semi1.players[0]?.userId,
 				two: this.matches.semi1.players[1]?.userId,

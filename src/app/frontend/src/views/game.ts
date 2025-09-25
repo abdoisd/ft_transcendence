@@ -398,7 +398,6 @@ function apiView() {
 window.apiView = apiView;
 
 async function apiGame() {
-	console.log("l9lawi");
 	const canvas = document.querySelector(".canvas");
 	const ctx = canvas.getContext("2d");
 	const board = document.querySelector(".board");
@@ -407,14 +406,28 @@ async function apiGame() {
 	canvas.height = rect.height;
 	setScores(0, 0, "P1", "P2");
 
-	let response = await fetch("/api-game/init");
+	const token = localStorage.getItem("jwt");
+	let response = await fetch("/api-game/init", {
+		headers: {
+			"Authorization": `Bearer ${token}`
+		}
+	});
 	if (!response.ok) {
-		// GameModesView();
+		GameModesView();
+		return;
 	}
 	let data = await response.json();
 	const gameId = data.gameId;
 
-	response = await fetch(`/api-game/start/${gameId}`);
+	response = await fetch(`/api-game/start/${gameId}`, {
+		headers: {
+			"Authorization": `Bearer ${token}`
+		}
+	});
+	if (!response.ok) {
+		GameModesView();
+		return;
+	}
 	data = await response.json();
 
 	const game = new ClientGame(canvas, ctx, data.gameState.ids.left, data.gameState.ids.right);
@@ -427,7 +440,11 @@ async function apiGame() {
 		if (validKeys.includes(event.key)) {
 			const player = ["w", "s"].includes(event.key) ? "player1api" : "player2api";
 			const move =  (state === "none") ? state : (["ArrowUp", "w"].includes(event.key) ? "up" : "down");
-			fetch(`/api-game/${gameId}/${player}/${move}`, {method: "POST"});
+			fetch(`/api-game/${gameId}/${player}/${move}`, {
+				method: "POST",
+				headers: {
+					"Authorization": `Bearer ${token}`				}
+			});
 		}
 	}
 	function keyDown(event) {
@@ -441,7 +458,17 @@ async function apiGame() {
 	document.addEventListener("keyup", keyUp);
 
 	const interval = setInterval(async () => {
-		const response = await fetch(`/api-game/state/${game.gameId}`);
+		const response = await fetch(`/api-game/state/${game.gameId}`, {
+			headers: {
+				"Authorization": `Bearer ${token}`
+			}
+		});
+		if (!response.ok) {
+			clearInterval(interval);
+			GameModesView();
+			window.gameManager.leaveActiveGame();
+			return;
+		}
 		const data = await response.json();
 
 		if (data.gameState.state) {
