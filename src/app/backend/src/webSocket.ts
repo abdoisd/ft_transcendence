@@ -132,12 +132,9 @@ export function webSocket() {
 	wsServerRemote.on("connection", (client) => {
 		client.roomId = null;
 		client.on("join-game", () => {
-			if (waitingRemotePlayers.length > 0) {
-				const opponent = waitingRemotePlayers.pop();
-				if (opponent.userId === client.userId) {
-					waitingRemotePlayers.push(opponent);
-					return;
-				}
+			const opponentIndex = waitingRemotePlayers.findIndex((sock) => sock.userId !== client.userId);
+			if (opponentIndex !== -1) {
+				const opponent = waitingRemotePlayers.splice(opponentIndex, 1)[0];
 				startRemoteGame(opponent, client);
 			} else {
 				waitingRemotePlayers.push(client);
@@ -170,12 +167,10 @@ export function webSocket() {
 			}
 
 			const roomId = leaver.roomId;
-			// if (!roomId)
-			// 	return;
 			const clientsInRoom = wsServerRemote.adapter.rooms.get(roomId);
 			if (!clientsInRoom) {
 				remoteGames.delete(roomId);
-				return; // removed the game after all the players have left
+				return;
 			}
 
 			const game = remoteGames.get(roomId);
@@ -207,10 +202,14 @@ export function webSocket() {
 	});
 	function startRemoteGame(p1, p2) {
 		if (!p1.connected || !p2.connected) {
-			if (p1.connected)
+			if (p1.connected) {
 				waitingRemotePlayers.push(p1);
-			if (p2.connected)
-				waitingRemotePlayers.push(p2)
+				p1.roomId = null;
+			}
+			if (p2.connected) {
+				waitingRemotePlayers.push(p2);
+				p2.roomId = null;
+			}
 			return;
 		}
 
@@ -383,6 +382,7 @@ export function webSocket() {
 						ChatRepository.storeMessage(TOURNAMENT_ID, tournament.matches.semi2.winner.userId, "Finale starts soon...", "MSG");
 						let count = 0;
 						const counter = setInterval(() => {
+							console.log(`COUNTER SAYS ${count}`);
 							if (count === 5) {
 								clearInterval(counter);
 								tournament.startFinal();
@@ -390,7 +390,7 @@ export function webSocket() {
 							}
 							const data = {
 								one: tournament.matches.semi1.winner.userId,
-								two: tournament.matches.semi1.winner.userId,
+								two: tournament.matches.semi2.winner.userId,
 								count: 5 - count
 							}
 							tournament.matches.semi1.winner.emit("next-game", data);
@@ -595,8 +595,8 @@ class Tournament {
 				winner: this.matches.semi2.winner?.userId
 			},
 			final: {
-				one: this.matches.final.players[0]?.userId,
-				two: this.matches.final.players[1]?.userId,
+				one: this.matches.final.players?.[0]?.userId,
+				two: this.matches.final.players?.[1]?.userId,
 				winner: this.matches.final.winner?.userId
 			}
 		}

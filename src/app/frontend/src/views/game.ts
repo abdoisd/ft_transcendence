@@ -13,7 +13,6 @@ import { gameOverViewStaticPart } from "./gameViews";
 import { opponentLeftGame } from "./gameViews";
 import { tournamentOverview } from "./gameViews";
 import { voidedTournament } from "./gameViews";
-import { wrap } from "module";
 
 export function GameModesView() {
 	// if (!window.gameManager)
