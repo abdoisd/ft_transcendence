@@ -8,27 +8,25 @@ export const chatIO = io("ws://localhost:3000/chat", {
     }
 });
 
-
-chatIO.on("connect", function () {
-    chatIO.on("msg", function (msg) {
-        if (window.location.pathname == "/chat") {
-            if (currentChatId() == msg.sender_id)
-                appendMessage(msg, true, null);
-            updateConversations()
-        }
-        else {
-            Toastify({
-                text: message(msg),
-                gravity: "bottom",
-                position: "right",
-                avatar: `/data/user/getAvatarById?Id=${msg.sender.id}`,
-                style: {
-                    background: "#20262E"
-                }
-            }).showToast();
-        }
-    });
+chatIO.on("msg", function (msg) {
+    if (window.location.pathname == "/chat") {
+        if (currentChatId() == msg.sender_id)
+            appendMessage(msg, true, null);
+        updateConversations()
+    }
+    else {
+        Toastify({
+            text: message(msg),
+            gravity: "bottom",
+            position: "right",
+            avatar: `/data/user/getAvatarById?Id=${msg.sender.id}`,
+            style: {
+                background: "#20262E"
+            }
+        }).showToast();
+    }
 });
+
 
 export async function Chat() {
     document.getElementById("main-views")!.innerHTML = ChatView;
@@ -134,7 +132,7 @@ const updateChat = async () => {
 
     <div class="mh-5">
     <div class="flex center">
-        <img class="avatar small mr-5" src="/data/user/getAvatarById?Id=${user.id}" alt="">
+        <img class="avatar small mr-5" src="/data/user/getAvatarById?Id=${clsGlobal.LoggedInUser.Id}" alt="">
         <form id="form" class="input flex flex-1">
             <input id="input" class="pl-3" type="text" placeholder="Type a message..." />
             <button>Send</button>
@@ -296,12 +294,12 @@ const ChatView: string = `
 <section class="chat flex">
 <div class="left section scroll-box">
     <div class="mv-5">
-        <h3 class="mh-5 mb-3">Conversations</h3>
+        <h6 class="mh-5 mb-4">Conversations</h6>
 
-        <div id="conversations" class="list">
+        <div id="conversations" class="list mb-7">
         </div>
 
-        <h3 class="mh-5 mt-5 mb-3">All users</h3>
+        <h6 class="mh-5 mt-5 mb-4">All users</h6>
 
         <div id="users" class="list">
         
@@ -317,10 +315,3 @@ const ChatView: string = `
 </div>
 </section>
 `;
-
-function connectToServer() {
-    let inviteIO = io("ws://localhost:3000/invite");
-
-    // frontend listeners
-
-}

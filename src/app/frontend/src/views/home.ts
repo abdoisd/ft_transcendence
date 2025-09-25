@@ -15,7 +15,7 @@ const HomeViewStaticPart: string = `
 	<a class="anchor-main" href="/game" onclick="route()">play</a>
 	<a class="anchor-main anchor-chat" href="/chat" onclick="route()">chat</a>
 </main>
-<footer style="grid-area: footer; font-weight: 1; text-align: center;">
+<footer class="footer">
 	2025 — ft_transcendence
 </footer>
 `;
