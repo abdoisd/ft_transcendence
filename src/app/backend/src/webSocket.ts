@@ -334,29 +334,20 @@ export function webSocket() {
 			tournament = null;
 			for (const player of currTournament.players) {
 				if (player !== leaver) {
-					console.log("SENT VOID");
-					// player.game.looping = false; // what if 3 have joined and one of them leaves would this be undefined?
 					player.emit("void");
-				} else {
-					console.log("TRYING TO SPLICE?")
-					// const idx = currTournament.players.findIndex((p) => p === leaver);
-					// if (idx !== -1) {
-					// 	currTournament.players.splice(idx, 1);
-					// 	console.log(red, `leaver was taken out of oturnament players: ${leaver.userId}`);
-					// }
 				}
 			}
-
-			currTournament.void = true;
+			tournaments.delete(tournamentId);
 		});
 	});
 	function startTournamentGame(p1, p2) {
 		if (!p1.connected || !p2.connected) {
 			const tour = tournaments.get(p1.tournamentId);
-			tour.void = true;
-			for (const dp of tour.players) {
-				if (dp.connected) {
-					dp.emit("void");
+			if (tour) {
+				for (const dp of tour?.players) {
+					if (dp.connected) {
+						dp.emit("void");
+					}
 				}
 			}
 			return;
@@ -387,7 +378,7 @@ export function webSocket() {
 				clearInterval(interval);
 				const tournamentId = p1.tournamentId;
 				const tournament = tournaments.get(tournamentId);
-				if (tournament && !tournament.void) {
+				if (tournament /*&& !tournament.void*/) {
 					if (game.winnerId == p1.userId) {
 						tournament.onGameEnd(p1, p2);
 						console.log(cyan, "P1 WON", p1.userId);
@@ -552,9 +543,9 @@ class Tournament {
 		semi2: { players: any[]; winner: any | null; loser: any | null };
 		final: { players: any[]; winner: any | null; loser: any | null };
 	};
-	void: Boolean;
 	starterFunction: Function;
 	done: Boolean;
+	// void: Boolean;
     constructor(starter) {
 		this.players = [];
 		this.status = 'waiting';
@@ -563,7 +554,7 @@ class Tournament {
 			semi2: { players: [], winner: null, loser: null },
 			final: { players: [], winner: null, loser: null }
 		};
-		this.void = false;
+		// this.void = false;
 		this.done = false;
 		this.starterFunction = starter;
     }
@@ -619,7 +610,7 @@ class Tournament {
 
 	getState() {
 		return {
-			status: this.void ? "void" : this.status,
+			// status: this.void ? "void" : this.status,
 			semi1: {
 				one: this.matches.semi1.players[0]?.userId,
 				two: this.matches.semi1.players[1]?.userId,
