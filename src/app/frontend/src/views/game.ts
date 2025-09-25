@@ -238,11 +238,13 @@ function tournamentGame() {
 		const rightUsername = (await UserDTO.getById(Number(entries[1][0]))).Username;
 		setScores(entries[0][1], entries[1][1], leftUsername, rightUsername);
 	});
-	wsClientTournament.on("next-game", (data) => {
+	wsClientTournament.on("next-game", async (data) => {
 		const counter = document.querySelector(".counter");
-		console.log(counter);
-		if (data.count)
-			counter.innerHTML = `Final Game: ${data.one} vs ${data.two} in ${data.count}`;
+		if (data.count) {
+			const leftUsername = (await UserDTO.getById(data.one)).Username;
+			const rightUsername = (await UserDTO.getById(data.two)).Username;
+			counter.innerHTML = `Final Game: ${leftUsername} vs ${rightUsername} in ${data.count}`;
+		}
 		else
 			counter.innerHTML = ``;
 	});
