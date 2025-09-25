@@ -169,7 +169,7 @@ const updateChat = async () => {
        </a>
     
     
-        <button class="btn-secondary danger">
+        <button class="btn-secondary danger" id="block">
             <div class="flex center gap-small">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -177,7 +177,7 @@ const updateChat = async () => {
                         d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM4 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 10.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
                 </svg>
     
-                Block User
+                <p id="block-text">Block User</p>
             </div>
         </button>
     </div>
@@ -188,11 +188,42 @@ const updateChat = async () => {
         await sendMessage(event, id, "INVITE");
     }
 
+
+    const blockEl = document.getElementById("block");
+
+    blockEl!.onclick = async function () {
+        if (!id)
+            return;
+        blockEl!.disabled = true;
+        const result = await authPost(`/api/users/${id}/block`, {});
+        if (result)
+            updateBlockButton(result.is_blocked);
+        blockEl!.disabled = false;
+    }
+
     const form = document.getElementById("form");
     form!.onsubmit = async function (event) {
         await sendMessage(event, id, "MSG");
     };
     await updateMessages(id);
+}
+
+const updateBlockButton = (blocked: boolean) => {
+    const blockEl = document.getElementById("block-text");
+    const input = document.getElementById("input");
+    if (!blockEl || !input)
+        return;
+
+    if (blocked) {
+        blockEl.textContent = "Unblock";
+        input.value = "";
+        input.disabled = true;
+    }
+    else {
+        blockEl.textContent = "Block User";
+        input.disabled = false;
+    }
+
 }
 
 const updateMessages = async (other) => {

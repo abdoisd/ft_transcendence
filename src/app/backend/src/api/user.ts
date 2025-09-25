@@ -23,4 +23,11 @@ export default function userApi(): void {
         );
     });
 
+    server.post("/api/users/:id/block", { preHandler: server.mustHaveToken }, async (request, reply) => {
+        const user = request.user;
+        const { id } = request.params;
+
+        reply.send(await userRepository.toggleUserBlock(user.Id, id));
+    });
+
 }

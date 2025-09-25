@@ -1,4 +1,3 @@
-import userDao from "../data access layer/daos/UserDao.ts"
 import chatDao from "../data access layer/daos/ChatDao.ts"
 import type Message from "../entities/Message.ts";
 

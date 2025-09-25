@@ -22,7 +22,7 @@ export default class UserDao {
 
 
     static getUser = async (id: number) => new Promise<User | null>((resolve, reject) => {
-        let sql = `SELECT * FROM Users WHERE Id == ? LIMIT 1`;
+        let sql = `SELECT * FROM Users WHERE Id = ? LIMIT 1`;
 
         return db.get(sql, [id], function (err, row) {
             if (err)
@@ -38,6 +38,40 @@ export default class UserDao {
             );
         });
     });
+    
+
+    static getBlockedUser = async (id1: number, id2: number) => new Promise((resolve, reject) => {
+        let sql = `SELECT * FROM blocked_users WHERE id1 = ? AND id2 = ? LIMIT 1`;
+
+        return db.get(sql, [id1, id2], function (err, row) {
+            if (err)
+                return reject(err.message);
+            return resolve(row);
+        });
+    });
 
 
+    static deleteBlockedUser = async (id: number) => new Promise<boolean>((resolve, reject) => {
+        let sql = `DELETE FROM blocked_users WHERE id = ?`;
+
+        return db.run(sql, [id], function (err) {
+            if (err)
+                return reject(err.message);
+            return resolve(true);
+        });
+    });
+
+
+    static insertBlockedUser = async (id1: number, id2: number) => new Promise((resolve, reject) => {
+        let sql = `INSERT INTO blocked_users (id1, id2) VALUES (?, ?)`;
+
+        return db.run(sql, [id1, id2], function (err) {
+            if (err)
+                {
+            console.log(err.message);
+                return reject(err.message);
+                }
+            return resolve(true);
+        });
+    });
 }

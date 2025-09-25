@@ -23,7 +23,28 @@ const createMessagesTable = () => {
     });
 }
 
+const createBlockedUsers = () => {
+    db.run(`
+	CREATE TABLE IF NOT EXISTS blocked_users (
+	    id INTEGER PRIMARY KEY AUTOINCREMENT,
+        id1 INTEGER NOT NULL,
+        id2 INTEGER NOT NULL,
+        FOREIGN KEY (id1) REFERENCES Users(Id) ON DELETE CASCADE,
+        FOREIGN KEY (id2) REFERENCES Users(Id) ON DELETE CASCADE,
+        UNIQUE (id1, id2)
+	);
+`, (err: any) => {
+        if (err)
+            console.error(red, 'Error creating table blocked_users', err);
+        else {
+            console.log(green, 'Table blocked_users ready');
+        }
+    });
+}
+
+
 
 export const createTables = () => {
     createMessagesTable()
+    createBlockedUsers()
 }
