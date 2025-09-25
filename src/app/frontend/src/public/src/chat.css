@@ -16,6 +16,11 @@
     align-items: center;
 }
 
+
+.center-justify {
+    justify-content: center;
+}
+
 .flex-center {
     align-items: center;
     justify-content: center;
@@ -38,6 +43,22 @@
     border-radius: 8px;
     display: flex;
     flex-direction: column;
+}
+
+.flow-row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.card-btn {
+    width: 100%;
+    transition: all 0.3s ease !important;
+    background: #1d2531;
+    padding: 25px;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    max-width: 270px;
 }
 
 
@@ -151,12 +172,29 @@ p {
     background: #DC2626;
 }
 
+.rounded-btn {
+    padding: 6px 26px;
+    font-size: 16px;
+    border-radius: 30px;
+    font-weight: 500;
+    background: #DC2626;
+}
+
+
+.primary {
+    color: #DC2626;
+}
+
 .bottom {
     align-items: end;
 }
 
 .mv-5 {
     margin: 30px 0;
+}
+
+.mv-6 {
+    margin: 34px 0;
 }
 
 button {
@@ -214,6 +252,11 @@ button {
     margin: 0px;
 }
 
+.large-headline {
+    font-size: 60px;
+    font-weight: 700;
+}
+
 .pl-3 {
     padding-left: 14px !important;
 }
@@ -226,12 +269,22 @@ button {
     margin-top: 8px !important;
 }
 
+.mt-10 {
+    margin-top: 45px;
+}
+
+
+
 .mr-5 {
     margin-right: 13px;
 }
 
 .inline-block {
     display: inline-block;
+}
+
+.max-width {
+    max-width: 550px;
 }
 
 .mt-5 {
@@ -242,13 +295,17 @@ button {
     margin-top: 5px !important;
 }
 
+.mt-3 {
+    margin-top: 10px !important;
+}
+
 
 .ml-5 {
     margin-left: 10px;
 }
 
 .mt-6 {
-    margin-top: 35px;
+    margin-top: 30px;
 }
 
 .column {
@@ -302,8 +359,22 @@ input::placeholder {
     box-shadow: none
 }
 
-.btn-secondary:hover, .btn-primary:hover {
-    transform: scale(1.01) !important;
+.icon {
+    fill: white;
+    color: white;
+    background: #131A24;
+}
+
+.round {
+    border-radius: 50%;
+}
+
+.p-5 {
+    padding: 25px;
+}
+
+.btn:hover, .card-btn:hover {
+    transform: scale(1.02) !important;
     box-shadow: none !important;
     border: none;
 }
@@ -421,6 +492,7 @@ h6 {
     height: 40px;
 }
 
+
 .flex-1 {
     flex: 1;
 }
@@ -443,6 +515,7 @@ h6 {
     border-radius: 8px;
 }
 
+
 .mb-1 {
     margin-bottom: 5px !important;
 }
@@ -457,6 +530,9 @@ h6 {
     margin-top: 20px;
 }
 
+.mt-4 {
+    margin-top: 20px;
+}
 
 
 .item-center {
@@ -469,6 +545,7 @@ h6 {
     color: #9CA3AF;
     font-size: 15px;
     font-weight: 400;
+    line-height: 26px;
 }
 
 .overflow-hidden {
@@ -478,6 +555,11 @@ h6 {
 
 .gap-medium {
     gap: 12px;
+}
+
+
+.gap-row-large {
+    row-gap: 16px;
 }
 
 .gap-large {
