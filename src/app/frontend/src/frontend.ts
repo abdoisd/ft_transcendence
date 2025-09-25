@@ -21,7 +21,6 @@ import { listFriendsView } from './views/list_friends.ts';
 
 window.gameManager = new GameManager();
 
-
 type RoutePath = keyof typeof routes;
 export var routes = {
 	'/newUser': NewUser,
@@ -157,8 +156,9 @@ function handleView(event?, path?: string | null) {
 			if (routes[getMainPath(path)])
 				routes[path]();
 			else {
-				window.history.replaceState({}, "", "/");
-				HomeView();
+				// window.history.replaceState({}, "", "/");
+				// HomeView();
+				document.getElementById("body")!.innerHTML = `<h1>not found</h1>`; //&
 			}
 		});
 };

@@ -44,7 +44,7 @@ server.register(fastifyStatic, {
 });
 server.setNotFoundHandler((request, reply) => {
 	if (request.url.split("/").length > 2)
-		return reply.status(404).send();
+		return reply.status(404).send('Not Found');
 	reply.sendFile("index.html");
 });
 server.register(fastifyJwt, {

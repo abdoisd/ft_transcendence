@@ -59,7 +59,7 @@ export async function ProfileView() {
 						<span class="text-secondary">${formatEpochMillis(match.Date)}</span>
 					</div>
 
-					<h6 class="${lost ? "danger-text" : "success-text"}">${lost ? "LOSS" : "Win"}</h6>
+					<h6 class="${lost ? "danger-text" : "success-text"}">${lost ? "Loss" : "Win"}</h6>
 				`
 			}
 			else {
@@ -78,7 +78,7 @@ export async function ProfileView() {
 						<span class="text-secondary">${formatEpochMillis(match.Date)}</span>
 					</div>
 
-					<h6 class="${!isWin ? "danger-text" : "success-text"}">${!isWin ? "LOSS" : "Win"}</h6>
+					<h6 class="${!isWin ? "danger-text" : "success-text"}">${!isWin ? "Loss" : "Win"}</h6>
 				`
 			}
 			container.appendChild(recordDiv);
