@@ -36,6 +36,7 @@ function	validate2faCode(event)
 			clsGlobal.LoggedInUser = data.user;
 			console.debug("setting clsGlobal.LoggedInUser: ", clsGlobal.LoggedInUser);
 			
+			window.history.replaceState({}, '', '/');
 			HomeView();
 		}
 		else

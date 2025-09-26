@@ -36,21 +36,21 @@ export async function autoLogin() {
 		method: "POST",
 		credentials: "include", // to send cookies
 	})
-		.then(response => {
-			if (response.ok)
-				return response.json();
-			else
-				return null;
-		})
-		.then((user) => {
-			if (!user)
-				clsGlobal.LoggedInUser = null;
-			else {
-				clsGlobal.LoggedInUser = Object.assign(new UserDTO(-1, "", "", "", -1, -1, null, null), user);
+	.then(response => {
+		if (response.ok)
+			return response.json();
+		else
+			return null;
+	})
+	.then((user) => {
+		if (!user)
+			clsGlobal.LoggedInUser = null;
+		else {
+			clsGlobal.LoggedInUser = Object.assign(new UserDTO(-1, "", "", "", -1, -1, null, null), user);
 
-				console.debug("Filling User: ", clsGlobal.LoggedInUser);
-			}
-		});
+			console.debug("Filling User: ", clsGlobal.LoggedInUser);
+		}
+	});
 }
 
 export function route(event: Event | null, path?: string) {

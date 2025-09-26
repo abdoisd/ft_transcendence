@@ -25,7 +25,6 @@ export function NewUser() {
 	.then((response) => {
 		if (!response.ok)
 		{
-
 			fetch("/validateSession", {
 				method: "POST",
 				credentials: "include", // to send cookies
@@ -44,7 +43,6 @@ export function NewUser() {
 					return ;
 				}
 			})
-
 		}
 	});
 	
@@ -57,10 +55,10 @@ export async function existingUser() { // cookie is set automatically
 
 	const params = new URLSearchParams(window.location.search);
 
-	if (!params.has('Id')) {
-		LoginWithGoogle();
-		return ;
-    }
+	// if (!params.has('Id')) {
+	// 	LoginWithGoogle();
+	// 	return ;
+    // }
 
 	const userId = Number(params.get('Id'));
 
@@ -91,9 +89,19 @@ export async function existingUser() { // cookie is set automatically
         params.get('ExpirationDate') ? new Date(params.get('ExpirationDate')!) : null
     );
 
-	//!
-	window.history.replaceState({}, '', '/');
-	HomeView();
+	fetch("/validateSession", {
+		method: "POST",
+		credentials: "include",
+	})
+	.then(response => {
+		if (response.ok)
+		{
+			window.history.replaceState({}, '', '/');
+			HomeView();
+		}
+		else
+			return LoginWithGoogle();
+	})
 }
 
 async function usernameAvatarFormHandleSubmit(event: Event)
