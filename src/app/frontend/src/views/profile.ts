@@ -33,9 +33,9 @@ export async function ProfileView() {
 			container.style.color = "green";
 			return;
 		}
+		console.table(matches);
 
-		matches.forEach(async (match) => {
-
+		for (const match of matches) {
 			const recordDiv = document.createElement("div");
 
 			recordDiv.classList.add("item", "flex", "center");
@@ -73,7 +73,8 @@ export async function ProfileView() {
 				`
 			}
 			container.appendChild(recordDiv);
-		});
+		}
+
 	}
 	else {
 		console.debug("No logged in user found!");

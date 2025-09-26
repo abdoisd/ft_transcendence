@@ -4,18 +4,18 @@ export function HomeView()
 }
 
 const HomeViewStaticPart: string = `
-<nav style="grid-area: nav;">
-	<a class="flex-item anchor-nav" href="/" onclick="route()">home</a>
-	<a class="flex-item anchor-nav" href="/friends" onclick="route()">friends</a>
-	<a class="flex-item anchor-nav" href="/chat" onclick="route()">chat</a>
-	<a class="flex-item anchor-nav" href="/profile" onclick="route()">profile</a>
-	<a class="flex-item anchor-nav" href="/settings" onclick="route()">settings</a>
-</nav>
-<main id="main-views" style="grid-area: main; display: flex; flex-direction: column; align-items: center; margin: 25px 0px;">
-	<a class="anchor-main mt-10" href="/game" onclick="route()">play</a>
-	<a class="anchor-main anchor-chat" href="/chat" onclick="route()">chat</a>
-</main>
-<footer class="footer">
-	2025 — ft_transcendence
-</footer>
+	<nav style="grid-area: nav;">
+		<a class="flex-item anchor-nav" href="/" onclick="route()">home</a>
+		<a class="flex-item anchor-nav" href="/friends" onclick="route()">friends</a>
+		<a class="flex-item anchor-nav" href="/chat" onclick="route()">chat</a>
+		<a class="flex-item anchor-nav" href="/profile" onclick="route()">profile</a>
+		<a class="flex-item anchor-nav" href="/settings" onclick="route()">settings</a>
+	</nav>
+	<main id="main-views" style="grid-area: main; display: flex; flex-direction: column; align-items: center; margin: 25px 0px;">
+		<a class="anchor-main mt-10" href="/game" onclick="route()">play</a>
+		<a class="anchor-main anchor-chat" href="/chat" onclick="route()">chat</a>
+	</main>
+	<footer class="footer">
+		2025 — ft_transcendence
+	</footer>
 `;

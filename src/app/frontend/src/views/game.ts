@@ -7,7 +7,7 @@ import { aiGameViewStaticPart } from "./gameViews";
 import { apiGameStaticPart } from "./gameViews";
 import { ClientGame } from "./gameViews";
 import { init3DGame } from "./gameViews";
-import { setScores } from "./gameViews"; 
+import { setScores } from "./gameViews";
 import { io } from "socket.io-client";
 import { gameOverViewStaticPart } from "./gameViews";
 import { opponentLeftGame } from "./gameViews";
@@ -45,15 +45,16 @@ function aiGame() {
 	canvas.width = rect.width;
 	canvas.height = rect.height;
 
-	const wsClientAI = io("ws://localhost:3000/ai", {
+	const wsClientAI = io(`${WS_URL}/ai`, {
 		auth: {
 			token: localStorage.getItem("jwt")
 		}
 	});
+
 	wsClientAI.emit("join-game");
 
 	let game = null;
-	wsClientAI.on("start-game", (initialState) => {		
+	wsClientAI.on("start-game", (initialState) => {
 		setScores(0, 0); // maybe unecessary because maybe game modes gives these elements 0 by default
 		game = new ClientGame(canvas, ctx, initialState.ids.left, initialState.ids.right);
 		game.state = initialState;
@@ -83,17 +84,17 @@ function aiGame() {
 	function keyDown(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientAI.emit("move", {key: event.key, pressedState: true});
+			wsClientAI.emit("move", { key: event.key, pressedState: true });
 		}
 	}
 	function keyUp(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientAI.emit("move", {key: event.key, pressedState: false});
+			wsClientAI.emit("move", { key: event.key, pressedState: false });
 		}
 	}
 
-	window.gameManager.setActiveGame("ai", wsClientAI, {keyDown, keyUp});
+	window.gameManager.setActiveGame("ai", wsClientAI, { keyDown, keyUp });
 }
 
 function three3DView() {
@@ -113,7 +114,7 @@ function three3DView() {
 				game.pressedKeys[event.key] = false;
 			}
 		}
-		window.gameManager.setActiveGame("3d", null, {keyDown, keyUp}, game.engine);
+		window.gameManager.setActiveGame("3d", null, { keyDown, keyUp }, game.engine);
 		game.start();
 	});
 }
@@ -137,7 +138,7 @@ function remoteGame() {
 	canvas.width = rect.width;
 	canvas.height = rect.height;
 
-	const wsClientRemote = io("ws://localhost:3000/remote", {
+	const wsClientRemote = io(`${WS_URL}/remote`, {
 		auth: {
 			token: localStorage.getItem("jwt")
 		}
@@ -181,17 +182,17 @@ function remoteGame() {
 	function keyDown(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientRemote.emit("move", {key: event.key, pressedState: true});
+			wsClientRemote.emit("move", { key: event.key, pressedState: true });
 		}
 	}
 	function keyUp(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientRemote.emit("move", {key: event.key, pressedState: false});
+			wsClientRemote.emit("move", { key: event.key, pressedState: false });
 		}
 	}
 
-	window.gameManager.setActiveGame("remote", wsClientRemote, {keyDown, keyUp});
+	window.gameManager.setActiveGame("remote", wsClientRemote, { keyDown, keyUp });
 }
 
 function tournamentView() {
@@ -212,7 +213,7 @@ function tournamentGame() {
 	canvas.width = rect.width;
 	canvas.height = rect.height;
 
-	const wsClientTournament = io("ws://localhost:3000/tournament", {
+	const wsClientTournament = io(`${WS_URL}/tournament`, {
 		auth: {
 			token: localStorage.getItem("jwt")
 		}
@@ -268,7 +269,7 @@ function tournamentGame() {
 		};
 		wrapper.semi1.winner = data.semi1.winner ? (await UserDTO.getById(data.semi1.winner)).Username : "To be announced";
 		wrapper.semi2.winner = data.semi2.winner ? (await UserDTO.getById(data.semi2.winner)).Username : "To be announced";
-		
+
 		wrapper.final.one = data.final.one ? (await UserDTO.getById(data.final.one)).Username : "To be announced";
 		wrapper.final.two = data.final.two ? (await UserDTO.getById(data.final.two)).Username : "To be announced";
 		wrapper.final.winner = data.final.winner ? (await UserDTO.getById(data.final.winner)).Username : "To be announced";
@@ -289,16 +290,16 @@ function tournamentGame() {
 	function keyDown(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientTournament.emit("move", {key: event.key, pressedState: true});
+			wsClientTournament.emit("move", { key: event.key, pressedState: true });
 		}
 	}
 	function keyUp(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientTournament.emit("move", {key: event.key, pressedState: false});
+			wsClientTournament.emit("move", { key: event.key, pressedState: false });
 		}
 	}
-	window.gameManager.setActiveGame("tournament", wsClientTournament, {keyDown, keyUp});
+	window.gameManager.setActiveGame("tournament", wsClientTournament, { keyDown, keyUp });
 }
 
 import { inviteGameViewStaticPart } from "./gameViews";
@@ -319,25 +320,25 @@ chatIO.on("start", () => {
 	inviteGame();
 });
 
-function acceptGame(msgId) {	
+function acceptGame(msgId) {
 	chatIO.emit("check-invite", msgId);
 }
 window.acceptGame = acceptGame;
 
 function inviteGame() {
-	const wsClientInvite = io("ws://localhost:3000/invite", {
+	const wsClientInvite = io(`${WS_URL}/invite`, {
 		auth: {
 			token: localStorage.getItem("jwt")
 		}
 	});
-	
+
 	const canvas = document.querySelector(".canvas");
 	const ctx = canvas.getContext("2d");
 	const board = document.querySelector(".board");
 	const rect = board?.getBoundingClientRect();
 	canvas.width = rect.width;
 	canvas.height = rect.height;
-	
+
 	let game = null;
 	wsClientInvite.on("start-game", (initialState) => {
 		game = new ClientGame(canvas, ctx, initialState.ids.left, initialState.ids.right);
@@ -375,17 +376,17 @@ function inviteGame() {
 	function keyDown(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientInvite.emit("move", {key: event.key, pressedState: true});
+			wsClientInvite.emit("move", { key: event.key, pressedState: true });
 		}
 	}
 	function keyUp(event) {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
-			wsClientInvite.emit("move", {key: event.key, pressedState: false});
+			wsClientInvite.emit("move", { key: event.key, pressedState: false });
 		}
 	}
 
-	window.gameManager.setActiveGame("remote", wsClientInvite, {keyDown, keyUp});
+	window.gameManager.setActiveGame("remote", wsClientInvite, { keyDown, keyUp });
 }
 
 function apiView() {
@@ -441,11 +442,12 @@ async function apiGame() {
 		const validKeys = ["ArrowUp", "ArrowDown", "w", "s"];
 		if (validKeys.includes(event.key)) {
 			const player = ["w", "s"].includes(event.key) ? "player1api" : "player2api";
-			const move =  (state === "none") ? state : (["ArrowUp", "w"].includes(event.key) ? "up" : "down");
+			const move = (state === "none") ? state : (["ArrowUp", "w"].includes(event.key) ? "up" : "down");
 			fetch(`/api-game/${gameId}/${player}/${move}`, {
 				method: "POST",
 				headers: {
-					"Authorization": `Bearer ${token}`				}
+					"Authorization": `Bearer ${token}`
+				}
 			});
 		}
 	}
@@ -483,22 +485,22 @@ async function apiGame() {
 			const entries = Object.entries(scores) as [string, number][];
 			const winnerName = entries[0][1] > entries[1][1] ? "P1" : "P2";
 			const loserName = (winnerName === "P1") ? "P2" : "P1";
-			gameOverView(winnerName, loserName); 
+			gameOverView(winnerName, loserName);
 			window.gameManager.leaveActiveGame();
 		}
 	}, 16);
 
-	window.gameManager.setActiveGame("api", null, {keyDown, keyUp}, null, interval);
+	window.gameManager.setActiveGame("api", null, { keyDown, keyUp }, null, interval);
 }
 
 export class GameManager {
 	activeGame: null | "ai" | "remote" | "tournament" | "3d" | "api" = null;
 	activeSocket: null | any = null;
-	keyListeners: {keyDown?: EventListener, keyUp?: EventListener} = {};
+	keyListeners: { keyDown?: EventListener, keyUp?: EventListener } = {};
 	engine: any | null;
 	interval: any | null;
 
-	setActiveGame(game: "ai" | "remote" | "tournament" | "3d" | "api", socket: any, listeners: {keyDown: EventListener, keyUp: EventListener}, engine: any, interval) {
+	setActiveGame(game: "ai" | "remote" | "tournament" | "3d" | "api", socket: any, listeners: { keyDown: EventListener, keyUp: EventListener }, engine: any, interval) {
 		this.leaveActiveGame();
 
 		this.activeGame = game;

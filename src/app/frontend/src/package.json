@@ -5,7 +5,7 @@
 	"type": "module",
 	"main": "index.js",
 	"scripts": {
-		"build": "npx esbuild frontend.ts --bundle --outfile=public/bundle.js",
+		"build": "npx esbuild frontend.ts --bundle --outfile=public/bundle.js --define:WS_URL=\"'${WS_URL}'\"",
 		"dev": "nodemon --watch . --ext ts --ignore ./public --exec \"npm run build\""
 	},
 	"keywords": [],

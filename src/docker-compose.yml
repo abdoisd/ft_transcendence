@@ -169,6 +169,8 @@ services:
     volumes:
       - ./app/frontend/src:/usr/src/app
     restart: on-failure
+    environment: 
+      - WS_URL=${WS_URL}
 
 volumes:
   es_data: 

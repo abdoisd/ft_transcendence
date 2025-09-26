@@ -5,7 +5,7 @@ import { getQuery } from "../utils/utils";
 const BLOCKED_MSG = "You are blocked and cannot send messages to this person.";
 const UNKNOWN_ERROR_MSG = "Unknown error, please try again.";
 
-export const chatIO = io("ws://localhost:3000/chat", {
+export const chatIO = io(`${WS_URL}/chat`, {
     auth: {
         token: localStorage.getItem("jwt")
     }

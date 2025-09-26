@@ -5,14 +5,6 @@ import { post } from "./request.ts"
 export function ProfileEditView()
 {
 	document.getElementById("main-views")!.innerHTML = profileEditViewStaticPart;
-
-	
-	const user: UserDTO | null = clsGlobal.LoggedInUser;
-	if (user) 
-	{
-		const usernameElement = document.getElementById("username") as HTMLInputElement;
-		usernameElement!.value = user.Username || "";
-	}
 }
 
 async function EditUser(event: Event)
