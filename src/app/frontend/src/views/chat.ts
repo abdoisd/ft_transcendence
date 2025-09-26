@@ -163,7 +163,7 @@ const updateChat = async () => {
         </form>
     </div>
     
-    <div class="mt-5 inline-block gap-medium">
+    <div class="mt-5 flow-row gap-medium">
         <button class="btn btn-secondary" id="invite">
             <div class="flex center gap-small">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
@@ -178,19 +178,19 @@ const updateChat = async () => {
             </div>
         </button>
     
-       <a href="/profile?id=${user.id}" onclick="route()">
         <button class="btn btn-secondary">
-            <div class="flex center gap-small">
-                <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                </svg>
+            <a href="/profile?id=${user.id}" onclick="route()">
+                <div class="flex center gap-small">
+                    <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                    </svg>
 
-                View Profile
-            </div>
+                    View Profile
+                </div>
+            </a>
         </button>
-       </a>
     
     
         <button class="btn btn-secondary danger" id="block">
