@@ -87,7 +87,7 @@ export const gameModesViewStaticPart = `
 				</div>
 			
 				<h2 class="mt-4 mb-3">AI Challenge</h2>
-				<p class="text-secondary">Test your skills against our advanced intekkigence opponent.</p>
+				<p class="text-secondary">Test your skills against our advanced intelligence opponent.</p>
 
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Play Now</p>

@@ -196,6 +196,7 @@ input[type="text"] {
     flex-wrap: wrap;
 }
 
+
 .card-btn {
     width: 100%;
     transition: all 0.3s ease !important;
@@ -268,7 +269,7 @@ p {
 }
 
 .left {
-    border-right: 1px solid #374151;
+    border-right: 1px solid #3741515e;
 }
 
 .chat .left {
@@ -356,7 +357,7 @@ button {
 .conversation .msg .box {
     max-width: 300px;
     background: #111827;
-    padding: 15px;
+    padding: 10px 15px;
     border-radius: 8px;
     line-height: 20px;
     line-break: anywhere;
@@ -366,7 +367,7 @@ button {
 }
 
 .conversation .box p {
-    font-size: 18px;
+    font-size: 16px;
 }
 
 .conversation {
@@ -378,7 +379,7 @@ button {
 .conversation .msg-me .box {
     max-width: 300px;
     background: linear-gradient(to right, #ff1a1a, #990000);
-    padding: 15px;
+    padding: 10px 15px;
     border-radius: 8px;
     line-height: 20px;
     line-break: anywhere;
