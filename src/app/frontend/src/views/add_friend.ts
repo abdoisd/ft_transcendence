@@ -49,16 +49,16 @@ async function addFriend()
 	if (clsGlobal.LoggedInUser.Id == foundUser.Id)
 	{
 		alert("You cannot add yourself as a friend");
-		return;
+		return ;
 	}
 
 	const UsersFriends = await clsGlobal.LoggedInUser.getFriends();
-	UsersFriends.forEach((userFriend) => {
-		if (userFriend.Id == foundUser.Id)
-		{
+	for (const userFriend of UsersFriends) {
+		if (userFriend.Id === foundUser.Id) {
 			alert("You are already friends with this user");
+			return ;
 		}
-	});
+	}
 	
 	const relationship: Relationship = new Relationship(-1, clsGlobal.LoggedInUser.Id, foundUser.Id, 1);
 	const response = await relationship.add();

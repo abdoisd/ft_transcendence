@@ -104,10 +104,25 @@ const relationshipAddSchema = {
 	}
 };
 
+import { User } from "./User.ts"
+
 export function relationshipRoutes()
 {
 	server.post("/relationships", { preHandler: (server as any).byItsOwnUser, schema: relationshipAddSchema }, async (request, reply) => {
 		const relationship: Relationship = Object.assign(new Relationship(), request.body);
+
+		const user1Friends = await User.getFriends(relationship.User1Id);
+		if (user1Friends && relationship.Relationship == 1)
+		{
+			for (const friend of user1Friends) {
+				if (friend.Id === relationship.User2Id) {
+					console.debug(yellow, "Already a friend");
+					reply.send(400);
+					return ;
+				}
+			}
+		}
+
 		await relationship.add();
 		if (relationship.Id == -1) {
 			reply.status(500).send();
@@ -115,6 +130,4 @@ export function relationshipRoutes()
 			reply.send();
 		}
 	});
-
-	// FOR BLOCKING, ONLY IF YOU ARE USER1
 }
