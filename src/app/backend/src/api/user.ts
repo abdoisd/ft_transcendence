@@ -3,19 +3,26 @@ import { server } from "../server.ts";
 
 export default function userApi(): void {
 
+    const requiredIdSchema = {
+        params: {
+            type: 'object',
+            properties: {
+                id: { type: 'integer' }
+            },
+            required: ['id']
+        }
+    };
+
     server.get("/api/users", { preHandler: server.mustHaveToken }, async (request, reply) => {
         const user = request.user;
         let users = await userRepository.getUsers(user.Id);
         reply.send(users);
     });
 
-    server.get("/api/users/:id", { preHandler: server.mustHaveToken }, async (request, reply) => {
+    server.get("/api/users/:id", { preHandler: server.mustHaveToken, schema: requiredIdSchema }, async (request, reply) => {
         const { id } = request.params;
         const me = request.user;
         
-        if (!id)
-            return (reply.status(400).send({ error: "id not found" }));
-
         const user = await userRepository.getUser(id);
         
         if (!user)
@@ -35,12 +42,9 @@ export default function userApi(): void {
         );
     });
 
-    server.post("/api/users/:id/block", { preHandler: server.mustHaveToken }, async (request, reply) => {
+    server.post("/api/users/:id/block", { preHandler: server.mustHaveToken, schema: requiredIdSchema }, async (request, reply) => {
         const user = request.user;
         const { id } = request.params;
-
-        if (!id)
-            return (reply.status(400).send({ error: "id not found" }));
 
         if (id == user.Id)
             return (reply.status(400).send({ error: "You can't block yourself" }));
