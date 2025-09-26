@@ -13,6 +13,10 @@ export default function userApi(): void {
         const { id } = request.params;
         const me = request.user;
         const user = await userRepository.getUser(id);
+        
+        if (!user)
+            return (reply.status(404).send({ error: "User not found" }));
+
         const didBlock = await userRepository.getDidBlock(me.Id, id);
         const imBlocked = await userRepository.getDidBlock(id, me.Id);
 

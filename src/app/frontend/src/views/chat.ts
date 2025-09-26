@@ -127,6 +127,12 @@ const displayMessage = (msg: string) => {
         }, 3000);
     }
 }
+const setMessage = (msg:string) => {
+    const element = document.getElementById("conversation");
+    if (!element)
+        return ;
+    element.innerHTML = `<h5 class=\"text-center\">${msg}</h5>`;
+}
 
 const updateChat = async () => {
     const element = document.getElementById("conversation");
@@ -136,10 +142,17 @@ const updateChat = async () => {
 
     if (!id)
         return (element.innerHTML = "<h5 class=\"text-center\">Start a conversation.</h5>")
+    
+    let user : any;
+    
+    try {
+        user = await authGet(`/api/users/${id}`);
+    } catch (error) {
+        return setMessage(error || "Error");
+    };
 
-    const user = await authGet(`/api/users/${id}`);
-
-    console.table(user);
+    if (!user)
+        return ;
 
     element.innerHTML = `
     <div class="header flex center">
