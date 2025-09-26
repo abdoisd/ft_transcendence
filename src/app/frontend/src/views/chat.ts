@@ -13,7 +13,7 @@ export const chatIO = io("ws://localhost:3000/chat", {
 
 chatIO.on("msg", function (msg) {
     if (window.location.pathname == "/chat") {
-        if (currentChatId() == msg.sender_id)
+        if (currentChatId() == msg.sender_id && currentChatId() != clsGlobal.LoggedInUser?.Id)
             appendMessage(msg, true, null);
         updateConversations()
     }
@@ -112,7 +112,7 @@ const currentChatId = () => {
     return getQuery("id");
 }
 
-const displayMessage = (msg: string) => {
+const displayMessage = (msg: string | null) => {
     const div = document.getElementById('sticky-header');
     if (!div)
         return;
@@ -120,12 +120,18 @@ const displayMessage = (msg: string) => {
     if (!div.classList.contains('show')) {
 
         div.classList.add('show');
-        div.innerText = msg;
+        div.innerText = msg || UNKNOWN_ERROR_MSG;
 
         setTimeout(() => {
             div.classList.remove('show');
         }, 3000);
     }
+}
+const setMessage = (msg:string) => {
+    const element = document.getElementById("conversation");
+    if (!element)
+        return ;
+    element.innerHTML = `<h5 class=\"text-center\">${msg}</h5>`;
 }
 
 const updateChat = async () => {
@@ -136,10 +142,17 @@ const updateChat = async () => {
 
     if (!id)
         return (element.innerHTML = "<h5 class=\"text-center\">Start a conversation.</h5>")
+    
+    let user : any;
+    
+    try {
+        user = await authGet(`/api/users/${id}`);
+    } catch (error) {
+        return setMessage(error || "Error");
+    };
 
-    const user = await authGet(`/api/users/${id}`);
-
-    console.table(user);
+    if (!user)
+        return ;
 
     element.innerHTML = `
     <div class="header flex center">
@@ -159,12 +172,12 @@ const updateChat = async () => {
         <img class="avatar small mr-5" src="/data/user/getAvatarById?Id=${clsGlobal.LoggedInUser.Id}" alt="">
         <form id="form" class="input flex flex-1">
             <input id="input" class="pl-3" type="text" placeholder="Type a message..." />
-            <button>Send</button>
+            <button class="btn">Send</button>
         </form>
     </div>
     
-    <div class="mt-5 inline-block gap-medium">
-        <button class="btn-secondary" id="invite">
+    <div class="mt-5 flow-row gap-medium">
+        <button class="btn btn-secondary" id="invite">
             <div class="flex center gap-small">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -178,22 +191,22 @@ const updateChat = async () => {
             </div>
         </button>
     
-       <a href="/profile?id=${user.id}" onclick="route()">
-        <button class="btn-secondary">
-            <div class="flex center gap-small">
-                <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
-                    viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-                </svg>
+        <button class="btn btn-secondary">
+            <a href="/profile?id=${user.id}" onclick="route()">
+                <div class="flex center gap-small">
+                    <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                    </svg>
 
-                View Profile
-            </div>
+                    View Profile
+                </div>
+            </a>
         </button>
-       </a>
     
     
-        <button class="btn-secondary danger" id="block">
+        <button class="btn btn-secondary danger" id="block">
             <div class="flex center gap-small">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -223,7 +236,15 @@ const updateChat = async () => {
         if (!id)
             return;
         blockEl!.disabled = true;
-        const result = await authPost(`/api/users/${id}/block`, {});
+        
+        let result : any;
+
+        try {
+            result = await authPost(`/api/users/${id}/block`)
+        } catch (error) {
+            displayMessage (error.error);
+        }
+
         if (result)
             updateBlockButton(result.is_blocked, user.im_blocked);
         blockEl!.disabled = false;
@@ -293,7 +314,7 @@ const appendMessage = (msg, prepend: boolean, conversationDiv) => {
         <div class="box">
             <p>${msg.sender.username} invited you to play pong</p>
     
-            <button class="btn-secondary success" id="accept" onclick="acceptGame(${msg.id})">
+            <button class="btn btn-secondary success" id="accept" onclick="acceptGame(${msg.id})">
             <div class="flex center gap-small center-v">
                 <svg width="18px" height="18px" xmlns="http://www.w3.org/2000/svg" fill="none"
                     viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
@@ -350,7 +371,7 @@ const sendMessage = async (event, userId, type) => {
         appendMessage(msg, true, null);
         updateConversations();
     } catch (error) {
-        displayMessage(error.error || UNKNOWN_ERROR_MSG);
+        displayMessage(error.error);
     }
 }
 

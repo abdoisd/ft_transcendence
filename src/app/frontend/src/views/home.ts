@@ -11,8 +11,8 @@ const HomeViewStaticPart: string = `
 	<a class="flex-item anchor-nav" href="/profile" onclick="route()">profile</a>
 	<a class="flex-item anchor-nav" href="/settings" onclick="route()">settings</a>
 </nav>
-<main id="main-views" style="grid-area: main; display: flex; flex-direction: column; align-items: center;">
-	<a class="anchor-main" href="/game" onclick="route()">play</a>
+<main id="main-views" style="grid-area: main; display: flex; flex-direction: column; align-items: center; margin: 25px 0px;">
+	<a class="anchor-main mt-10" href="/game" onclick="route()">play</a>
 	<a class="anchor-main anchor-chat" href="/chat" onclick="route()">chat</a>
 </main>
 <footer class="footer">

@@ -63,7 +63,6 @@ export function webSocket() {
 		}
 	});
 
-
 	const aiGames = new Map();
 	wsServerAI.on("connection", (client) => {
 		const roomId = `room_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -137,14 +136,10 @@ export function webSocket() {
 	const remoteGames = new Map();
 	wsServerRemote.on("connection", (client) => {
 		client.roomId = null;
-		client.on("join-game", (msg) => {
-			client.userId = msg.userId;
-			if (waitingRemotePlayers.length > 0) {
-				const opponent = waitingRemotePlayers.pop();
-				if (opponent.userId === client.userId) {
-					waitingRemotePlayers.push(opponent);
-					return;
-				}
+		client.on("join-game", () => {
+			const opponentIndex = waitingRemotePlayers.findIndex((sock) => sock.userId !== client.userId);
+			if (opponentIndex !== -1) {
+				const opponent = waitingRemotePlayers.splice(opponentIndex, 1)[0];
 				startRemoteGame(opponent, client);
 			} else {
 				waitingRemotePlayers.push(client);
@@ -158,7 +153,6 @@ export function webSocket() {
 			const game = remoteGames.get(roomId);
 			if (!game)
 				return;
-			console.log("HERE KEY STATES");
 			const keyStates = game.keyStates[client.userId];
 			if (!keyStates)
 				return;
@@ -168,56 +162,39 @@ export function webSocket() {
 				keyStates.down = pressedState;
 		});
 
-		client.on("disconnect", () => handleRemoteDisconnect(client));
-		function handleRemoteDisconnect(leaver) {
+		client.on("disconnect", () => {
+			const leaver = client;
 			const leaverIndexInWaitingList = waitingRemotePlayers.indexOf(leaver);
 			if (leaverIndexInWaitingList !== -1) {
+				console.log(red, "REMOVED NON IN GAME CLIENT after he disconnected");
 				waitingRemotePlayers.splice(leaverIndexInWaitingList, 1);
 				return;
 			}
 
 			const roomId = leaver.roomId;
-			// if (!roomId)
-			// 	return;
-			const clientsInRoom = wsServerRemote.adapter.rooms.get(roomId);
-			if (!clientsInRoom) {
-				remoteGames.delete(roomId);
-				return; // removed the game after all the players have left
+			if (roomId) {
+				leaver.leave(roomId);
 			}
-
 			const game = remoteGames.get(roomId);
-			if (game)
+			if (game) {
 				game.running = false;
-			wsServerRemote.to(roomId).emit("opponent-left");
-
-			remoteGames.delete(roomId);
-			leaver.leave(roomId);
-			leaver.roomId = null;
-
-			const validSurvivors = [...clientsInRoom].filter((id) => id !== leaver.id)
-				.map((id) => wsServerRemote.sockets.get(id))
-				.filter((socket) => socket?.connected);
-
-			validSurvivors.forEach((survivor) => {
-				if (!waitingRemotePlayers.includes(survivor)) {
-					waitingRemotePlayers.push(survivor);
-					survivor.roomId = null;
-				}
-			});
-
-			while (waitingRemotePlayers.length >= 2) {
-				const p1 = waitingRemotePlayers.pop();
-				const p2 = waitingRemotePlayers.pop();
-				startRemoteGame(p1, p2);
+				wsServerRemote.to(roomId).emit("opponent-left");
+				const survivor = (leaver.userId === game.p1.userId) ? game.p2 : game.p1;
+				survivor.disconnect(true);
+				remoteGames.delete(roomId);
 			}
-		}
+		});
 	});
 	function startRemoteGame(p1, p2) {
 		if (!p1.connected || !p2.connected) {
-			if (p1.connected)
+			if (p1.connected) {
 				waitingRemotePlayers.push(p1);
-			if (p2.connected)
-				waitingRemotePlayers.push(p2)
+				p1.roomId = null;
+			}
+			if (p2.connected) {
+				waitingRemotePlayers.push(p2);
+				p2.roomId = null;
+			}
 			return;
 		}
 
@@ -279,40 +256,33 @@ export function webSocket() {
 	}
 
 	const tournaments = new Map();
-	let tournament;
-	let tournamentId;
 	wsServerTournament.on("connection", (client) => {
-		client.on("join-tournament", (msg) => {
-			client.userId = msg.userId;
+		client.on("join-tournament", () => {
+			let tourId = [...tournaments.keys()].find(id => tournaments.get(id).players.length < 4);
+			let tour;
 
-			if (!tournament) {
-				tournament = new Tournament(startTournamentGame);
-				tournament.addPlayer(client);
-				tournamentId = `tournament_${Date.now()}_${Math.random().toString(10).slice(2, 7)}`;
-				tournaments.set(tournamentId, tournament);
-				client.tournamentId = tournamentId;
-				client.join(tournamentId);
-				console.log(red, `FIRST USER: ${client.userId}`);
-			} else if (tournament.players.length <= 4) {
-				const alreadyJoined = tournament.players.some(p => p.userId === client.userId);
-				if (alreadyJoined) {
-					client.emit("error", "You already joined the tournament.");
-					client.disconnect(true);
-					console.log(red, `YOU AREADY JOINED ${client.userId}`);
-					return;
-				}
+			if (!tourId) {
+				tourId = `tournament_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+				tour = new Tournament(startTournamentGame);
+				tournaments.set(tourId, tour);
+			} else {
+				tour = tournaments.get(tourId);
+			}
 
-				client.tournamentId = tournamentId;
-				client.join(tournamentId);
-				tournament.addPlayer(client);
-				if (tournament.players.length == 4) {
-					tournament.startSemifinals();
-					tournament = null;
-				}
-				console.log(red, `added non first user: ${client.userId}`);
+			if (tour.players.some(p => p.userId === client.userId)) {
+				client.emit("error", "You already joined the tournament.");
+				client.disconnect(true);
+				return;
+			}
+
+			client.tournamentId = tourId;
+			client.join(tourId);
+			tour.addPlayer(client);
+
+			if (tour.players.length === 4) {
+				tour.startSemifinals();
 			}
 		});
-
 		client.on("move", ({key, pressedState}) => {
 			const game = client.game;
 			if (!game)
@@ -325,7 +295,6 @@ export function webSocket() {
 			else if (key == "ArrowDown" || key == "s")
 				keyStates.down = pressedState;
 		});
-
 		client.on("disconnect", () => {
 			const leaver = client;
 			const currTournament = tournaments.get(leaver.tournamentId);
@@ -335,34 +304,18 @@ export function webSocket() {
 				|| leaver == currTournament.matches.semi2.loser
 				|| leaver == currTournament.matches.final?.loser)
 				return;
-			tournament = null;
+			currTournament.void = true;
 			for (const player of currTournament.players) {
 				if (player !== leaver) {
-					console.log("SENT VOID");
-					// player.game.looping = false; // what if 3 have joined and one of them leaves would this be undefined?
 					player.emit("void");
-				} else {
-					console.log("TRYING TO SPLICE?")
-					// const idx = currTournament.players.findIndex((p) => p === leaver);
-					// if (idx !== -1) {
-					// 	currTournament.players.splice(idx, 1);
-					// 	console.log(red, `leaver was taken out of oturnament players: ${leaver.userId}`);
-					// }
 				}
 			}
-
-			currTournament.void = true;
+			tournaments.delete(leaver.tournamentId);
 		});
 	});
 	function startTournamentGame(p1, p2) {
-		if (!p1.connected || !p2.connected) {
-			const tour = tournaments.get(p1.tournamentId);
-			tour.void = true;
-			for (const dp of tour.players) {
-				if (dp.connected) {
-					dp.emit("void");
-				}
-			}
+		const tournament = tournaments.get(p1.tournamentId);
+		if (!p1.connected || !p2.connected || !tournament) {
 			return;
 		}
 
@@ -378,20 +331,19 @@ export function webSocket() {
 
 		wsServerTournament.to(roomId).emit("start-game", game.getFullState());
 		wsServerTournament.to(roomId).emit("score-state", game.scores);
+
 		let lastTime = Date.now();
 		const interval = setInterval(() => {
-			console.log("EVENT LOOP: TOURNAMENT");
+			console.log(`${lastTime} EVENT LOOP: TOURNAMENT`);
 			const now = Date.now();
 			game.update((now - lastTime) / 1000);
 			lastTime = now;
 	
-			if (game.running) {
+			if (game.running && !tournament.void) {
 					wsServerTournament.to(roomId).emit("game-state", game.getState());
 			} else {
 				clearInterval(interval);
-				const tournamentId = p1.tournamentId;
-				const tournament = tournaments.get(tournamentId);
-				if (tournament && !tournament.void) {
+				if (!tournament.void) {
 					if (game.winnerId == p1.userId) {
 						tournament.onGameEnd(p1, p2);
 						console.log(cyan, "P1 WON", p1.userId);
@@ -408,6 +360,7 @@ export function webSocket() {
 						ChatRepository.storeMessage(TOURNAMENT_ID, tournament.matches.semi2.winner.userId, "Finale starts soon...", "MSG");
 						let count = 0;
 						const counter = setInterval(() => {
+							console.log(`COUNTER SAYS ${count}`);
 							if (count === 5) {
 								clearInterval(counter);
 								tournament.startFinal();
@@ -415,7 +368,7 @@ export function webSocket() {
 							}
 							const data = {
 								one: tournament.matches.semi1.winner.userId,
-								two: tournament.matches.semi1.winner.userId,
+								two: tournament.matches.semi2.winner.userId,
 								count: 5 - count
 							}
 							tournament.matches.semi1.winner.emit("next-game", data);
@@ -430,6 +383,7 @@ export function webSocket() {
 						}
 						console.log("WE ARE DONE");
 						console.log(`winner of the final: ${tournament.matches.final.winner}`);
+						tournaments.delete(p1.tournamentId);
 					}
 				}
 			}
@@ -555,7 +509,6 @@ class Tournament {
 		semi2: { players: any[]; winner: any | null; loser: any | null };
 		final: { players: any[]; winner: any | null; loser: any | null };
 	};
-	void: Boolean;
 	starterFunction: Function;
 	done: Boolean;
     constructor(starter) {
@@ -566,7 +519,6 @@ class Tournament {
 			semi2: { players: [], winner: null, loser: null },
 			final: { players: [], winner: null, loser: null }
 		};
-		this.void = false;
 		this.done = false;
 		this.starterFunction = starter;
     }
@@ -622,7 +574,6 @@ class Tournament {
 
 	getState() {
 		return {
-			status: this.void ? "void" : this.status,
 			semi1: {
 				one: this.matches.semi1.players[0]?.userId,
 				two: this.matches.semi1.players[1]?.userId,
@@ -634,8 +585,8 @@ class Tournament {
 				winner: this.matches.semi2.winner?.userId
 			},
 			final: {
-				one: this.matches.final.players[0]?.userId,
-				two: this.matches.final.players[1]?.userId,
+				one: this.matches.final.players?.[0]?.userId,
+				two: this.matches.final.players?.[1]?.userId,
 				winner: this.matches.final.winner?.userId
 			}
 		}
