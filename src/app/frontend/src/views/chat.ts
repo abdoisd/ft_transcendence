@@ -13,7 +13,7 @@ export const chatIO = io("ws://localhost:3000/chat", {
 
 chatIO.on("msg", function (msg) {
     if (window.location.pathname == "/chat") {
-        if (currentChatId() == msg.sender_id)
+        if (currentChatId() == msg.sender_id && currentChatId() != clsGlobal.LoggedInUser?.Id)
             appendMessage(msg, true, null);
         updateConversations()
     }
@@ -112,7 +112,7 @@ const currentChatId = () => {
     return getQuery("id");
 }
 
-const displayMessage = (msg: string) => {
+const displayMessage = (msg: string | null) => {
     const div = document.getElementById('sticky-header');
     if (!div)
         return;
@@ -120,7 +120,7 @@ const displayMessage = (msg: string) => {
     if (!div.classList.contains('show')) {
 
         div.classList.add('show');
-        div.innerText = msg;
+        div.innerText = msg || UNKNOWN_ERROR_MSG;
 
         setTimeout(() => {
             div.classList.remove('show');
@@ -236,7 +236,15 @@ const updateChat = async () => {
         if (!id)
             return;
         blockEl!.disabled = true;
-        const result = await authPost(`/api/users/${id}/block`, {});
+        
+        let result : any;
+
+        try {
+            result = await authPost(`/api/users/${id}/block`)
+        } catch (error) {
+            displayMessage (error.error);
+        }
+
         if (result)
             updateBlockButton(result.is_blocked, user.im_blocked);
         blockEl!.disabled = false;
@@ -363,7 +371,7 @@ const sendMessage = async (event, userId, type) => {
         appendMessage(msg, true, null);
         updateConversations();
     } catch (error) {
-        displayMessage(error.error || UNKNOWN_ERROR_MSG);
+        displayMessage(error.error);
     }
 }
 

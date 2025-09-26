@@ -22,6 +22,7 @@ export default function chatApi(): void {
             return (reply.code(400).send({ error: "You can't send messages to this user!" }));
 
         const result = await chatRepository.storeMessage(user.Id, id, message, type);
+
         reply.send(result);
     });
 
@@ -35,6 +36,8 @@ export default function chatApi(): void {
     server.get("/api/messages/:id", { preHandler: server.mustHaveToken }, async (request, reply) => {
         const { id } = request.params;
         const user = request.user;
+        if (!id)
+            return reply.send([]);
         reply.send(await chatRepository.getConversation(user.Id, id));
     });
 

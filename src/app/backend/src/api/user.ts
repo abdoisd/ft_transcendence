@@ -12,6 +12,10 @@ export default function userApi(): void {
     server.get("/api/users/:id", { preHandler: server.mustHaveToken }, async (request, reply) => {
         const { id } = request.params;
         const me = request.user;
+        
+        if (!id)
+            return (reply.status(400).send({ error: "id not found" }));
+
         const user = await userRepository.getUser(id);
         
         if (!user)
@@ -34,6 +38,15 @@ export default function userApi(): void {
     server.post("/api/users/:id/block", { preHandler: server.mustHaveToken }, async (request, reply) => {
         const user = request.user;
         const { id } = request.params;
+
+        if (!id)
+            return (reply.status(400).send({ error: "id not found" }));
+
+        if (id == user.Id)
+            return (reply.status(400).send({ error: "You can't block yourself" }));
+
+        if (!(await userRepository.getUser(id)))
+            return (reply.status(400).send({ error: "User not found" }));
 
         reply.send(await userRepository.toggleUserBlock(user.Id, id));
     });

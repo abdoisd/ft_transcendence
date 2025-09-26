@@ -12,7 +12,7 @@ export const authGet = async (path: string) => {
     return await response.json();
 }
 
-export const authPost = async (path: string, body: any) => {
+export const authPost = async (path: string, body: any = {}) => {
     const response = await fetch(path, {
         method: "POST",
         headers: {
