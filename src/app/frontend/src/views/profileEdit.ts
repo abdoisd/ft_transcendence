@@ -5,6 +5,14 @@ import { post } from "./request.ts"
 export function ProfileEditView()
 {
 	document.getElementById("main-views")!.innerHTML = profileEditViewStaticPart;
+
+	
+	const user: UserDTO | null = clsGlobal.LoggedInUser;
+	if (user) 
+	{
+		const usernameElement = document.getElementById("username") as HTMLInputElement;
+		usernameElement!.value = user.Username || "";
+	}
 }
 
 async function EditUser(event: Event)
@@ -77,9 +85,10 @@ const profileEditViewStaticPart = `
 				<div class="input">
 					<input type="text" id="username" name="username">
 				</div>
+				
+				<span id="username-error" style="color: red; display: none;"></span>
 			</div>
 
-			<span id="username-error" style="color: red; display: none;"></span>
 
 
 			<div class="mb-3">
