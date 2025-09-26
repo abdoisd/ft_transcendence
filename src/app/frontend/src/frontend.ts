@@ -125,7 +125,7 @@ function handleView(event?, path?: string | null) {
 			else {
 				// window.history.replaceState({}, "", "/");
 				// HomeView();
-				document.getElementById("body")!.innerHTML = `<h1>not found</h1>`; //&
+				document.getElementById("body")!.innerHTML = `<div style="grid-area: main;" class="flex flex-center"><h1>Not Found</h1></div>`; //&
 			}
 		});
 };

@@ -31,6 +31,7 @@ export const ws = new Server(server.server, {
 	cors: {
 		origin: "https://localhost",
 	},
+	secure: true
 });
 
 // REGISTER PLUGINS

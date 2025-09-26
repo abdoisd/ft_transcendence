@@ -2,7 +2,6 @@ import { server, ws } from "./server.ts";
 import { userIdUserId } from "./webSocket.ts";
 import ChatRepository from "./repositories/ChatRepository.ts"
 
-
 let users = {};
 
 export const chatWs = () => {

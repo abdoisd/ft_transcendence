@@ -33,7 +33,6 @@ export async function ProfileView() {
 			container.style.color = "green";
 			return;
 		}
-		console.table(matches);
 
 		for (const match of matches) {
 			const recordDiv = document.createElement("div");
@@ -91,7 +90,6 @@ function formatEpochMillis(epochMillis): string {
 		day: '2-digit',
 		hour: '2-digit',
 		minute: '2-digit',
-		second: '2-digit',
 		hour12: false,
 	};
 
