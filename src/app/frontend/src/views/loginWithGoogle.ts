@@ -190,20 +190,36 @@ const loginViewStaticPart = `
 `;
 
 const usernameAvatarForm = `
-<form id="edit-profile-form" class="full-in-grid" style="color: white; display: flex; flex-direction: column; align-items: center; justify-content: center;" onsubmit="usernameAvatarFormHandleSubmit(event)">
-<h1>Continue profile:</h1>
-<br>
-  <label>
-    Username:
-    <input type="text" id="username" name="username" required>
-  </label>
-  <span id="username-error" style="color: red; display: none;"></span>
-  <br><br>
-  <label>
-    Avatar:
-    <input type="file" id="avatar" name="avatar" accept="image/*">
-  </label>
-  <br><br>
-  <button type="submit">Submit</button>
-</form>
+<div style="grid-area: main;" class="flex flex-center">
+	<div class="card center">
+		<h2 class="headline mv-5">Create a Profile</h2>
+		<form id="edit-profile-form" onsubmit="usernameAvatarFormHandleSubmit(event)">
+
+			<div class="mb-3">
+				<label class="text-secondary">Username</label>
+				<div class="input">
+					<input type="text" id="username" name="username" required>
+				</div>
+				
+				<span id="username-error" style="color: red; display: none;"></span>
+			</div>
+
+
+
+			<div class="mb-3">
+				<label class="text-secondary">Avatar</label>
+				<div class="input">
+					<input type="file" id="avatar" name="avatar" accept="image/*" class="file">
+				</div>
+			</div>
+
+			<button type="submit" class="btn btn-primary mt-6 w-full gap-small mb-3">
+				<svg xmlns="http://www.w3.org/2000/svg" fill="white" width="24px" height="24px" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+				</svg>
+				Create
+			</button>
+		</form>
+	</div>
+</div>
 `;

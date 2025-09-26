@@ -41,7 +41,8 @@ export async function ProfileView() {
 
 
 			if (match.User2Id == null) {
-				const lost = match.WinnerId == "AI";
+				const lost = !match.WinnerId || match.WinnerId == "AI";
+
 				recordDiv.innerHTML = `
 					<div class="flex-1">
 						<h6 class="mb-1 title-medium">Player #${user.Username} VS AI</h6>
@@ -49,7 +50,7 @@ export async function ProfileView() {
 						<span class="text-secondary">${formatEpochMillis(match.Date)}</span>
 					</div>
 
-					<h6 class="${lost ? "danger-text" : "success-text"}">${lost ? "Loss" : "Win"}</h6>
+					<h6 class="${lost ? "danger-text" : "success-text"}">${!match.WinnerId ? "Quit" : (lost ? "Loss" : "Win")}</h6>
 				`
 			}
 			else {
@@ -68,7 +69,7 @@ export async function ProfileView() {
 						<span class="text-secondary">${formatEpochMillis(match.Date)}</span>
 					</div>
 
-					<h6 class="${!isWin ? "danger-text" : "success-text"}">${!isWin ? "Loss" : "Win"}</h6>
+					<h6 class="${!isWin ? "danger-text" : "success-text"}">${!match.WinnerId ? "Quit" : (!isWin ? "Loss" : "Win")}</h6>
 				`
 			}
 			container.appendChild(recordDiv);
