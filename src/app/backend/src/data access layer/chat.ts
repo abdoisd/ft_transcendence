@@ -14,6 +14,10 @@ const createMessagesTable = () => {
         FOREIGN KEY (sender_id) REFERENCES Users(Id) ON DELETE CASCADE,
         FOREIGN KEY (receiver_id) REFERENCES Users(Id) ON DELETE CASCADE
 	);
+
+    CREATE INDEX IF NOT EXISTS created_at_idx ON messages (created_at);
+    CREATE INDEX IF NOT EXISTS sender_id_idx ON messages (sender_id);
+    CREATE INDEX IF NOT EXISTS receiver_id_idx ON messages (receiver_id);
 `, (err: any) => {
         if (err)
             console.error(red, 'Error creating table messages', err);
@@ -33,6 +37,9 @@ const createBlockedUsers = () => {
         FOREIGN KEY (id2) REFERENCES Users(Id) ON DELETE CASCADE,
         UNIQUE (id1, id2)
 	);
+
+    CREATE INDEX IF NOT EXISTS id1_idx ON blocked_users (id1);
+    CREATE INDEX IF NOT EXISTS id2_idx ON blocked_users (id2);
 `, (err: any) => {
         if (err)
             console.error(red, 'Error creating table blocked_users', err);
