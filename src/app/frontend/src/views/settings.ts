@@ -19,13 +19,15 @@ export async function Settings()
 }
 
 const settingsViewStaticPart = `
-	<h1>Enable 2FA</h1>
-	<img id="qrcode" src="" style="margin: 10px 0px;" />
-	<form onsubmit="verify(event);"> <!-- verify code -->
-		<input type="text" id="2fa-code" placeholder="Enter code from app" required />
-		<input type="submit" value="Enable">
-	</form>
-	<span id="result"></span>
+	<div class="card flex column flex-center">
+		<h2>Enable 2FA</h2>
+		<img id="qrcode" src="" class="mv-5" />
+		<form onsubmit="verify(event);" class="input flex"> <!-- verify code -->
+			<input id="input" type="text" class="pl-3" placeholder="Enter code from App" required />
+			<button clsas="btn btn-primary">Enable</button>
+		</form>
+		<span id="result"></span>
+	</div>
 `;
 
 async function verify(event)

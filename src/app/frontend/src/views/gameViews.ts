@@ -92,24 +92,7 @@ export const gameModesViewStaticPart = `
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Play Now</p>
 				</div>
-			</button>
-
-			<button class="card-btn flex-center" onclick="three3DView()">
-				
-				<div class="p-5 round icon">
-					<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-						<path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3" />
-					</svg>
-				</div>
-			
-				<h2 class="mt-4 mb-3">3D Mode</h2>
-				<p class="text-secondary">Immerse yourself in a stunning 3D gaming environemnt.</p>
-
-				<div class="rounded-btn mt-6 mb-3">
-					<p>Enter 3D</p>
-				</div>
-			</button>
-			
+			</button>			
 
 			<button class="card-btn flex-center" onclick="apiView()">
 				
@@ -121,23 +104,6 @@ export const gameModesViewStaticPart = `
 			
 				<h2 class="mt-4 mb-3">API Mode</h2>
 				<p class="text-secondary">Play a game using API.</p>
-
-				<div class="rounded-btn mt-6 mb-3">
-					<p>Play Now</p>
-				</div>
-			</button>
-
-			<button class="card-btn flex-center" onclick="remoteView()">
-				
-				<div class="p-5 round icon">
-					<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="currentColor" class="size-6">
-						<path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" />
-					</svg>
-				</div>
-			
-				<h2 class="mt-4 mb-3">Multiplayer</h2>
-
-				<p class="text-secondary">Complete against friends or players from around the world in real-time.</p>
 
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Play Now</p>
@@ -158,6 +124,39 @@ export const gameModesViewStaticPart = `
 
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Join</p>
+				</div>
+			</button>
+			
+			<button class="card-btn flex-center" onclick="remoteView()">
+				
+				<div class="p-5 round icon">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="currentColor" class="size-6">
+						<path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" />
+					</svg>
+				</div>
+			
+				<h2 class="mt-4 mb-3">Multiplayer</h2>
+
+				<p class="text-secondary">Complete against friends or players from around the world in real-time.</p>
+
+				<div class="rounded-btn mt-6 mb-3">
+					<p>Play Now</p>
+				</div>
+			</button>
+
+			<button class="card-btn flex-center" onclick="three3DView()">
+				
+				<div class="p-5 round icon">
+					<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3" />
+					</svg>
+				</div>
+			
+				<h2 class="mt-4 mb-3">3D Mode</h2>
+				<p class="text-secondary">Immerse yourself in a stunning 3D gaming environemnt.</p>
+
+				<div class="rounded-btn mt-6 mb-3">
+					<p>Enter 3D</p>
 				</div>
 			</button>
 		</div>
