@@ -8,6 +8,7 @@ export function gameRoutes()
 {
 	server.get("/api-game/init", { preHandler: server.mustHaveToken }, (request, reply) => {
 		let activeGames = 0;
+		console.table(activeGames);
 		for (const [key, value] of apiGames) {
 			if (value.apiState === "started") {
 				activeGames++;
@@ -29,7 +30,7 @@ export function gameRoutes()
 
 		reply.send({
 			gameId: gameId,
-			message: "Game initialized"
+			message: game.apiState
 		});
 	});
 
@@ -38,6 +39,13 @@ export function gameRoutes()
 		if (!game) {
 			reply.code(404).send({error: "Game not found"});
 			return;
+		} else if (game.apiState == "started") {
+			reply.send({
+				gameId: request.params.id,
+				message: game.apiState,
+				gameState: game.getStateApi()
+			});
+			return;
 		}
 
 		game.startApiGame();
@@ -45,7 +53,7 @@ export function gameRoutes()
 
 		reply.send({
 			gameId: request.params.id,
-			message: "Game started",
+			message: game.apiState,
 			gameState: game.getStateApi()
 		});
 	});
@@ -59,7 +67,7 @@ export function gameRoutes()
 
 		reply.send({
 			gameId: request.params.id,
-			message: "Game state",
+			message: game.apiState,
 			gameState: game.getStateApi()
 		});
 	});
@@ -69,11 +77,18 @@ export function gameRoutes()
 		if (!game) {
 			reply.code(404).send({error: "Game not found"});
 			return;
+		} else if (game.apiState != "started") {
+			reply.code(404).send({error: "Game is not running"});
+			return;
 		}
 
 		const {player, move} = request.params;
+
 		if ((player != "player1api" && player != "player2api") || (move != "none" && move != "down" && move != "up")) {
-			reply.send({success: false});
+			reply.send({
+				success: false,
+				message: "Player not found or move not recognized"
+			});
 			return;
 		}
 
