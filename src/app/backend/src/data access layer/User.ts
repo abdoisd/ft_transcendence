@@ -126,7 +126,7 @@ export class User {
 	//!
 	update(): Promise<boolean> {
 		console.log(green, 'User.update');
-		console.debug(yellow, 'Updating: ', this);
+		// console.debug(yellow, 'Updating: ', this); // COMMENTED THIS 
 
 		return new Promise((resolve, reject) => {
 			db.run("UPDATE Users SET GoogleId = ?, Username = ?, AvatarPath = ?, Wins = ?, Losses = ?, SessionId = ?, ExpirationDate = ?, LastActivity = ?, TOTPSecretPending = ?, TOTPSecret = ? WHERE Id = ?",

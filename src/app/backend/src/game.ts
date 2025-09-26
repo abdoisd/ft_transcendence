@@ -23,6 +23,8 @@ export class Game {
 	winnerId;
 	targetY;
 	apiState;
+	p1;
+	p2;
 
 	constructor(player1Client, player2Client, io, roomId) {
 		this.io = io;
@@ -43,6 +45,8 @@ export class Game {
 			this.apiGame = false;
 			this.aiGame = false;
 		}
+		this.p1 = player1Client;
+		this.p2 = player2Client;
 
 		this.paddles = {
 			[this.player1Id]: { 

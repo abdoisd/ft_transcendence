@@ -63,7 +63,6 @@ export function webSocket() {
 		}
 	});
 
-
 	const aiGames = new Map();
 	wsServerAI.on("connection", (client) => {
 		const roomId = `room_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
@@ -154,7 +153,6 @@ export function webSocket() {
 			const game = remoteGames.get(roomId);
 			if (!game)
 				return;
-			console.log("HERE KEY STATES");
 			const keyStates = game.keyStates[client.userId];
 			if (!keyStates)
 				return;
@@ -164,47 +162,28 @@ export function webSocket() {
 				keyStates.down = pressedState;
 		});
 
-		client.on("disconnect", () => handleRemoteDisconnect(client));
-		function handleRemoteDisconnect(leaver) {
+		client.on("disconnect", () => {
+			const leaver = client;
 			const leaverIndexInWaitingList = waitingRemotePlayers.indexOf(leaver);
 			if (leaverIndexInWaitingList !== -1) {
+				console.log(red, "REMOVED NON IN GAME CLIENT after he disconnected");
 				waitingRemotePlayers.splice(leaverIndexInWaitingList, 1);
 				return;
 			}
 
 			const roomId = leaver.roomId;
-			const clientsInRoom = wsServerRemote.adapter.rooms.get(roomId);
-			if (!clientsInRoom) {
-				remoteGames.delete(roomId);
-				return;
+			if (roomId) {
+				leaver.leave(roomId);
 			}
-
 			const game = remoteGames.get(roomId);
-			if (game)
+			if (game) {
 				game.running = false;
-			wsServerRemote.to(roomId).emit("opponent-left");
-
-			remoteGames.delete(roomId);
-			leaver.leave(roomId);
-			leaver.roomId = null;
-
-			const validSurvivors = [...clientsInRoom].filter((id) => id !== leaver.id)
-				.map((id) => wsServerRemote.sockets.get(id))
-				.filter((socket) => socket?.connected);
-
-			validSurvivors.forEach((survivor) => {
-				if (!waitingRemotePlayers.includes(survivor)) {
-					waitingRemotePlayers.push(survivor);
-					survivor.roomId = null;
-				}
-			});
-
-			while (waitingRemotePlayers.length >= 2) {
-				const p1 = waitingRemotePlayers.pop();
-				const p2 = waitingRemotePlayers.pop();
-				startRemoteGame(p1, p2);
+				wsServerRemote.to(roomId).emit("opponent-left");
+				const survivor = (leaver.userId === game.p1.userId) ? game.p2 : game.p1;
+				survivor.disconnect(true);
+				remoteGames.delete(roomId);
 			}
-		}
+		});
 	});
 	function startRemoteGame(p1, p2) {
 		if (!p1.connected || !p2.connected) {

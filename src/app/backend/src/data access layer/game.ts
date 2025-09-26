@@ -119,7 +119,7 @@ export class clsGame {
 	add()
 	{
 		console.log(green, 'Game.add');
-		console.debug(yellow, 'Adding: ', this);
+		// console.debug(yellow, 'Adding: ', this); // COMMENTED THIS 
 		
 		return new Promise((resolve, reject) => {
 			const query = `
