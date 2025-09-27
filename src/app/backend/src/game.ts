@@ -6,7 +6,7 @@ const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 150;
 const BALL_RADIUS = 9;
 const MAX_VELOCITY = 1000;
-const MAX_SCORE = 20;
+const MAX_SCORE = 3;
 
 export class Game {
 	io;
