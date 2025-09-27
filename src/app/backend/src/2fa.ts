@@ -14,16 +14,16 @@ export function Enable2faRoutes()
 	{
 		const userId = (request.query as any).Id;
 
-		var secret = speakeasy.generateSecret({}); // Generates a random secret with the set A-Z a-z 0-9 and symbols, of any length (default 32).
+		var secret = speakeasy.generateSecret({});
 
 		const user = await User.getById(userId);
 		user.TOTPSecretPending = secret.base32;
 		user.update();
 
 		console.debug(yellow, "secret: ", secret);
-		const qrCodeDataURL = await qrcode.toDataURL(secret.otpauth_url); // Returns a Data URI containing a representation of the QR Code image
+		const qrCodeDataURL = await qrcode.toDataURL(secret.otpauth_url);
 		console.debug(yellow, "qrCodeDataURL: ", qrCodeDataURL);
-		reply.send({ qrCode: qrCodeDataURL }); // response body
+		reply.send({ qrCode: qrCodeDataURL });
 
 	});
 

@@ -15,27 +15,6 @@ export class Relationship {
 		this.Relationship = Relationship ?? -1;
 	}
 
-	static getAll(): Promise<any[] | null>
-	{
-		return new Promise((resolve, reject) => {
-			db.all('SELECT * FROM Relationships', (err, rows) => {
-				if (err)
-					reject(null); // returning
-				else
-					resolve(rows);
-			});
-		});
-	}
-
-	static getById(Id: number): Promise<any | null> {
-		return new Promise((resolve, reject) => {
-		  db.get('SELECT * FROM Relationships WHERE Id = ?', [Id], (err, row) => {
-			if (err) reject(null);
-			else resolve(row || null);
-		  });
-		});
-	}
-
 	async add() {
 		const result: number = await new Promise((resolve, reject) => {
 			db.run(
@@ -53,43 +32,6 @@ export class Relationship {
 		});
 		this.Id = result;
 	}
-
-	update(): Promise<boolean> {
-		return new Promise((resolve, reject) => {
-			db.run(
-				'UPDATE Relationships SET User1Id = ?, User2Id = ?, Relationship = ? WHERE Id = ?',
-				[this.User1Id, this.User2Id, this.Relationship, this.Id],
-				function (err) {
-					if (err)
-					{
-						console.error(red, "Relationship.update", err);
-						reject(false);
-					}
-					else
-						resolve(this.changes > 0);
-				}
-			);
-		});
-	}
-	
-	delete(): Promise<boolean> {
-		return new Promise((resolve, reject) => {
-			db.run('DELETE FROM Relationships WHERE Id = ?', [this.Id], function (err) {
-				if (err) reject(false);
-				else resolve(this.changes > 0);
-			});
-		});
-	}
-	
-	static deleteById(Id: number): Promise<boolean> {
-		return new Promise((resolve, reject) => {
-			db.run('DELETE FROM Relationships WHERE Id = ?', [Id], function (err) {
-				if (err) reject(false);
-				else resolve(this.changes > 0);
-			});
-		});
-	}
-
 }
 
 const relationshipAddSchema = {
@@ -111,13 +53,27 @@ export function relationshipRoutes()
 	server.post("/relationships", { preHandler: (server as any).byItsOwnUser, schema: relationshipAddSchema }, async (request, reply) => {
 		const relationship: Relationship = Object.assign(new Relationship(), request.body);
 
+		if (relationship.User1Id === relationship.User2Id) {
+			console.debug(yellow, "User cannot have a relationship with themselves");
+			reply.status(400).send();
+			return ;
+		}
+
+		// Check if the 2nd user exists
+		const user2 = await User.getById(relationship.User2Id);
+		if (!user2) {
+			console.debug(yellow, "User2 does not exist");
+			reply.status(400).send();
+			return ;
+		}
+
 		const user1Friends = await User.getFriends(relationship.User1Id);
 		if (user1Friends && relationship.Relationship == 1)
 		{
 			for (const friend of user1Friends) {
 				if (friend.Id === relationship.User2Id) {
 					console.debug(yellow, "Already a friend");
-					reply.send(400);
+					reply.status(400).send();
 					return ;
 				}
 			}

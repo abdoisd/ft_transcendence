@@ -1,5 +1,5 @@
 import { server } from './server.ts';
-import querystring from 'querystring'; // To handle URL query strings
+import querystring from 'querystring';
 import { User } from './data access layer/user.ts';
 import { red, green, yellow, blue, guid as Guid } from './global.ts';
 import fs from 'fs';
@@ -14,14 +14,13 @@ import { guid } from './global.ts';
 const CLIENT_ID = process.env.CLIENT_ID;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 
-//!
 export function setSessionIdCookie(user: User, reply: FastifyReply)
 {
 	const sessionId = Guid();
 
 	console.debug(blue, "Setting sessionId for user");
 	user.SessionId = sessionId;
-	user.ExpirationDate = new Date(Date.now() + (60000 * 60 * 24)); // expire in 1 day
+	user.ExpirationDate = new Date(Date.now() + (60000 * 60 * 24));
 	const user2: User = Object.assign(new User(-1, "", "", "", -1, -1), user);
 	user2.update().then(res => {
 		if (!res)
@@ -30,14 +29,13 @@ export function setSessionIdCookie(user: User, reply: FastifyReply)
 
 	console.debug(blue, "Setting sessionId for browser");
 	reply.setCookie('sessionId', sessionId, {
-		httpOnly: true,       // client JS cannot access
-		path: '/',            // send cookie on all routes
-		maxAge: 60 * 60 * 24,      // session is not valid in server after 1 day
-		secure: false,        // set true if using HTTPS
+		httpOnly: true,
+		path: '/',
+		maxAge: 60 * 60 * 24,
+		secure: false,
 	});
 }
 
-//!
 export function createJwt(Id: number)
 {
 	return server.jwt.sign({
@@ -53,16 +51,16 @@ export function OAuth2Routes() {
 		console.debug(blue, "/loginGoogle");
 	
 		const queryString = querystring.stringify({
-		  client_id: CLIENT_ID,
-		  redirect_uri: "https://localhost/loginGoogleCallback",
-		  response_type: 'code',
-		  scope: 'openid email profile',
+			client_id: CLIENT_ID,
+			redirect_uri: "https://localhost/loginGoogleCallback",
+			response_type: 'code',
+			scope: 'openid email profile',
 		});
 
 		reply.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${queryString}`);
 	});
 	
-	server.get('/loginGoogleCallback', async (req, reply) => { //!
+	server.get('/loginGoogleCallback', async (req, reply) => {
 
 		console.debug(blue, "/loginGoogleCallback");
 		
@@ -74,7 +72,7 @@ export function OAuth2Routes() {
 			body: querystring.stringify({
 				code,
 				client_id: CLIENT_ID,
-				client_secret: await vaultGoogleClientSecret(), // REQUESTING FROM VAULT, for each new vault server you must unseal
+				client_secret: await vaultGoogleClientSecret(),
 				redirect_uri: REDIRECT_URI,
 				grant_type: 'authorization_code'
 			})
@@ -87,7 +85,7 @@ export function OAuth2Routes() {
 		});
 		const userObjFromGoogle = await userRes.json();
 
-		var response = await fetch(config.WEBSITE_URL + `/data/user/getByGoogleId?GoogleId=${encodeURIComponent(userObjFromGoogle.id)}`, { headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` } }); // full url here, bc the browser that handle that is the frontend
+		var response = await fetch(config.WEBSITE_URL + `/data/user/getByGoogleId?GoogleId=${encodeURIComponent(userObjFromGoogle.id)}`, { headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` } });
 
 		if (response.ok)
 		{
@@ -113,17 +111,17 @@ export function OAuth2Routes() {
 				{
 					const params = querystring.stringify({...user});
 
-					reply.redirect("https://localhost" + `/existingUser?Id=${user.Id}`); // removed all query params
+					reply.redirect("https://localhost" + `/existingUser?Id=${user.Id}`);
 					return ;
 				}
 
 				setSessionIdCookie(user, reply);
 
 				const jwt = createJwt(user.Id);
-				console.debug(yellow, "server set jwt=" + jwt); // this return jwt, hhhhhhh
+				console.debug(yellow, "server set jwt=" + jwt);
 				
 				const params = querystring.stringify({...user});
-				reply.redirect("https://localhost" + `/existingUser?${params}&jwt=${jwt}`); // redirect to home
+				reply.redirect("https://localhost" + `/existingUser?${params}&jwt=${jwt}`);
 				return ;
 			}
 		}
@@ -131,7 +129,7 @@ export function OAuth2Routes() {
 		{
 			console.log(blue, "User is not in db");
 			
-			const newUser: User = new User(-1, userObjFromGoogle.id, null, "", 0, 0); // so small ?
+			const newUser: User = new User(-1, userObjFromGoogle.id, null, "", 0, 0);
 
 			const res = await newUser.add();
 			if (res)
@@ -209,8 +207,8 @@ export function OAuth2Routes() {
 
 		if (!sessionId)
 		{
-			console.debug(blue, "sessionId cookie not found"); // the browser didn't send it or user removed it
-			return reply.status(404).send(); // didn't found session id
+			console.debug(blue, "sessionId cookie not found");
+			return reply.status(404).send();
 		}
 
 		db.get("SELECT * FROM Users WHERE SessionId = ?", [sessionId], (err, row) => {
@@ -221,8 +219,7 @@ export function OAuth2Routes() {
 			}
 			if (row)
 			{
-				const userRow = row as { ExpirationDate: number }; // Type assertion
-
+				const userRow = row as { ExpirationDate: number };
 				if (userRow.ExpirationDate < (new Date()).getTime())
 				{
 					console.debug(blue, "Session expired");
