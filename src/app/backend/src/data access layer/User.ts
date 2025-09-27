@@ -35,7 +35,7 @@ db.run(`
 		console.log(green, 'Table Users ready');
 	}
 });
-
+	
 const insertefaultUsers = () => {
 	db.run(`
 		INSERT OR IGNORE INTO Users (Id, GoogleId, Username, AvatarPath) VALUES (?, ?, ?, ?);
