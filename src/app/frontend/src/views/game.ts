@@ -37,6 +37,19 @@ export function aiView() {
 }
 window.aiView = aiView;
 
+function resize() {
+	const canvas = document.querySelector(".canvas");
+	const board = document.querySelector(".board");
+	if (!board || !canvas) {
+		window.removeEventListener("resize", resize);
+		return;
+	}
+	const rect = board.getBoundingClientRect();
+	canvas.width = rect.width;
+	canvas.height = rect.height;
+}
+window.addEventListener("resize", resize);
+
 function aiGame() {
 	const canvas = document.querySelector(".canvas");
 	const ctx = canvas.getContext("2d");
@@ -273,7 +286,7 @@ function tournamentGame() {
 		wrapper.final.one = data.final.one ? (await UserDTO.getById(data.final.one)).Username : "To be announced";
 		wrapper.final.two = data.final.two ? (await UserDTO.getById(data.final.two)).Username : "To be announced";
 		wrapper.final.winner = data.final.winner ? (await UserDTO.getById(data.final.winner)).Username : "To be announced";
-		tournamentOverview(data.status, wrapper, data.final.winner);
+		tournamentOverview(wrapper, data.final.winner);
 	});
 	wsClientTournament.on("void", () => {
 		// game.looping = false; 

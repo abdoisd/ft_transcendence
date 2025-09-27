@@ -19,9 +19,9 @@ export function setScores(left, right, leftUsername, rightUsername) {
 	pRight.textContent = rightUsername;
 }
 
-export function tournamentOverview(status, data, noFurtherUpdates) {
+export function tournamentOverview(data, noFurtherUpdates) {
 	document.getElementById("main-views")!.innerHTML = `
-	<h1>Tournament has status: ${status}</h1>
+	<h1>Tournament summary:</h1>
 	<div class="semi-match-1">Semi: ${data.semi1.one} vs ${data.semi1.two} -> ${data.semi1.winner}</div>
 	<div class="semi-match-2">Semi: ${data.semi2.one} vs ${data.semi2.two} -> ${data.semi2.winner}</div>
 	<div class="final-match">Final: ${data.final.one} vs ${data.final.two} -> ${data.final.winner}</div>
