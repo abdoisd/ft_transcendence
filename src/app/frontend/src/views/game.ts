@@ -41,7 +41,7 @@ function resize() {
 	const canvas = document.querySelector(".canvas");
 	const board = document.querySelector(".board");
 	if (!board || !canvas) {
-		window.removeEventListener("resize", resize);
+		// window.removeEventListener("resize", resize);
 		return;
 	}
 	const rect = board.getBoundingClientRect();
