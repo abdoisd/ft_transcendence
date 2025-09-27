@@ -46,7 +46,7 @@ const relationshipAddSchema = {
 	}
 };
 
-import { User } from "./User.ts"
+import { User } from "./user.ts"
 
 export function relationshipRoutes()
 {
