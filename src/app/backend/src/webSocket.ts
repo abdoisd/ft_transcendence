@@ -8,60 +8,24 @@ import { TOURNAMENT_ID, User } from "./data access layer/user.ts";
 export const userIdUserId = new Map();
 export const userIdSocket = new Map();
 
-export function webSocket() {
-	const wsServerTournament = ws.of("/tournament");
-	const wsServerRemote = ws.of("/remote");
-	const wsServerInvite = ws.of("/invite");
-	const wsServerAI = ws.of("/ai");
-	
-	wsServerTournament.use((socket, next) => {
-		const token = socket.handshake.auth.token;
-		if (!token)
-			return next(new Error('Authentication error: No token provided'));
-		try {
-			const payload = server.jwt.verify(token);
-			socket.userId = payload.Id;
-			return next();
-		} catch {
-			return next(new Error('Authentication error: token invalid'));
-		}
-	});
-	wsServerRemote.use((socket, next) => {
-		const token = socket.handshake.auth.token;
-		if (!token)
-			return next(new Error('Authentication error: No token provided'));
-		try {
-			const payload = server.jwt.verify(token);
-			socket.userId = payload.Id;
-			return next();
-		} catch {
-			return next(new Error('Authentication error: token invalid'));
-		}
-	});
-	wsServerInvite.use((socket, next) => {
-		const token = socket.handshake.auth.token;
-		if (!token)
-			return next(new Error('Authentication error: No token provided'));
-		try {
-			const payload = server.jwt.verify(token);
-			socket.userId = payload.Id;
-			return next();
-		} catch {
-			return next(new Error('Authentication error: token invalid'));
-		}
-	});
-	wsServerAI.use((socket, next) => {
-		const token = socket.handshake.auth.token;
-		if (!token)
-			return next(new Error('Authentication error: No token provided'));
-		try {
-			const payload = server.jwt.verify(token);
-			socket.userId = payload.Id;
-			return next();
-		} catch {
-			return next(new Error('Authentication error: token invalid'));
-		}
-	});
+function authMiddleware(socket, next) {
+	const token = socket.handshake.auth.token;
+	if (!token)
+		return next(new Error('Authentication error: No token provided'));
+	try {
+		const payload = server.jwt.verify(token);
+		socket.userId = payload.Id;
+		return next();
+	} catch {
+		return next(new Error('Authentication error: token invalid'));
+	}
+}
+
+export function gameWs() {
+	const wsServerTournament = ws.of("/tournament").use(authMiddleware);
+	const wsServerRemote = ws.of("/remote").use(authMiddleware);
+	const wsServerInvite = ws.of("/invite").use(authMiddleware);
+	const wsServerAI = ws.of("/ai").use(authMiddleware);
 
 	const aiGames = new Map();
 	wsServerAI.on("connection", (client) => {
