@@ -309,7 +309,7 @@ export function UserRoutes() {
 					{
 						console.error(red, 'Error: /data/user/getAvatarById:', err);
 						if (!fs.existsSync(defaultAvatarPath)) {
-							reply.status(500).send();
+							reply.status(400).send();
 							return;
 						}
 						fs.createReadStream(defaultAvatarPath).pipe(reply.raw);
@@ -319,7 +319,7 @@ export function UserRoutes() {
 					if (!row || !(row as any).AvatarPath) {
 						console.debug(blue, 'User not found in db or no avatar for him');
 						if (!fs.existsSync(defaultAvatarPath)) {
-							reply.status(500).send();
+							reply.status(400).send();
 							return;
 						}
 						fs.createReadStream(defaultAvatarPath).pipe(reply.raw);
@@ -331,7 +331,7 @@ export function UserRoutes() {
 					if (!fs.existsSync(filePath)) {
 						console.debug(blue, 'Avatar file not found, serving default');
 						if (!fs.existsSync(defaultAvatarPath)) {
-							reply.status(500).send();
+							reply.status(400).send();
 							return;
 						}
 						fs.createReadStream(defaultAvatarPath).pipe(reply.raw);
@@ -364,7 +364,7 @@ export function UserRoutes() {
 		db.get("select * from users where GoogleId = ?", [GoogleId], (err, row) => {
 			if (err) {
 				console.error(red, 'Error: get /data/user/getByGoogleId: ', err);
-				reply.status(500).send();
+				reply.status(400).send();
 			}
 			else {
 				if (!row)

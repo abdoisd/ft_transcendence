@@ -81,7 +81,7 @@ export function relationshipRoutes()
 
 		await relationship.add();
 		if (relationship.Id == -1) {
-			reply.status(500).send();
+			reply.status(400).send();
 		} else {
 			reply.send();
 		}

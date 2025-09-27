@@ -147,7 +147,7 @@ export function OAuth2Routes() {
 			else
 			{
 				console.error(red, "Error adding new user");
-				reply.status(500).send("Error: failure adding user");
+				reply.status(400).send("Error: failure adding user");
 			}
 		}
 
@@ -197,7 +197,7 @@ export function OAuth2Routes() {
 			return reply.send();
 		}
 		else
-			return reply.status(500).send();
+			return reply.status(400).send();
 
 	});
 
@@ -215,7 +215,7 @@ export function OAuth2Routes() {
 			if (err)
 			{
 				console.error(red, 'Error querying user by sessionId:', err);
-				return reply.status(500).send();
+				return reply.status(400).send();
 			}
 			if (row)
 			{
