@@ -59,7 +59,6 @@ export function relationshipRoutes()
 			return ;
 		}
 
-		// Check if the 2nd user exists
 		const user2 = await User.getById(relationship.User2Id);
 		if (!user2) {
 			console.debug(yellow, "User2 does not exist");

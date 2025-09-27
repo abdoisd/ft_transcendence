@@ -38,7 +38,6 @@ export const chatWs = () => {
         socket.on('check-invite', async (msgId) => {
             try {
                 const result = await ChatRepository.acceptInviteChecker(msgId, socket.userId);
-                // emitMessageWithType(socket.userId, "check-game", "");
                 emitMessageWithType(result.sender_id, "check-game", "");
                 userIdUserId.set(socket.userId, result.sender_id);
                 userIdUserId.set(result.sender_id, socket.userId);

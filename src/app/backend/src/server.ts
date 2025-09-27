@@ -50,9 +50,7 @@ ws.use((socket, next) => {
 	}
 });
 
-
 registerLogger(server);
-
 
 // REGISTER PLUGINS
 server.register(cookie, {});

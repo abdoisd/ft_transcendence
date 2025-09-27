@@ -29,7 +29,7 @@ export class UserDTO
 
 	static async getAllUsers()
 	{
-		const response = await fetch('data/user/getAll'); // the browser use the same curr domain and port
+		const response = await fetch('data/user/getAll');
 		if (!response.ok)
 		{
 			return [];

@@ -159,9 +159,6 @@ export const gameModesViewStaticPart = `
 	</div>
 `;
 
-// <h1>Game Modes</h1>
-// <button onclick="tournamentView()">Tournament</button>
-
 export const apiGameStaticPart = `
 <div class="scores">
 	<div>

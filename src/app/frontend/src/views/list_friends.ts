@@ -1,5 +1,4 @@
 
-
 export async function listFriendsView()
 {
 	document.getElementById("main-views")!.innerHTML = listFriendsViewStaticPart;
@@ -14,7 +13,7 @@ export async function listFriendsView()
 		return;
 	}
 	users.forEach((user) => {
-		const newListItem = template.content.cloneNode(true); // clone template automatically
+		const newListItem = template.content.cloneNode(true);
 		newListItem.querySelector(".user-id").textContent = user.Id;
 		newListItem.querySelector(".username").textContent = user.Username;
 

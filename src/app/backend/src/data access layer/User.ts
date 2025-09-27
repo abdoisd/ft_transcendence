@@ -238,38 +238,18 @@ export function UserRoutes() {
 					return reply.status(403).send();
 
 			}
-			else if (request.method == "DELETE" || request.method == "GET") // get for friends
+			else if (request.method == "DELETE" || request.method == "GET")
 			{
 
 				const Id = request.query.Id || request.params.id;
-				if (!Id) // google id (used by server)
+				if (!Id)
 				{
-					// console.log("blabla")
-
 					if (!payload.IsRoot)
 						return reply.status(403).send();
-
-					// const GoogleId = request.query.GoogleId;
-					// if (!GoogleId)
-					// 	return reply.status(400).send(); // Bad request
-
-					// console.log("blabla 1")
-
-					// const user = await User.getById(payload.Id);
-
-					// console.log("blabla 1.5")
-
-					// if (GoogleId != user.GoogleId)
-					// {
-					// 	console.log("blabla 1.75")
-					// 	return reply.status(403).send();
-					// }
-
-					// console.log("blabla 2")
 				}
 				else {
 					if (Id != payload.Id)
-						return reply.status(403).send(); // Forbidden
+						return reply.status(403).send();
 				}
 			}
 			else if (request.method == "POST") {
@@ -279,7 +259,7 @@ export function UserRoutes() {
 			}
 		}
 		catch (err) {
-			return reply.status(401).send({ error: err }); // Unauthorized
+			return reply.status(401).send({ error: err });
 		}
 	});
 
@@ -453,7 +433,7 @@ export function UserRoutes() {
 		const user: User = await User.getById((req.params as any).id);
 		user.Username = username ?? user.Username;
 		user.AvatarPath = filename ?? user.AvatarPath;
-		await user.update(); // why wait
+		await user.update();
 
 		reply.send();
 

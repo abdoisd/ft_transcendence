@@ -1,5 +1,5 @@
 
-import './global.ts'; // import a file
+import './global.ts';
 import { HomeView } from './views/home.ts';
 import { ProfileView } from './views/profile.ts';
 import { ProfileEditView } from './views/profileEdit.ts';
@@ -41,7 +41,7 @@ export async function autoLogin() {
 
 	return fetch("/validateSession", {
 		method: "POST",
-		credentials: "include", // to send cookies
+		credentials: "include",
 	})
 	.then(response => {
 		if (response.ok)
@@ -68,7 +68,7 @@ export function route(event: Event | null, path?: string) {
 		return;
 	}
 
-	event = event || window.event; // window.event link event, event passed by addEventListener
+	event = event || window.event;
 
 	event!.preventDefault();
 
@@ -81,7 +81,7 @@ export function route(event: Event | null, path?: string) {
 			targetURL.pathname !== currentURL.pathname ||
 			targetURL.search !== currentURL.search
 		)
-			window.history.pushState({}, "", target); // add to history
+			window.history.pushState({}, "", target);
 	}
 	handleView();
 };
@@ -111,17 +111,17 @@ function handleView(event?, path?: string | null) {
 			if (path != "/newUser" && path != "/existingUser") {
 				if (!clsGlobal.LoggedInUser) {
 					console.debug("LoggedInUser not filled");
-					LoginWithGoogle(); // this send to me to new user or existing user
+					LoginWithGoogle();
 					return;
 				}
 				else
 					console.debug("LoggedInUser filled");
 			}
 
-			clsGlobal.LoggedInUser?.update(); // what
+			clsGlobal.LoggedInUser?.update();
 
 			HomeView();
-			if (path == '/') // home view is default
+			if (path == '/')
 			{
 				window.history.replaceState({}, "", "/");
 				return;
@@ -130,10 +130,9 @@ function handleView(event?, path?: string | null) {
 			if (routes[getMainPath(path)])
 				routes[path]();
 			else {
-				// window.history.replaceState({}, "", "/");
-				// HomeView();
 				document.getElementById("body")!.innerHTML = `<div style="grid-area: main;" class="flex flex-center"><h1>Not Found</h1></div>`; //&
 			}
 		});
 };
-window.onpopstate = handleView; // on <- / ->, call handleLocation
+
+window.onpopstate = handleView;

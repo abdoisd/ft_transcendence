@@ -1,22 +1,8 @@
-/**
- * CREATE TABLE IF NOT EXISTS Games (
-    Id INTEGER PRIMARY KEY AUTOINCREMENT,
-    User1Id INTEGER NOT NULL,
-    User2Id INTEGER NULL, -- ai game
-    Date TEXT NOT NULL DEFAULT NULL,
-	WinnerId INTEGER NOT NULL,
-	TournamentId INTEGER NULL, -- game not in tournament
-
-	FOREIGN KEY (User1Id) REFERENCES Users(Id),
-    FOREIGN KEY (User2Id) REFERENCES Users(Id)
-);
- */
 
 import { db } from "./database.ts";
 import { green, red, yellow } from "../global.ts";
 import { server } from "../server.ts";
 
-// db stuff
 db.run(`
 	CREATE TABLE IF NOT EXISTS Games (
 		Id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -36,21 +22,18 @@ db.run(`
 		console.log(green, 'Table Games ready');
 });
 
-// between server and db
 export class clsGame {
 	Id;
 	User1Id;
 	User2Id;
 	Date: Date;
 	WinnerId;
-	TournamentId; // if games in tournaments are saved
 
 	constructor(obj)
 	{
 		Object.assign(this, obj);
 	}
 
-	// get by id
 	static getById(Id)
 	{
 
@@ -65,7 +48,7 @@ export class clsGame {
 				if (err)
 				{
 					console.error(red, 'Error: Game.get: ', err);
-					// reject(err);
+					reject(err);
 				}
 				else
 				{
@@ -101,25 +84,20 @@ export class clsGame {
 				}
 				else
 				{
-					// make them class instances
 					const games = rows.map(row => {
 						const game = new clsGame(row);
 						return game;
 					});
-					resolve(games); // return array of games
-					// resolve(rows);
+					resolve(games);
 				}
 			});
 		});	
 	}
 
-	// users must get games history
-	// no sensitive data in this class
-	// we add game after it finishes
 	add()
 	{
 		console.log(green, 'Game.add');
-		// console.debug(yellow, 'Adding: ', this); // COMMENTED THIS 
+		// console.debug(yellow, 'Adding: ', this);
 		
 		return new Promise((resolve, reject) => {
 			const query = `
@@ -127,14 +105,14 @@ export class clsGame {
 				VALUES (?, ?, ?, ?, ?)
 			`;
 			db.run(query, [this.User1Id, this.User2Id, this.Date, this.WinnerId, this.TournamentId], function (err) {
-				if (err) // to test this
+				if (err)
 				{
 					console.error(red, 'Error: Game.add: ', err);
-					// reject(err); // throw err;
+					reject(err);
 				}
 				else
 				{
-					resolve(this.lastID); // return the id of the inserted game
+					resolve(this.lastID);
 				}
 			});
 		});
@@ -154,28 +132,8 @@ export class clsGame {
 				else
 				{
 					resolve((row as any).LastId);
-					// if no rows
 				}
 			});
 		});
 	}
 }
-
-// function gameRoutes()
-// {
-// 	server.get("/games/:userId",  (req, res) => {
-		
-// 	});
-// }
-
-// // usage
-// const obj = {
-// 	Id: -1, // autoincrement
-// 	User1Id: 1,
-// 	User2Id: 2,
-// 	Date: new Date(),
-// 	WinnerId: 1, // 1 user1 wins, 2 user2 wins, 0 draw
-// 	TournamentId: null // not in tournament
-// }
-// const game: Game = new Game(obj);
-// game.add();

@@ -30,7 +30,7 @@ function	validate2faCode(event)
 	.then(data => {
 		if (data)
 		{
-			localStorage.setItem("jwt", data.jwt); // now access granted from server
+			localStorage.setItem("jwt", data.jwt);
 			console.debug("setting jwt: ", data.jwt);
 			
 			clsGlobal.LoggedInUser = data.user;

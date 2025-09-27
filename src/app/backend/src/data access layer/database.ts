@@ -1,8 +1,8 @@
 import sqlite3 from "sqlite3";
 import { green, red } from "../global.ts";
-import { connectedToSqlite } from "../server.ts"; // import variable
+import { connectedToSqlite } from "../server.ts";
 
-export const db = new sqlite3.Database('ft_transcendence', (err) => //!
+export const db = new sqlite3.Database('ft_transcendence', (err) =>
 {
 	if (err)
 		console.error(red, 'Error: creating the database:', err);

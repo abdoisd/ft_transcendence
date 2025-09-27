@@ -27,7 +27,7 @@ export function NewUser() {
 		{
 			fetch("/validateSession", {
 				method: "POST",
-				credentials: "include", // to send cookies
+				credentials: "include",
 			})
 			.then(response => {
 				if (!response.ok)
@@ -141,12 +141,12 @@ async function usernameAvatarFormHandleSubmit(event: Event)
 		//?
 		fetch("/uploadProfile/" + Id, {
     	    method: "POST",
-    	    body: formData, // body as object? not string
+    	    body: formData,
 			headers: {
 				Authorization: `Bearer ${localStorage.getItem("jwt")}`
 			}
     	})
-    	.then(async response => { // is then gonna wait for this
+    	.then(async response => {
 			if (response.ok)
 			{
 
