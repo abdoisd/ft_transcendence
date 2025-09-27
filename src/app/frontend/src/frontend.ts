@@ -13,6 +13,8 @@ import { GameManager } from './views/game.ts';
 import { addFriendView } from './views/add_friend.ts';
 import { listFriendsView } from './views/list_friends.ts';
 
+import { aiView, three3DView, remoteView, tournamentView, apiView } from './views/game.ts'
+
 window.gameManager = new GameManager();
 
 type RoutePath = keyof typeof routes;
@@ -24,9 +26,14 @@ export var routes = {
 	'/listFriends': listFriendsView,
 	'/profile': ProfileView,
 	'/profileEdit': ProfileEditView,
-	'/game': GameModesView,
 	"/settings": Settings,
-	"/chat": Chat
+	"/chat": Chat,
+	'/game': GameModesView,
+	"/ai-game": aiView,
+	"/3d-game": three3DView,
+	"/remote-game": remoteView,
+	"/tournament-game": tournamentView,
+	"/api-game": apiView
 };
 
 export async function autoLogin() {

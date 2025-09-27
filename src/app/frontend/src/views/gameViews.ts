@@ -68,8 +68,8 @@ export const gameModesViewStaticPart = `
 		<p class="mt-3 text-center text-secondary max-width w-full mh-5">Select how you want to play. Challenge our AI, dive into a 3D experience, or compete against others.</p>
 
 		<div class="mt-10 flow-row gap-medium center-justify gap-row-large">
-			<button class="card-btn flex-center" onclick="aiView()">
-				
+			
+		<a href="/ai-game" onclick="route()" class="card-btn flex-center">
 				<div class="p-5 round icon">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 48 48">
 						<g id="Layer_2" data-name="Layer 2">
@@ -92,10 +92,9 @@ export const gameModesViewStaticPart = `
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Play Now</p>
 				</div>
-			</button>			
+			</a>
 
-			<button class="card-btn flex-center" onclick="apiView()">
-				
+			<a href="/api-game" onclick="route()" class="card-btn flex-center">
 				<div class="p-5 round icon">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M9 9V4.5M9 9H4.5M9 9 3.75 3.75M9 15v4.5M9 15H4.5M9 15l-5.25 5.25M15 9h4.5M15 9V4.5M15 9l5.25-5.25M15 15h4.5M15 15v4.5m0-4.5 5.25 5.25" />
@@ -108,10 +107,9 @@ export const gameModesViewStaticPart = `
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Play Now</p>
 				</div>
-			</button>
+			</a>
 
-			<button class="card-btn flex-center" onclick="tournamentView()">
-				
+			<a href="/tournament-game" onclick="route()" class="card-btn flex-center">
 				<div class="p-5 round icon">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="currentColor" class="size-6">
 						<path fill-rule="evenodd" d="M5.166 2.621v.858c-1.035.148-2.059.33-3.071.543a.75.75 0 0 0-.584.859 6.753 6.753 0 0 0 6.138 5.6 6.73 6.73 0 0 0 2.743 1.346A6.707 6.707 0 0 1 9.279 15H8.54c-1.036 0-1.875.84-1.875 1.875V19.5h-.75a2.25 2.25 0 0 0-2.25 2.25c0 .414.336.75.75.75h15a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-2.25-2.25h-.75v-2.625c0-1.036-.84-1.875-1.875-1.875h-.739a6.706 6.706 0 0 1-1.112-3.173 6.73 6.73 0 0 0 2.743-1.347 6.753 6.753 0 0 0 6.139-5.6.75.75 0 0 0-.585-.858 47.077 47.077 0 0 0-3.07-.543V2.62a.75.75 0 0 0-.658-.744 49.22 49.22 0 0 0-6.093-.377c-2.063 0-4.096.128-6.093.377a.75.75 0 0 0-.657.744Zm0 2.629c0 1.196.312 2.32.857 3.294A5.266 5.266 0 0 1 3.16 5.337a45.6 45.6 0 0 1 2.006-.343v.256Zm13.5 0v-.256c.674.1 1.343.214 2.006.343a5.265 5.265 0 0 1-2.863 3.207 6.72 6.72 0 0 0 .857-3.294Z" clip-rule="evenodd" />
@@ -125,10 +123,9 @@ export const gameModesViewStaticPart = `
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Join</p>
 				</div>
-			</button>
+			</a>
 			
-			<button class="card-btn flex-center" onclick="remoteView()">
-				
+			<a href="/remote-game" onclick="route()" class="card-btn flex-center">
 				<div class="p-5 round icon">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" viewBox="0 0 24 24" fill="currentColor" class="size-6">
 						<path d="M4.5 6.375a4.125 4.125 0 1 1 8.25 0 4.125 4.125 0 0 1-8.25 0ZM14.25 8.625a3.375 3.375 0 1 1 6.75 0 3.375 3.375 0 0 1-6.75 0ZM1.5 19.125a7.125 7.125 0 0 1 14.25 0v.003l-.001.119a.75.75 0 0 1-.363.63 13.067 13.067 0 0 1-6.761 1.873c-2.472 0-4.786-.684-6.76-1.873a.75.75 0 0 1-.364-.63l-.001-.122ZM17.25 19.128l-.001.144a2.25 2.25 0 0 1-.233.96 10.088 10.088 0 0 0 5.06-1.01.75.75 0 0 0 .42-.643 4.875 4.875 0 0 0-6.957-4.611 8.586 8.586 0 0 1 1.71 5.157v.003Z" />
@@ -142,10 +139,9 @@ export const gameModesViewStaticPart = `
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Play Now</p>
 				</div>
-			</button>
+			</a>
 
-			<button class="card-btn flex-center" onclick="three3DView()">
-				
+			<a href="/3d-game" onclick="route()" class="card-btn flex-center">
 				<div class="p-5 round icon">
 					<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
 						<path stroke-linecap="round" stroke-linejoin="round" d="M6.429 9.75 2.25 12l4.179 2.25m0-4.5 5.571 3 5.571-3m-11.142 0L2.25 7.5 12 2.25l9.75 5.25-4.179 2.25m0 0L21.75 12l-4.179 2.25m0 0 4.179 2.25L12 21.75 2.25 16.5l4.179-2.25m11.142 0-5.571 3-5.571-3" />
@@ -158,7 +154,7 @@ export const gameModesViewStaticPart = `
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Enter 3D</p>
 				</div>
-			</button>
+			</a>
 		</div>
 	</div>
 `;

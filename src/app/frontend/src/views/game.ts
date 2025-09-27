@@ -27,7 +27,7 @@ export function gameOverView(winner, loser) {
 }
 window.gameOverView = gameOverView;
 
-function aiView() {
+export function aiView() {
 	document.getElementById("main-views")!.innerHTML = aiGameViewStaticPart;
 	const startAiGameBtn = document.querySelector(".start-ai-game");
 	startAiGameBtn?.addEventListener("click", (event) => {
@@ -97,7 +97,7 @@ function aiGame() {
 	window.gameManager.setActiveGame("ai", wsClientAI, { keyDown, keyUp });
 }
 
-function three3DView() {
+export function three3DView() {
 	document.getElementById("main-views")!.innerHTML = Three3DGameViewStaticPart;
 	const start3DgameBtn = document.querySelector(".start-3d-game");
 	start3DgameBtn?.addEventListener("click", (event) => {
@@ -120,7 +120,7 @@ function three3DView() {
 }
 window.three3DView = three3DView;
 
-function remoteView() {
+export function remoteView() {
 	document.getElementById("main-views")!.innerHTML = remoteGameViewStaticPart;
 	const startRemoteGameBtn = document.querySelector(".start-remote-game");
 	startRemoteGameBtn?.addEventListener("click", (event) => {
@@ -195,7 +195,7 @@ function remoteGame() {
 	window.gameManager.setActiveGame("remote", wsClientRemote, { keyDown, keyUp });
 }
 
-function tournamentView() {
+export function tournamentView() {
 	document.getElementById("main-views")!.innerHTML = tournamentGameViewStaticPart;
 	const startTournamentGameBtn = document.querySelector(".start-tournament-game");
 	startTournamentGameBtn?.addEventListener("click", (event) => {
@@ -389,7 +389,7 @@ function inviteGame() {
 	window.gameManager.setActiveGame("remote", wsClientInvite, { keyDown, keyUp });
 }
 
-function apiView() {
+export function apiView() {
 	console.log("changed to api view");
 	document.getElementById("main-views")!.innerHTML = apiGameStaticPart;
 	const startApiGameBtn = document.querySelector(".start-api-game");
