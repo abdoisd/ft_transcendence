@@ -85,21 +85,23 @@ export function webSocket() {
 				else
 				{
 					clearInterval(interval);
-					const dbGame = new clsGame({
-						Id: -1,
-						User1Id: client.userId,
-						User2Id: null,
-						Date: Date.now(),
-						WinnerId: game.winnerId,
-						TournamentId: -1
-					});
-					dbGame.add();
-					const user1 = await User.getById(client.userId);
-					if (game.winnerId == user1.Id)
-						user1.Wins++;
-					else
-						user1.Losses++;
-					user1.update();
+					if (game.winnerId) {
+						const dbGame = new clsGame({
+							Id: -1,
+							User1Id: client.userId,
+							User2Id: null,
+							Date: Date.now(),
+							WinnerId: game.winnerId,
+							TournamentId: -1
+						});
+						dbGame.add();
+						const user1 = await User.getById(client.userId);
+						if (game.winnerId == user1.Id)
+							user1.Wins++;
+						else
+							user1.Losses++;
+						user1.update();
+					}
 				}
 			}, 16);
 		});
@@ -222,35 +224,32 @@ export function webSocket() {
 				wsServerRemote.to(roomId).emit("game-state", game.getState());
 			} else {
 				clearInterval(interval);
-
-				// end game ...
-				const dbGame = new clsGame({
-					Id: -1,
-					User1Id: p1.userId,
-					User2Id: p2.userId,
-					Date: Date.now(),
-					WinnerId: game.winnerId,
-					TournamentId: -1
-				});
-				dbGame.add();
-				const user1 = await User.getById(p1.userId);
-				const user2 = await User.getById(p2.userId);
-				if (game.winnerId == user1.Id)
-				{
-					user1.Wins++;
-					user2.Losses++;
+				if (game.winnerId) {
+					const dbGame = new clsGame({
+						Id: -1,
+						User1Id: p1.userId,
+						User2Id: p2.userId,
+						Date: Date.now(),
+						WinnerId: game.winnerId,
+						TournamentId: -1
+					});
+					dbGame.add();
+					const user1 = await User.getById(p1.userId);
+					const user2 = await User.getById(p2.userId);
+					if (game.winnerId == user1.Id)
+					{
+						user1.Wins++;
+						user2.Losses++;
+					}
+					else
+					{
+						user1.Losses++;
+						user2.Wins++;
+					}
+					user1.update();
+					user2.update();
 				}
-				else
-				{
-					user1.Losses++;
-					user2.Wins++;
-				}
-				user1.update();
-				user2.update();
-				// end game ...
-
 				remoteGames.delete(roomId);
-				// delete ids
 			}
 		}, 16);
 	}
@@ -468,34 +467,34 @@ export function webSocket() {
 			if (game.running) {
 				wsServerInvite.to(roomId).emit("game-state", game.getState());
 			} else {
-				inviteGames.delete(roomId);
 				clearInterval(interval);
-
-				// end game ...
-				const dbGame = new clsGame({
-					Id: -1,
-					User1Id: p1.userId,
-					User2Id: p2.userId,
-					Date: Date.now(),
-					WinnerId: game.winnerId,
-					TournamentId: -1
-				});
-				dbGame.add();
-
-				const user1 = await User.getById(p1.userId);
-				const user2 = await User.getById(p2.userId);
-				if (game.winnerId == user1.Id)
-				{
-					user1.Wins++;
-					user2.Losses++;
+				if (game.winnerId) {
+					const dbGame = new clsGame({
+						Id: -1,
+						User1Id: p1.userId,
+						User2Id: p2.userId,
+						Date: Date.now(),
+						WinnerId: game.winnerId,
+						TournamentId: -1
+					});
+					dbGame.add();
+	
+					const user1 = await User.getById(p1.userId);
+					const user2 = await User.getById(p2.userId);
+					if (game.winnerId == user1.Id)
+					{
+						user1.Wins++;
+						user2.Losses++;
+					}
+					else
+					{
+						user1.Losses++;
+						user2.Wins++;
+					}
+					user1.update();
+					user2.update();
 				}
-				else
-				{
-					user1.Losses++;
-					user2.Wins++;
-				}
-				user1.update();
-				user2.update();
+				inviteGames.delete(roomId);
 			}
 		}, 16);
 	}

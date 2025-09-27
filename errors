@@ -1,6 +1,6 @@
-The game is not ending
-Leaving a match against AI --> win for me ?
-Changing the view dimension while playing
+The game is not ending 											=> done max score was 20 changed now to 3
+Leaving a match against AI --> win for me ?						=> fixed; adding data only when there is a winner
+Changing the view dimension while playing						=> I don't think it's a problem the user can refresh after resizing
 
 
 Clear history when user create a profile so they can't go back
