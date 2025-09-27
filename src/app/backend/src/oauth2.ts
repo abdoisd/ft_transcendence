@@ -52,7 +52,7 @@ export function OAuth2Routes() {
 	
 		const queryString = querystring.stringify({
 			client_id: CLIENT_ID,
-			redirect_uri: "https://localhost/loginGoogleCallback",
+			redirect_uri: REDIRECT_URI,
 			response_type: 'code',
 			scope: 'openid email profile',
 		});
@@ -100,7 +100,7 @@ export function OAuth2Routes() {
 				console.debug(yellow, );
 				console.debug(yellow, "server set jwt=" + jwt);
 
-				reply.redirect(`https://localhost/newUser?Id=${user.Id}&jwt=${jwt}`);
+				reply.redirect(`${config.SERVER_URL}/newUser?Id=${user.Id}&jwt=${jwt}`); // server address
 			}
 			else
 			{
@@ -111,7 +111,7 @@ export function OAuth2Routes() {
 				{
 					const params = querystring.stringify({...user});
 
-					reply.redirect("https://localhost" + `/existingUser?Id=${user.Id}`);
+					reply.redirect(config.SERVER_URL + `/existingUser?Id=${user.Id}`);
 					return ;
 				}
 
@@ -121,7 +121,7 @@ export function OAuth2Routes() {
 				console.debug(yellow, "server set jwt=" + jwt);
 				
 				const params = querystring.stringify({...user});
-				reply.redirect("https://localhost" + `/existingUser?${params}&jwt=${jwt}`);
+				reply.redirect(config.SERVER_URL + `/existingUser?${params}&jwt=${jwt}`);
 				return ;
 			}
 		}
@@ -142,7 +142,7 @@ export function OAuth2Routes() {
 				console.debug(yellow, );
 				console.debug(yellow, "server set jwt=" + jwt);
 
-				reply.redirect(`https://localhost/newUser?Id=${userId}&jwt=${jwt}`);
+				reply.redirect(`${config.SERVER_URL}/newUser?Id=${userId}&jwt=${jwt}`);
 			}
 			else
 			{

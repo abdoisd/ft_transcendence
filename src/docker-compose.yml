@@ -153,6 +153,7 @@ services:
       - PORT=${PORT}
       - HOST=${HOST}
       - WEBSITE_URL=${WEBSITE_URL}
+      - SERVER_URL=${SERVER_URL}
     depends_on:
       - logstash
       - vault-server

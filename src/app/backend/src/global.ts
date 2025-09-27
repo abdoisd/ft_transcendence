@@ -13,5 +13,6 @@ export function guid()
 export const config = {
 	WEBSITE_URL: process.env.WEBSITE_URL,
 	PORT: process.env.PORT,
-	HOST: process.env.HOST
+	HOST: process.env.HOST,
+	SERVER_URL: process.env.SERVER_URL
 };
