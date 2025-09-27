@@ -154,6 +154,7 @@ services:
       - HOST=${HOST}
       - WEBSITE_URL=${WEBSITE_URL}
     depends_on:
+      - logstash
       - vault-server
       - frontend
     restart: on-failure

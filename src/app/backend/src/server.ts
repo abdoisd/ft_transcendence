@@ -33,8 +33,7 @@ export const server = Fastify();
 export const ws = new Server(server.server, {
 	cors: {
 		origin: "https://localhost",
-	},
-	secure: true
+	}
 });
 
 

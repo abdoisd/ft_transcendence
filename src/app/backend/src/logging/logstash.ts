@@ -15,7 +15,7 @@ export const registerLogger = async (server) => {
                     }
                 )
             }
-        )
+        ).catch((e) => { })
     });
 
 }
