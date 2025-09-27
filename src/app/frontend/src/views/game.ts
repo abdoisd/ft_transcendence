@@ -471,9 +471,6 @@ async function apiGame() {
 		movePaddleApi(event, "none");
 	}
 
-	document.addEventListener("keydown", keyDown);
-	document.addEventListener("keyup", keyUp);
-
 	const interval = setInterval(async () => {
 		const response = await fetch(`/api-game/state/${game.gameId}`, {
 			headers: {
@@ -531,15 +528,18 @@ export class GameManager {
 	}
 
 	leaveActiveGame() {
+		console.log("LEAVE ACTIVE GAME ()");
 		if (this.activeSocket) {
 			this.activeSocket.disconnect();
 			this.activeSocket = null;
 		}
 
 		if (this.keyListeners.keyDown) {
+			console.log("REMOVE KEYUP EVENT LISTENER");
 			window.removeEventListener("keydown", this.keyListeners.keyDown);
 		}
 		if (this.keyListeners.keyUp) {
+			console.log("REMOVE KEYDOWN EVENT LISTENER");
 			window.removeEventListener("keyup", this.keyListeners.keyUp);
 		}
 
@@ -548,6 +548,7 @@ export class GameManager {
 		}
 
 		if (this.interval) {
+			console.log("CLEARED INTERVAL");
 			clearInterval(this.interval);
 		}
 
