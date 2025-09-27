@@ -6,7 +6,4 @@ Changing the view dimension while playing						=> I don't think it's a problem t
 Clear history when user create a profile so they can't go back
 
 
-Why we need SessionId?????
-
-
-messages don't reach when you go directly into url of game and don't pass through home
+messages in two tabs 

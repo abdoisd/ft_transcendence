@@ -5,6 +5,7 @@ import multipart from "@fastify/multipart";
 import cookie from "@fastify/cookie";
 import fastifyJwt from "@fastify/jwt";
 import { Server } from "socket.io";
+import { gameWs } from "./webSocket.ts";
 
 // dotenv
 import dotenv from 'dotenv';
@@ -27,11 +28,24 @@ import { relationshipRoutes } from "./data access layer/relationship.ts"
 import { Enable2faRoutes } from "./2fa.ts";
 
 export const server = Fastify({bodyLimit: 3048576});
+
 export const ws = new Server(server.server, {
 	cors: {
 		origin: "https://localhost",
 	},
 	secure: true
+});
+ws.use((socket, next) => {
+	const token = socket.handshake.auth.token;
+	if (!token)
+		return next(new Error('Authentication error: No token provided'));
+	try {
+		const payload = server.jwt.verify(token);
+		socket.userId = payload.Id;
+		return next();
+	} catch {
+		return next(new Error('Authentication error: token invalid'));
+	}
 });
 
 // REGISTER PLUGINS
@@ -49,9 +63,7 @@ server.register(fastifyJwt, {
 	secret: process.env.JWT_SECRET || 'defaultSecret'
 })
 
-// game / socket.io
-import { webSocket } from "./webSocket.ts";
-webSocket();
+gameWs();
 chatWs();
 
 // prometheus
