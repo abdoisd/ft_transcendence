@@ -5,6 +5,7 @@ import multipart from "@fastify/multipart";
 import cookie from "@fastify/cookie";
 import fastifyJwt from "@fastify/jwt";
 import { Server } from "socket.io";
+import { registerLogger } from "./logging/logstash.ts";
 import { gameWs } from "./webSocket.ts";
 
 // dotenv
@@ -27,7 +28,7 @@ import { OAuth2Routes } from "./oauth2.ts";
 import { relationshipRoutes } from "./data access layer/relationship.ts"
 import { Enable2faRoutes } from "./2fa.ts";
 
-export const server = Fastify({bodyLimit: 3048576});
+export const server = Fastify();
 
 export const ws = new Server(server.server, {
 	cors: {
@@ -35,6 +36,8 @@ export const ws = new Server(server.server, {
 	},
 	secure: true
 });
+
+
 ws.use((socket, next) => {
 	const token = socket.handshake.auth.token;
 	if (!token)
@@ -47,6 +50,10 @@ ws.use((socket, next) => {
 		return next(new Error('Authentication error: token invalid'));
 	}
 });
+
+
+registerLogger(server);
+
 
 // REGISTER PLUGINS
 server.register(cookie, {});
