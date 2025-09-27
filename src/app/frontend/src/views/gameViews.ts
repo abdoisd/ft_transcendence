@@ -392,7 +392,7 @@ const VELOCITY_INCEMENT = 1.15;
 const PADDLE_SPEED = 0.10;
 
 export function init3DGame() {
-	const canvas = document.querySelector(".canvas") as HTMLCanvasElement;
+	const canvas = document.querySelector(".canvas");
 	console.log(`client width: ${canvas.clientWidth}`)
 	console.log(`client height: ${canvas.clientHeight}`);
 	console.log(`canva width: ${canvas.width}`);

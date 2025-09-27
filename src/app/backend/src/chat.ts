@@ -22,6 +22,11 @@ export const chatWs = () => {
 
     io.on("connection", (socket) => {
         console.log(`${socket.userId} connected`);
+
+        if (users[socket.userId])
+        {
+            io.sockets.get(users[socket.userId]).disconnect();
+        }
         users[socket.userId] = socket.id;
 
         socket.on('disconnect', () => {

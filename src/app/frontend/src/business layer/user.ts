@@ -17,8 +17,8 @@ export class UserDTO
 	Losses: number;
 	LastActivity: Date | null;
 
-	constructor(id: number, googleOpenID: string, username: string | null, avatarPath: string | null,
-		wins: number, losses: number, sessionId: string | null = null, expirationDate: Date | null = null)
+	constructor(id: number, username: string | null, avatarPath: string | null,
+		wins: number, losses: number)
 	{
 		this.Id = id;
 		this.Username = username;
@@ -41,7 +41,7 @@ export class UserDTO
 
 	static async getById(Id)
 	{
-		return get("/data/user/getById", { Id: Id }); //? changed this to 2
+		return get("/data/user/getById", { Id: Id });
 	}
 
 	static async getByUsername(username: string)
