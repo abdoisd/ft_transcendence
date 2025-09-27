@@ -20,7 +20,8 @@ export async function ProfileView() {
 
 		const container = document.getElementById("Histories")!;
 
-		const matches = await user.getMatchHistory();
+		const userr = new UserDTO(user.Id, user.Username, user.AvatarPath, user.Wins, user.Losses);
+		const matches = await userr.getMatchHistory();
 
 		if (!matches) {
 			container.textContent = "Error while fetching match history.";

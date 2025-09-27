@@ -459,7 +459,7 @@ export function UserRoutes() {
 
 	});
 
-	server.get("/users/:id/games", { preHandler: (server as any).byItsOwnUser }, async (req, reply) => {
+	server.get("/users/:id/games", { preHandler: (server as any).mustHaveToken }, async (req, reply) => {
 
 		console.log(green, 'GET /users/:id/games');
 		console.debug(yellow, 'User ID: ', (req.params as any).id);
