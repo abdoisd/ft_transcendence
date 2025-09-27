@@ -147,8 +147,6 @@ services:
       - ./app/backend/src:/usr/src/app
       - ./app/frontend/src/public:/usr/src/app/public
       - shared-data:/usr/src/app/env
-    ports: # tmp
-      - "3000:3000"
     networks: # tmp
       - app
     environment:
