@@ -49,16 +49,11 @@ export function NewUser() {
 	document.getElementById("body")!.innerHTML = usernameAvatarForm;
 };
 
-export async function existingUser() { // cookie is set automatically
+export async function existingUser() {
 
 	console.debug("existingUser()");
 
 	const params = new URLSearchParams(window.location.search);
-
-	// if (!params.has('Id')) {
-	// 	LoginWithGoogle();
-	// 	return ;
-    // }
 
 	const userId = Number(params.get('Id'));
 
@@ -73,9 +68,11 @@ export async function existingUser() { // cookie is set automatically
 	else
 		console.debug("User has NOT 2FA enabled, access grant");
 
-	const jwt = params.get('jwt');
-	console.debug("setting jwt in localStorage: ", jwt);
-	localStorage.setItem("jwt", jwt);
+	if (params.has('jwt')) {
+		const jwt = params.get('jwt');
+		console.debug("setting jwt in localStorage: ", jwt);
+		localStorage.setItem("jwt", jwt);
+	}
 
 	console.debug("Filling loggedInUser");
 	globalThis.clsGlobal.LoggedInUser = new UserDTO(
