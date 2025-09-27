@@ -2,7 +2,7 @@ import { db } from "./database.ts";
 import { red, green, yellow, blue } from "../global.ts";
 import path from "path";
 import fs from "fs";
-import { server } from "../server.ts"; // import variable
+import { server } from "../server.ts";
 import { guid } from "../global.ts";
 import { clsGame } from "./game.ts";
 import { pipeline } from "stream/promises";
@@ -55,8 +55,8 @@ export class User {
 	SessionId: string | null;
 	ExpirationDate: Date | null;
 	LastActivity: Date | null;
-	TOTPSecretPending: string; // not in dto
-	TOTPSecret: string; // not in dto
+	TOTPSecretPending: string;
+	TOTPSecret: string;
 
 	constructor(id: number, googleOpenID: string, username: string, avatarPath: string | null,
 		wins: number, losses: number, sessionId: string | null = null, expirationDate: Date | null = null,
@@ -87,7 +87,7 @@ export class User {
 		});
 	}
 
-	static async getByUsername(username: string): Promise<User | null> // how to know, now found from here
+	static async getByUsername(username: string): Promise<User | null>
 	{
 
 		console.log(green, 'User.getByUsername');
@@ -99,7 +99,7 @@ export class User {
 					console.log(red, 'Error: User.getByUsername: ', err);
 					reject(null);
 				}
-				else //*
+				else
 					resolve(row ? new User((row as any).Id, (row as any).GoogleId, (row as any).Username, (row as any).AvatarPath, (row as any).Wins, (row as any).Losses, (row as any).SessionId, (row as any).ExpirationDate, (row as any).LastActivity) : null);
 			});
 		});
@@ -123,10 +123,9 @@ export class User {
 		});
 	}
 
-	//!
 	update(): Promise<boolean> {
 		console.log(green, 'User.update');
-		// console.debug(yellow, 'Updating: ', this); // COMMENTED THIS 
+		// console.debug(yellow, 'Updating: ', this);
 
 		return new Promise((resolve, reject) => {
 			db.run("UPDATE Users SET GoogleId = ?, Username = ?, AvatarPath = ?, Wins = ?, Losses = ?, SessionId = ?, ExpirationDate = ?, LastActivity = ?, TOTPSecretPending = ?, TOTPSecret = ? WHERE Id = ?",
@@ -146,7 +145,7 @@ export class User {
 			db.all('SELECT u.Id, u.Username, u.Wins, u.Losses, u.LastActivity FROM Users u JOIN Relationships r ON (u.Id = r.User1Id AND r.User2Id = ?) OR (u.Id = r.User2Id AND r.User1Id = ?) WHERE r.Relationship = 1', [Id, Id], (err, rows) => {
 				if (err) {
 					console.log(red, 'Error: User.getById: ', err);
-					reject(null); // to test those
+					reject(null);
 				}
 				else
 					resolve(rows);
@@ -216,11 +215,12 @@ export function UserRoutes() {
 			}
 		}
 		catch (err) {
-			return reply.status(401).send({ error: err }); // Unauthorized
+			return reply.status(401).send({ error: err });
 		}
 	});
 
 	server.decorate('byItsOwnUser', async (request, reply) => {
+
 		try {
 			await request.jwtVerify();
 
@@ -235,22 +235,37 @@ export function UserRoutes() {
 
 				const user = request.body;
 				if ((request.params.id || user.Id) != payload.Id)
-					return reply.status(403).send(); // Forbidden
+					return reply.status(403).send();
 
 			}
 			else if (request.method == "DELETE" || request.method == "GET") // get for friends
 			{
 
 				const Id = request.query.Id || request.params.id;
-				if (!Id) // google id
+				if (!Id) // google id (used by server)
 				{
-					const GoogleId = request.query.GoogleId;
-					if (!GoogleId)
-						return reply.status(400).send(); // Bad request
+					// console.log("blabla")
 
-					const user = await User.getById(payload.Id);
-					if (GoogleId != user.GoogleId)
+					if (!payload.IsRoot)
 						return reply.status(403).send();
+
+					// const GoogleId = request.query.GoogleId;
+					// if (!GoogleId)
+					// 	return reply.status(400).send(); // Bad request
+
+					// console.log("blabla 1")
+
+					// const user = await User.getById(payload.Id);
+
+					// console.log("blabla 1.5")
+
+					// if (GoogleId != user.GoogleId)
+					// {
+					// 	console.log("blabla 1.75")
+					// 	return reply.status(403).send();
+					// }
+
+					// console.log("blabla 2")
 				}
 				else {
 					if (Id != payload.Id)
@@ -272,10 +287,9 @@ export function UserRoutes() {
 		const Id = (request.query as { Id: number }).Id;
 		const user = await UserDTO.getById(Id);
 		if (user)
-			reply.send(user); // send dto
+			reply.send(user);
 		else
 			reply.status(404).send();
-
 	});
 
 	server.get('/data/user/getAvatarById', (request, reply) => {
@@ -289,16 +303,16 @@ export function UserRoutes() {
 
 					const defaultAvatarPath = "./avatars/default-avatar.png";
 
-					reply.type("image/png"); // set content-type
+					reply.type("image/png");
 
-					if (err) // database error
+					if (err)
 					{
 						console.error(red, 'Error: /data/user/getAvatarById:', err);
 						if (!fs.existsSync(defaultAvatarPath)) {
 							reply.status(500).send();
 							return;
 						}
-						fs.createReadStream(defaultAvatarPath).pipe(reply.raw); // serve default
+						fs.createReadStream(defaultAvatarPath).pipe(reply.raw);
 						return;
 					}
 
@@ -308,7 +322,7 @@ export function UserRoutes() {
 							reply.status(500).send();
 							return;
 						}
-						fs.createReadStream(defaultAvatarPath).pipe(reply.raw); // serve default
+						fs.createReadStream(defaultAvatarPath).pipe(reply.raw);
 						return;
 					}
 
@@ -326,13 +340,13 @@ export function UserRoutes() {
 
 					console.debug(blue, 'Serving the proper avatar');
 					reply.type("image/jpeg");
-					fs.createReadStream(filePath).pipe(reply.raw); // readable stream pipe to writable stream
+					fs.createReadStream(filePath).pipe(reply.raw);
 				});
 			})
 	});
 
 	server.get('/data/user/getByUsername', { preHandler: (server as any).mustHaveToken }, async (request, reply) => {
-		const { username } = request.query as { username: string }; // Cast request.query to include username
+		const { username } = request.query as { username: string };
 
 		if (!username || username.trim() == "" || username.length < 3 || username.length > 20 || !/^[a-zA-Z0-9_]+$/.test(username)) {
 			return reply.status(400).send();
@@ -346,20 +360,20 @@ export function UserRoutes() {
 	});
 
 	server.get('/data/user/getByGoogleId', { preHandler: (server as any).byItsOwnUser }, (request, reply) => {
-		const GoogleId: number = (request.query as { GoogleId: number }).GoogleId; // the query string is a json object: url ? Id=${encodeURIComponent(Id)
+		const GoogleId: number = (request.query as { GoogleId: number }).GoogleId;
 		db.get("select * from users where GoogleId = ?", [GoogleId], (err, row) => {
 			if (err) {
 				console.error(red, 'Error: get /data/user/getByGoogleId: ', err);
 				reply.status(500).send();
 			}
 			else {
-				if (!row) // user not found
+				if (!row)
 				{
 					console.log(red, 'get /data/user/getByGoogleId: User not found: ', GoogleId);
 					reply.status(404).send();
 					return;
 				}
-				reply.send(row); // user object as in body as a stringified json
+				reply.send(row);
 			}
 		});
 	});
@@ -370,7 +384,7 @@ export function UserRoutes() {
 			required: ['Id', 'Username'],
 			properties: {
 				Id: { type: 'number' },
-				Username: { type: "string", minLength: 3, maxLength: 20, pattern: "^[a-zA-Z0-9_]+$" } // str protect
+				Username: { type: "string", minLength: 3, maxLength: 20, pattern: "^[a-zA-Z0-9_]+$" }
 			}
 		}
 	};
