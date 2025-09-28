@@ -70,36 +70,6 @@ server.register(fastifyJwt, {
 gameWs();
 chatWs();
 
-// prometheus
-import client from 'prom-client';
-const register = new client.Registry(); // Create a Registry which registers the metrics
-client.collectDefaultMetrics({ register }); // Add default metrics to the registry
-const requestCounter = new client.Counter({
-	name: 'server_requests_total',
-	help: 'Total number of server requests',
-	labelNames: ['request_method', 'requested_file', 'response_status']
-});
-register.registerMetric(requestCounter);
-server.addHook('onResponse', (request, reply, done) => {
-	requestCounter.inc({
-		request_method: request.method,
-		requested_file: request.url,
-		response_status: reply.statusCode
-	});
-	done();
-});
-server.get('/metrics', async (request, reply) => {
-	reply
-	  .header('Content-Type', register.contentType)
-	  .send(await register.metrics());
-});
-// sqlite metrics
-export const connectedToSqlite = new client.Gauge({
-	name: 'connected_to_sqlite',
-	help: 'Whether process connected to sqlite db (1 = true, 0 = false)',
-});
-register.registerMetric(connectedToSqlite);
-connectedToSqlite.set(0);
 
 // post to logstash
 // import { logstash } from "./logstash.ts";
