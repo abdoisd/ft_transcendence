@@ -1,4 +1,3 @@
-VAULT_ADDR="https://127.0.0.1:8200"
 INIT_FILE="vault_init.json"
 
 echo "Waiting for Vault server to be ready..."
@@ -27,41 +26,11 @@ vault operator unseal "$UNSEAL_KEY"
 # Login with root token
 vault login "$ROOT_TOKEN"
 
-# Audit log
-mkdir -p /vault/logs
-touch /vault/logs/audit.log
-vault audit enable file file_path=/vault/logs/audit.log
-
-# Auth method and users
-vault auth enable userpass
-vault write auth/userpass/users/admin password="pass" policies="admin-policy"
-vault write auth/userpass/users/user1 password="pass" policies="elasticsearch-policy"
-vault write auth/userpass/users/user2 password="pass" policies="grafana-policy"
-
 # Secret engine
 vault secrets enable -path=secret kv-v2
-vault kv put secret/elasticsearch username="elastic" password="123456"
-vault kv put secret/grafana admin_user="admin" admin_pass="pass"
-vault kv put secret/node-app CLIENT_SECRET="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" \
-	JWT_SECRET="caeeea83-4390-48b8-bb27-07c0e9ae85f4" \
-	ROOT_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6LTEsIklzUm9vdCI6MSwiaWF0IjoxNzU3NDQwODgyfQ.zuNT0ltgIvq_0m-uFB7t7EtrK0HnM_K9ywRG2zQVCuE"
-
-# Policies
-vault policy write admin-policy - << EOF
-path "*" {
-  capabilities = ["create", "read", "update", "delete", "list", "sudo"]
-}
-EOF
-vault policy write elasticsearch-policy - << EOF
-path "secret/data/elasticsearch" {
-  capabilities = ["read"]
-}
-EOF
-vault policy write grafana-policy - << EOF
-path "secret/data/grafana" {
-  capabilities = ["read"]
-}
-EOF
+vault kv put secret/node-app CLIENT_SECRET=$CLIENT_SECRET \
+	JWT_SECRET=$JWT_SECRET \
+	ROOT_TOKEN=$ROOT_TOKEN2
 
 echo VAULT_TOKEN=$ROOT_TOKEN > /me/.env
 
