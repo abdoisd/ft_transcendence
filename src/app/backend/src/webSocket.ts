@@ -132,7 +132,6 @@ export function gameWs() {
 			const leaver = client;
 			const leaverIndexInWaitingList = waitingRemotePlayers.indexOf(leaver);
 			if (leaverIndexInWaitingList !== -1) {
-				console.log(red, "REMOVED NON IN GAME CLIENT after he disconnected");
 				waitingRemotePlayers.splice(leaverIndexInWaitingList, 1);
 				return;
 			}
@@ -297,7 +296,6 @@ export function gameWs() {
 
 		let lastTime = Date.now();
 		const interval = setInterval(() => {
-			console.log(`${lastTime} EVENT LOOP: TOURNAMENT`);
 			const now = Date.now();
 			game.update((now - lastTime) / 1000);
 			lastTime = now;
@@ -309,10 +307,8 @@ export function gameWs() {
 				if (!tournament.void) {
 					if (game.winnerId == p1.userId) {
 						tournament.onGameEnd(p1, p2);
-						console.log(cyan, "P1 WON", p1.userId);
 					} else if (game.winnerId == p2.userId) {
 						tournament.onGameEnd(p2, p1);
-						console.log(cyan, "P2 WON", p2.userId);
 					}
 					
 					if (tournament.matches.semi1.winner && tournament.matches.semi2.winner && !tournament.done) {
@@ -323,11 +319,9 @@ export function gameWs() {
 						ChatRepository.storeMessage(TOURNAMENT_ID, tournament.matches.semi2.winner.userId, "Finale starts soon...", "MSG");
 						let count = 0;
 						const counter = setInterval(() => {
-							console.log(`COUNTER SAYS ${count}`);
 							if (count === 5) {
 								clearInterval(counter);
 								tournament.startFinal();
-								console.log("STARTED FINAL");
 							}
 							const data = {
 								one: tournament.matches.semi1.winner.userId,
@@ -336,7 +330,6 @@ export function gameWs() {
 							}
 							tournament.matches.semi1.winner.emit("next-game", data);
 							tournament.matches.semi2.winner.emit("next-game", data);
-							console.log(count);
 							count++;
 						}, 1000);
 
@@ -344,8 +337,6 @@ export function gameWs() {
 						for (const player of tournament.players) {
 							player.emit("phase", tournament.getState());
 						}
-						console.log("WE ARE DONE");
-						console.log(`winner of the final: ${tournament.matches.final.winner}`);
 						tournaments.delete(p1.tournamentId);
 					}
 				}
@@ -355,15 +346,12 @@ export function gameWs() {
 
 	const inviteGames = new Map();
 	wsServerInvite.on("connection", (client) => {
-		console.log(`CONNECTED TO ME ${client.userId}`);
 		const opponentId = userIdUserId.get(client.userId);
 		const opponentClient = userIdSocket.get(opponentId);
 		if (opponentClient) {
 			startInviteGame(opponentClient, client);
-			console.log("GAME START");
 		} else {
 			userIdSocket.set(client.userId, client);
-			console.log("OTHER STILL HASN'T JOINED");
 		}
 
 		client.on("move", ({key, pressedState}) => {
@@ -373,7 +361,6 @@ export function gameWs() {
 			const game = inviteGames.get(roomId);
 			if (!game)
 				return;
-			console.log("HERE KEY STATES");
 			const keyStates = game.keyStates[client.userId];
 			if (!keyStates)
 				return;
@@ -494,19 +481,13 @@ class Tournament {
     }
 
     setupMatches() {
-		// const shuffled = [...this.players].sort(() => Math.random() - 0.5);
-		// this.matches.semi1.players = [shuffled[0], shuffled[1]];
-		// this.matches.semi2.players = [shuffled[2], shuffled[3]];
-
 		this.matches.semi1.players = [this.players[0], this.players[1]];
 		this.matches.semi2.players = [this.players[2], this.players[3]];
 
 		this.status = 'ready';
-		console.log("SETUP MATCHES");
     }
 
     startSemifinals() {
-		console.log("START SEMIS");
 		this.starterFunction(...this.matches.semi1.players);
         this.starterFunction(...this.matches.semi2.players);
         this.status = 'semifinals';
@@ -517,7 +498,6 @@ class Tournament {
 		this.starterFunction(...this.matches.final.players);
 		this.status = 'final';
 		this.done = true;
-		console.log("FINAL IS BEING STARTED");
     }
 	
     onGameEnd(winner, loser) {

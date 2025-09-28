@@ -16,10 +16,7 @@ export function gameRoutes()
 				apiGames.delete(key);
 			}
 		}
-		console.log(`number of active Games: ${activeGames}`);
 		if (activeGames > 3) {
-			console.log(`we got ${apiGames.size} games`);
-			console.log("Too many active api games");
 			reply.status(403).send({ error: "Too many active games" });
 			return;
 		}

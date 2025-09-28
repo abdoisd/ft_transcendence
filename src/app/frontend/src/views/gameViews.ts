@@ -390,10 +390,6 @@ const PADDLE_SPEED = 0.10;
 
 export function init3DGame() {
 	const canvas = document.querySelector(".canvas");
-	console.log(`client width: ${canvas.clientWidth}`)
-	console.log(`client height: ${canvas.clientHeight}`);
-	console.log(`canva width: ${canvas.width}`);
-	console.log(`canvas height: ${canvas.height}`);
 	const engine = new Engine(canvas, true);
 	const scene = new Scene(engine);
 	const camera = new FreeCamera("camera", CAMERA_POINT, scene);

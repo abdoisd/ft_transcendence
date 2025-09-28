@@ -289,13 +289,10 @@ function tournamentGame() {
 		tournamentOverview(wrapper, data.final.winner);
 	});
 	wsClientTournament.on("void", () => {
-		// game.looping = false; 
 		window.gameManager.leaveActiveGame();
 		voidedTournament();
 	});
 	wsClientTournament.on("error", (err) => {
-		console.log("error joined alrady");
-		console.log(err);
 		window.gameManager.leaveActiveGame();
 		GameModesView();
 	});
@@ -320,10 +317,8 @@ import { chatIO } from "./chat";
 
 chatIO.on("check-game", () => {
 	if (window.gameManager.activeGame) {
-		console.log("NOT READY");
 		chatIO.emit("ready", false);
 	} else {
-		console.log("READY");
 		chatIO.emit("ready", true);
 	}
 });
@@ -403,7 +398,6 @@ function inviteGame() {
 }
 
 export function apiView() {
-	console.log("changed to api view");
 	document.getElementById("main-views")!.innerHTML = apiGameStaticPart;
 	const startApiGameBtn = document.querySelector(".start-api-game");
 	startApiGameBtn?.addEventListener("click", (event) => {
@@ -528,18 +522,15 @@ export class GameManager {
 	}
 
 	leaveActiveGame() {
-		console.log("LEAVE ACTIVE GAME ()");
 		if (this.activeSocket) {
 			this.activeSocket.disconnect();
 			this.activeSocket = null;
 		}
 
 		if (this.keyListeners.keyDown) {
-			console.log("REMOVE KEYUP EVENT LISTENER");
 			window.removeEventListener("keydown", this.keyListeners.keyDown);
 		}
 		if (this.keyListeners.keyUp) {
-			console.log("REMOVE KEYDOWN EVENT LISTENER");
 			window.removeEventListener("keyup", this.keyListeners.keyUp);
 		}
 
@@ -548,7 +539,6 @@ export class GameManager {
 		}
 
 		if (this.interval) {
-			console.log("CLEARED INTERVAL");
 			clearInterval(this.interval);
 		}
 
