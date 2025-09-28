@@ -211,7 +211,7 @@ export function OAuth2Routes() {
 			return reply.status(404).send();
 		}
 
-		db.get("SELECT * FROM Users WHERE SessionId = ?", [sessionId], (err, row) => {
+		db.get("SELECT * FROM Users WHERE SessionId = ?", [sessionId], async (err, row) => {
 			if (err)
 			{
 				console.error(red, 'Error querying user by sessionId:', err);
@@ -225,6 +225,14 @@ export function OAuth2Routes() {
 					console.debug(blue, "Session expired");
 
 					return reply.status(401).send();
+				}
+
+				try {
+					await request.jwtVerify();
+				}
+				catch (err) {
+					const jwt = createJwt(userRow.Id);
+					userRow.jwt = jwt;
 				}
 			
 				reply.send(userRow);

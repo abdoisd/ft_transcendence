@@ -42,6 +42,9 @@ export async function autoLogin() {
 	return fetch("/validateSession", {
 		method: "POST",
 		credentials: "include",
+		headers: {
+			"Authorization": `Bearer ${localStorage.getItem("jwt")}`
+		}
 	})
 	.then(response => {
 		if (response.ok)
@@ -56,6 +59,9 @@ export async function autoLogin() {
 			clsGlobal.LoggedInUser = Object.assign(new UserDTO(-1, "", "", "", -1, -1, null, null), user);
 
 			console.debug("Filling User: ", clsGlobal.LoggedInUser);
+
+			if (user.jwt)
+				localStorage.setItem("jwt", user.jwt);
 		}
 	});
 }
