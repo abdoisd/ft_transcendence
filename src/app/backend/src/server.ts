@@ -28,7 +28,7 @@ import { OAuth2Routes } from "./oauth2.ts";
 import { relationshipRoutes } from "./data access layer/relationship.ts"
 import { Enable2faRoutes } from "./2fa.ts";
 
-export const server = Fastify({logger: true});
+export const server = Fastify();
 
 export const ws = new Server(server.server, {
 	cors: {
