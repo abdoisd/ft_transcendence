@@ -15,8 +15,6 @@ import { tournamentOverview } from "./gameViews";
 import { voidedTournament } from "./gameViews";
 
 export function GameModesView() {
-	// if (!window.gameManager)
-	// 	window.gameManager = new GameManager();
 	document.getElementById("main-views")!.innerHTML = gameModesViewStaticPart;
 }
 
