@@ -138,10 +138,8 @@ services:
 
   backend:
     build: app/backend
-    working_dir: /usr/src/app
     volumes:
-      - ./app/backend/src:/usr/src/app
-      - ./app/frontend/src/public:/usr/src/app/public
+      - public-data:/usr/src/app/public
       - shared-data:/usr/src/app/env
     networks:
       - app
@@ -160,7 +158,8 @@ services:
 
   frontend:
     build: app/frontend
-    working_dir: /usr/src/app
+    volumes:
+      - public-data:/usr/src/app/public
     restart: on-failure
     environment: 
       - WS_URL=${WS_URL}
@@ -171,6 +170,8 @@ volumes:
   vault_data: 
     driver: local
   shared-data:
+    driver: local
+  public-data:
     driver: local
 
 networks:

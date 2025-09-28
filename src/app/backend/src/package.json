@@ -6,8 +6,7 @@
 	"main": "index.js",
 	"scripts": {
 		"start": "node server.ts",
-		"tsc": "tsc -p tsconfig.json",
-		"dev": "nodemon --watch . --ext ts --ignore ./public --exec \"npm run start\""
+		"tsc": "tsc -p tsconfig.json"
 	},
 	"keywords": [],
 	"author": "",
