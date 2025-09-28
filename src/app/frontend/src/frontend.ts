@@ -102,7 +102,6 @@ const getMainPath = (url: string): string => {
 
 function handleView(event?, path?: string | null) {
 	if (window.gameManager) {
-		console.log("window.gameManager")
 		window.gameManager.leaveActiveGame();
 	}
 

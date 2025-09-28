@@ -82,25 +82,14 @@ export class Game {
 	randomizeBall() {
 		this.ball.x = BOARD_WIDTH / 2;
 		this.ball.y = BOARD_HEIGHT / 2;
-		const quandrant = Math.floor(Math.random() * 4) + 1;
-		let angle;
-		switch (quandrant) {
-			case 1:
-				angle = Math.random() * (Math.PI/4 - Math.PI/12) + Math.PI/12;
-				break;
-			case 2:
-				angle = Math.PI - (Math.random() * (Math.PI/4 - Math.PI/12) + Math.PI/12);
-				break;
-			case 3:
-				angle = -Math.PI + (Math.random() * (Math.PI/4 - Math.PI/12) + Math.PI/12);
-				break;
-			case 4:
-				angle = -(Math.random() * (Math.PI/4 - Math.PI/12) + Math.PI/12);
-				break;
-		}
 
-		this.ball.vx = Math.cos(angle) * INITIAL_VELOCITY;
-		this.ball.vy = Math.sin(angle) * INITIAL_VELOCITY;
+		const dirX = Math.random() > 0.5 ? 1 : -1;
+		const dirY = (Math.random() - 0.5) * 2.5;
+
+		const magnitude = Math.sqrt(dirX * dirX + dirY * dirY);
+
+		this.ball.vx = dirX / magnitude * INITIAL_VELOCITY;
+		this.ball.vy = dirY / magnitude * INITIAL_VELOCITY;
 
 		if (this.aiGame)
 			this.aiPlayer(true, this.ball, this.paddles[this.player2Id], this.keyStates[this.player2Id]);
@@ -179,12 +168,11 @@ export class Game {
 			this.targetY = n % 2 === 0 ? r : BOARD_HEIGHT - r;
 		}
 
-		const tolerance = 2;
 		keyStates.down = false;
 		keyStates.up = false;
-		if (paddle.y + PADDLE_HEIGHT < this.targetY + tolerance)
+		if (paddle.y + PADDLE_HEIGHT < this.targetY)
 			keyStates.down = true;
-		else if (paddle.y > this.targetY - tolerance)
+		else if (paddle.y > this.targetY)
 			keyStates.up = true;
 	}
 

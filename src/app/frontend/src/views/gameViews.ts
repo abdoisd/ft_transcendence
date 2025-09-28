@@ -428,17 +428,7 @@ export function init3DGame() {
 	paddleTwo.position = PAD_TWO_POS;
 
 	const ballMaterial = new StandardMaterial("ball", scene);
-	const ballTexture = new DynamicTexture("stripes", 512, scene, false)
-	const ctx = ballTexture.getContext();
-	ctx.fillStyle = "red";
-	ctx.fillRect(0, 0, 512, 512);
-	ctx.fillStyle = "black";
-	for (let i = 0; i < 512; i += 50) {
-		ctx.fillRect(i, 0, 20, 512);
-	}
-	ballTexture.update();
-	ballMaterial.diffuseTexture = ballTexture;
-
+	ballMaterial.diffuseColor = "yellow";
 	const ball = MeshBuilder.CreateSphere("ball", { diameter: BALL_DIAMETER, segments: 32 }, scene);
 	ball.material = ballMaterial;
 	ball.position = BALL_POS;
