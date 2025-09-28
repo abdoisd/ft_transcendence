@@ -28,7 +28,7 @@ import { OAuth2Routes } from "./oauth2.ts";
 import { relationshipRoutes } from "./data access layer/relationship.ts"
 import { Enable2faRoutes } from "./2fa.ts";
 
-export const server = Fastify({logger: true});
+export const server = Fastify();
 
 export const ws = new Server(server.server, {
 	cors: {
@@ -128,11 +128,6 @@ const start = async () =>
 		server.register(Enable2faRoutes);
 		gameRoutes();
 		apiRoutes();
-		server.ready(err => {
-			if (err) throw err;
-		  
-			console.log(server.printRoutes())
-		});
 		
         const host = config.HOST;
         const port = Number(config.PORT);
