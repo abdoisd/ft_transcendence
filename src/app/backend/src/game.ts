@@ -84,7 +84,7 @@ export class Game {
 		this.ball.y = BOARD_HEIGHT / 2;
 
 		const dirX = Math.random() > 0.5 ? 1 : -1;
-		const dirY = (Math.random() - 0.5) * 5;
+		const dirY = (Math.random() - 0.5) * 2.5;
 
 		const magnitude = Math.sqrt(dirX * dirX + dirY * dirY);
 
