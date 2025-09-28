@@ -5,7 +5,7 @@ const BOARD_HEIGHT = 800;
 const PADDLE_WIDTH = 10;
 const PADDLE_HEIGHT = 150;
 const BALL_RADIUS = 9;
-const MAX_VELOCITY = 1000;
+const MAX_VELOCITY = 1800;
 const MAX_SCORE = 3;
 
 export class Game {
@@ -100,7 +100,7 @@ export class Game {
 		}
 
 		this.ball.vx = Math.cos(angle) * INITIAL_VELOCITY;
-		this.ball.vy = Math.sign(angle) * INITIAL_VELOCITY;
+		this.ball.vy = Math.sin(angle) * INITIAL_VELOCITY;
 
 		if (this.aiGame)
 			this.aiPlayer(true, this.ball, this.paddles[this.player2Id], this.keyStates[this.player2Id]);
@@ -184,7 +184,7 @@ export class Game {
 		keyStates.up = false;
 		if (paddle.y + PADDLE_HEIGHT < this.targetY + tolerance)
 			keyStates.down = true;
-		else if (paddle.y > this.targetY - BALL_RADIUS - tolerance)
+		else if (paddle.y > this.targetY - tolerance)
 			keyStates.up = true;
 	}
 
@@ -251,7 +251,6 @@ export class Game {
 			if (!this.running) {
 				clearInterval(interval);
 				this.apiState = "ended";
-				console.log("CLEARED AN INTERVAL");
 			}
 		}, 16);
 	}
