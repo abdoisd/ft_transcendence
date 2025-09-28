@@ -1,6 +1,6 @@
 services:
   elasticsearch:
-    build: ./elk/elasticsearch
+    build: ./src/elk/elasticsearch
     environment:
       - ES_JAVA_OPTS=-Xms512m -Xmx512m
       - discovery.type=single-node
@@ -14,7 +14,7 @@ services:
     restart: on-failure
 
   setup:
-    build: ./elk/setup
+    build: ./src/elk/setup
     depends_on:
       - elasticsearch
     environment:
@@ -26,7 +26,7 @@ services:
     restart: on-failure
 
   logstash:
-    build: ./elk/logstash
+    build: ./src/elk/logstash
     depends_on:
       - elasticsearch
     networks:
@@ -37,7 +37,7 @@ services:
     restart: on-failure
 
   kibana:
-    build: ./elk/kibana
+    build: ./src/elk/kibana
     ports:
       - 5601:5601
     depends_on:
@@ -54,7 +54,7 @@ services:
 
 
   alertmanager:
-    build: ./monitoring/alertmanager
+    build: ./src/monitoring/alertmanager
     networks:
       - app
     restart: on-failure
@@ -62,7 +62,7 @@ services:
       - logstash
 
   prometheus:
-    build: ./monitoring/prometheus
+    build: ./src/monitoring/prometheus
     ports:
       - "9090:9090"
     command:
@@ -76,7 +76,7 @@ services:
       - alertmanager
 
   grafana:
-    build: ./monitoring/grafana
+    build: ./src/monitoring/grafana
     ports:
       - "3111:3000"
     networks:
@@ -89,7 +89,7 @@ services:
       - prometheus
 
   elasticsearch-exporter:
-    build: ./monitoring/es_exporter
+    build: ./src/monitoring/es_exporter
     command:
       - --es.uri=http://${ELASTIC_SEARCH_USERNMAE}:${ELASTIC_SEARCH_PASSWORD}@elasticsearch:9200
       - --es.ssl-skip-verify
@@ -100,7 +100,7 @@ services:
     restart: on-failure
 
   logstash-exporter:
-    build: ./monitoring/logstach_exporter
+    build: ./src/monitoring/logstach_exporter
     networks:
       - app
     depends_on:
@@ -111,14 +111,14 @@ services:
 
 
   vault-server:
-    build: ./vault
+    build: ./src/vault
     ports:
       - "8200:8200"
     environment:
       - VAULT_ADDR=${VAULT_ADDR}
       - VAULT_SKIP_VERIFY=true
     volumes:
-      - ./vault/src/vault.hcl:/etc/vault.d/vault.hcl
+      - ./src/vault/src/vault.hcl:/etc/vault.d/vault.hcl
       - vault_data:/opt/vault/data
       - shared-data:/me
     networks:
@@ -126,18 +126,18 @@ services:
     restart: on-failure
 
   nginx:
-    build: ./proxy
+    build: ./src/proxy
     ports:
       - "443:443"
     volumes:
-      - ./proxy/config/modsecurity.conf:/etc/nginx/modsecurity.conf
-      - ./proxy/config/nginx.conf:/etc/nginx/nginx.conf
+      - ./src/proxy/config/modsecurity.conf:/etc/nginx/modsecurity.conf
+      - ./src/proxy/config/nginx.conf:/etc/nginx/nginx.conf
     networks:
       - app
     restart: on-failure
 
   backend:
-    build: app/backend
+    build: ./src/app/backend
     volumes:
       - public-data:/usr/src/app/public
       - shared-data:/usr/src/app/env
@@ -157,7 +157,7 @@ services:
     restart: on-failure
 
   frontend:
-    build: app/frontend
+    build: ./src/app/frontend
     volumes:
       - public-data:/usr/src/app/public
     restart: on-failure

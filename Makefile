@@ -1,14 +1,13 @@
 all:
-	docker compose -f src/docker-compose.yml up
-
+	docker compose up 
 
 fclean:
-	docker compose -f src/docker-compose.yml down --volumes --rmi all
+	docker compose down --volumes --rmi all
 
 
 build:
-	docker compose -f src/docker-compose.yml build
+	docker compose build
 
 
 down:
-	docker compose -f src/docker-compose.yml down
+	docker compose down
