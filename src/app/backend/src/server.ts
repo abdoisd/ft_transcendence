@@ -67,10 +67,6 @@ server.setNotFoundHandler((request, reply) => {
 gameWs();
 chatWs();
 
-// post to logstash
-// import { logstash } from "./logstash.ts";
-// logstash();
-
 // vault
 import vaultFactory from 'node-vault';
 const vault = vaultFactory({
