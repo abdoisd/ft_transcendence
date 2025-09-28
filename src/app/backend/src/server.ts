@@ -1,4 +1,3 @@
-// fastify
 import Fastify from "fastify";
 import fastifyStatic from "@fastify/static";
 import multipart from "@fastify/multipart";
@@ -7,22 +6,11 @@ import fastifyJwt from "@fastify/jwt";
 import { Server } from "socket.io";
 import { registerLogger } from "./logging/logstash.ts";
 import { gameWs } from "./webSocket.ts";
-
-// dotenv
 import dotenv from 'dotenv';
 dotenv.config({path: './env/.env'});
-dotenv.config({path: './.env'});
-
-// config
 import { config } from "./global.ts";
-
-// modules
 import path from "path";
-
-// globals
 import { blue, red, yellow, green, magenta, cyan } from "./global.ts";
-
-// routes
 import { UserRoutes } from "./data access layer/user.ts";
 import { OAuth2Routes } from "./oauth2.ts";
 import { relationshipRoutes } from "./data access layer/relationship.ts"
@@ -52,7 +40,6 @@ ws.use((socket, next) => {
 
 registerLogger(server);
 
-// REGISTER PLUGINS
 server.register(cookie, {});
 server.register(multipart);
 server.register(fastifyStatic, {
@@ -67,7 +54,6 @@ server.setNotFoundHandler((request, reply) => {
 gameWs();
 chatWs();
 
-// vault
 import vaultFactory from 'node-vault';
 const vault = vaultFactory({
 	apiVersion: 'v1',
@@ -117,7 +103,6 @@ const start = async () =>
     {
 		console.log("Starting server...");
 		
-		// register routes
 		UserRoutes();
 		OAuth2Routes();
 		server.register(relationshipRoutes);
