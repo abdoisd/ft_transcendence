@@ -128,11 +128,6 @@ const start = async () =>
 		server.register(Enable2faRoutes);
 		gameRoutes();
 		apiRoutes();
-		server.ready(err => {
-			if (err) throw err;
-		  
-			console.log(server.printRoutes())
-		});
 		
         const host = config.HOST;
         const port = Number(config.PORT);
