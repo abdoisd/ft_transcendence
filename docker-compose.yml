@@ -6,7 +6,7 @@ services:
       - discovery.type=single-node
       - ELASTIC_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
     volumes:
-      - es_data:/usr/share/elasticsearch/data:Z
+      - es_data:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
     networks:
