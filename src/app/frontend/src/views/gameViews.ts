@@ -87,7 +87,7 @@ export const gameModesViewStaticPart = `
 				</div>
 			
 				<h2 class="mt-4 mb-3">AI Challenge</h2>
-				<p class="text-secondary">Test your skills against our advanced intelligence opponent.</p>
+				<p class="text-secondary text-center">Test your skills against our advanced intelligence opponent.</p>
 
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Play Now</p>
@@ -102,7 +102,7 @@ export const gameModesViewStaticPart = `
 				</div>
 			
 				<h2 class="mt-4 mb-3">API Mode</h2>
-				<p class="text-secondary">Play a game using API.</p>
+				<p class="text-secondary text-center">Play a game using API.</p>
 
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Play Now</p>
@@ -118,7 +118,7 @@ export const gameModesViewStaticPart = `
 			
 				<h2 class="mt-4 mb-3">Tournament</h2>
 
-				<p class="text-secondary">Complete for the top spot.</p>
+				<p class="text-secondary text-center">Complete for the top spot.</p>
 
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Join</p>
@@ -134,7 +134,7 @@ export const gameModesViewStaticPart = `
 			
 				<h2 class="mt-4 mb-3">Multiplayer</h2>
 
-				<p class="text-secondary">Complete against friends or players from around the world in real-time.</p>
+				<p class="text-secondary text-center">Complete against friends or players from around the world in real-time.</p>
 
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Play Now</p>
@@ -149,7 +149,7 @@ export const gameModesViewStaticPart = `
 				</div>
 			
 				<h2 class="mt-4 mb-3">3D Mode</h2>
-				<p class="text-secondary">Immerse yourself in a stunning 3D gaming environemnt.</p>
+				<p class="text-secondary text-center">Immerse yourself in a stunning 3D gaming environemnt.</p>
 
 				<div class="rounded-btn mt-6 mb-3">
 					<p>Enter 3D</p>
