@@ -28,7 +28,7 @@ import { OAuth2Routes } from "./oauth2.ts";
 import { relationshipRoutes } from "./data access layer/relationship.ts"
 import { Enable2faRoutes } from "./2fa.ts";
 
-export const server = Fastify();
+export const server = Fastify({logger: true});
 
 export const ws = new Server(server.server, {
 	cors: {
@@ -63,13 +63,9 @@ server.setNotFoundHandler((request, reply) => {
 		return reply.status(404).send('Not Found');
 	reply.sendFile("index.html");
 });
-server.register(fastifyJwt, {
-	secret: process.env.JWT_SECRET || 'defaultSecret'
-})
 
 gameWs();
 chatWs();
-
 
 // post to logstash
 // import { logstash } from "./logstash.ts";
@@ -92,6 +88,23 @@ export async function vaultGoogleClientSecret(): Promise<string>
 		return result.data.data.CLIENT_SECRET;
 	});
 }
+async function vaultJwtSecret(): Promise<string>
+{
+	return vault.read('secret/data/node-app')
+	.then((result) => {
+		return result.data.data.JWT_SECRET;
+	});
+}
+export async function vaultRootToken(): Promise<string>
+{
+	return vault.read('secret/data/node-app')
+	.then((result) => {
+		return result.data.data.ROOT_TOKEN;
+	});
+}
+server.register(fastifyJwt, {
+	secret: await vaultJwtSecret()
+})
 
 server.addHook('onSend', async (request, reply, payload) => {
 	console.info(magenta, "Request to server: " + request.method + " " + request.url);

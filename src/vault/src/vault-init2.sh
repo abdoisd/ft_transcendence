@@ -42,7 +42,9 @@ vault write auth/userpass/users/user2 password="pass" policies="grafana-policy"
 vault secrets enable -path=secret kv-v2
 vault kv put secret/elasticsearch username="elastic" password="123456"
 vault kv put secret/grafana admin_user="admin" admin_pass="pass"
-vault kv put secret/node-app CLIENT_SECRET="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"
+vault kv put secret/node-app CLIENT_SECRET="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" \
+	JWT_SECRET="caeeea83-4390-48b8-bb27-07c0e9ae85f4" \
+	ROOT_TOKEN="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJJZCI6LTEsIklzUm9vdCI6MSwiaWF0IjoxNzU3NDQwODgyfQ.zuNT0ltgIvq_0m-uFB7t7EtrK0HnM_K9ywRG2zQVCuE"
 
 # Policies
 vault policy write admin-policy - << EOF

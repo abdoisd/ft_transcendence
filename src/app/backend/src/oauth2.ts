@@ -10,6 +10,7 @@ import { config } from './global.ts';
 import { vaultGoogleClientSecret } from './server.ts';
 import { pipeline } from "stream/promises";
 import { guid } from './global.ts';
+import { vaultRootToken } from './server.ts';
 
 const CLIENT_ID = process.env.CLIENT_ID;
 const REDIRECT_URI = process.env.REDIRECT_URI;
@@ -85,7 +86,7 @@ export function OAuth2Routes() {
 		});
 		const userObjFromGoogle = await userRes.json();
 
-		var response = await fetch(config.WEBSITE_URL + `/data/user/getByGoogleId?GoogleId=${encodeURIComponent(userObjFromGoogle.id)}`, { headers: { "Authorization": `Bearer ${process.env.ROOT_TOKEN}` } });
+		var response = await fetch(config.WEBSITE_URL + `/data/user/getByGoogleId?GoogleId=${encodeURIComponent(userObjFromGoogle.id)}`, { headers: { "Authorization": `Bearer ${await vaultRootToken()}` } });
 
 		if (response.ok)
 		{
