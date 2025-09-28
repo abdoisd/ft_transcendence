@@ -56,9 +56,6 @@ services:
     build: ./monitoring/prometheus
     ports:
       - "9090:9090"
-    volumes:
-      - ./monitoring/prometheus/config/prometheus.yml:/etc/prometheus/prometheus.yml
-      - ./monitoring/prometheus/config/alerts.yml:/etc/prometheus/alerts.yml
     command:
       - "--config.file=/etc/prometheus/prometheus.yml"
       - "--storage.tsdb.path=/prometheus/data"
@@ -73,10 +70,6 @@ services:
       - "3111:3000"
     networks:
       - app
-    volumes:
-      - ./monitoring/grafana/config/prometheus.yml:/etc/grafana/provisioning/datasources/prometheus.yml
-      - ./monitoring/grafana/config/system_metrics.json:/var/lib/grafana/dashboards/system_metrics.json
-      - ./monitoring/grafana/config/dashboard.yml:/etc/grafana/provisioning/dashboards/dashboard.yml
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
@@ -84,11 +77,9 @@ services:
 
   elasticsearch-exporter:
     build: ./monitoring/es_exporter
-    ports:
-      - "9114:9114"
     command:
       - --es.uri=http://${ELASTIC_SEARCH_USERNMAE}:${ELASTIC_SEARCH_PASSWORD}@elasticsearch:9200
-      - "--es.ssl-skip-verify"
+      - --es.ssl-skip-verify
     networks:
       - app
     depends_on:
@@ -97,15 +88,14 @@ services:
 
   logstash-exporter:
     build: ./monitoring/logstach_exporter
-    ports:
-      - "9198:9198"
-    volumes:
-      - ./monitoring/logstach_exporter/config/config.yml:/app/config.yml
     networks:
       - app
     depends_on:
       - logstash
     restart: on-failure
+
+
+
 
   vault-server:
     build: ./vault
