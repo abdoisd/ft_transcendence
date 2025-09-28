@@ -161,8 +161,6 @@ services:
   frontend:
     build: app/frontend
     working_dir: /usr/src/app
-    volumes:
-      - ./app/frontend/src:/usr/src/app
     restart: on-failure
     environment: 
       - WS_URL=${WS_URL}

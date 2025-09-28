@@ -5,15 +5,13 @@
 	"type": "module",
 	"main": "index.js",
 	"scripts": {
-		"build": "npx esbuild frontend.ts --bundle --outfile=public/bundle.js --define:WS_URL=\"'${WS_URL}'\"",
-		"dev": "nodemon --watch . --ext ts --ignore ./public --exec \"npm run build\""
+		"build": "npx esbuild frontend.ts --bundle --outfile=public/bundle.js --define:WS_URL=\"'${WS_URL}'\""
 	},
 	"keywords": [],
 	"author": "",
 	"license": "ISC",
 	"dependencies": {
 		"@babylonjs/core": "^8.27.2",
-		"@tailwindcss/cli": "^4.1.12",
 		"babylonjs": "^8.27.2",
 		"socket.io-client": "^4.8.1"
 	},

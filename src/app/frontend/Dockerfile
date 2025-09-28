@@ -2,8 +2,8 @@ FROM node:latest
 
 WORKDIR /usr/src/app
 
-COPY ./src/package.json /
+COPY ./src .
 
-RUN npm install && npm install -g nodemon
+RUN npm install
 
-CMD [ "npm", "run", "dev" ]
+CMD [ "npm", "run", "build" ]
