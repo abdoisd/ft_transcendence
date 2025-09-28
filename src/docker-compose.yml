@@ -7,7 +7,6 @@ services:
       - ELASTIC_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
     volumes:
       - es_data:/usr/share/elasticsearch/data:Z
-      - ./elk/elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro,Z
     ports:
       - 9200:9200
     networks:
@@ -32,8 +31,6 @@ services:
       - elasticsearch
     networks:
       - app
-    volumes:
-      - ./elk/logstash/config/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
     environment:
       - ELASTIC_SEARCH_USERNMAE=${ELASTIC_SEARCH_USERNMAE}
       - ELASTIC_SEARCH_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
@@ -45,8 +42,6 @@ services:
       - 5601:5601
     depends_on:
       - elasticsearch
-    volumes:
-      - ./elk/kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro,Z
     environment:
       - KIBANA_USERNAME=${KIBANA_USERNAME}
       - KIBANA_PASSWORD=${KIBANA_PASSWORD}

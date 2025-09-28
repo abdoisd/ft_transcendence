@@ -171,7 +171,7 @@ const updateChat = async () => {
     <div class="flex center">
         <img class="avatar small mr-5" src="/data/user/getAvatarById?Id=${clsGlobal.LoggedInUser.Id}" alt="">
         <form id="form" class="input flex flex-1">
-            <input id="input" class="pl-3" type="text" placeholder="Type a message..." />
+            <input id="input" class="pl-3 flex-1" type="text" placeholder="Type a message..." />
             <button class="btn">Send</button>
         </form>
     </div>

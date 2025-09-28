@@ -1,6 +1,5 @@
 import { UserDTO } from "../business layer/user.ts";
 import { route } from "../frontend.ts";
-import { post } from "./request.ts"
 
 export function ProfileEditView()
 {
@@ -74,8 +73,8 @@ const profileEditViewStaticPart = `
 
 			<div class="mb-3">
 				<label class="text-secondary">Username</label>
-				<div class="input">
-					<input type="text" id="username" name="username">
+				<div class="input flex">
+					<input class="flex-1" type="text" id="username" name="username">
 				</div>
 				
 				<span id="username-error" style="color: red; display: none;"></span>
