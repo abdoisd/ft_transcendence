@@ -37,7 +37,6 @@ export var routes = {
 };
 
 export async function autoLogin() {
-	console.debug("autoLogin()");
 
 	return fetch("/validateSession", {
 		method: "POST",
@@ -57,8 +56,6 @@ export async function autoLogin() {
 			clsGlobal.LoggedInUser = null;
 		else {
 			clsGlobal.LoggedInUser = Object.assign(new UserDTO(-1, "", "", "", -1, -1, null, null), user);
-
-			console.debug("Filling User: ", clsGlobal.LoggedInUser);
 
 			if (user.jwt)
 				localStorage.setItem("jwt", user.jwt);
@@ -108,19 +105,14 @@ function handleView(event?, path?: string | null) {
 	if (!path)
 		path = window.location.pathname;
 
-	console.log("Handling route: " + path);
-
 	autoLogin()
 		.then(() => {
 
 			if (path != "/newUser" && path != "/existingUser") {
 				if (!clsGlobal.LoggedInUser) {
-					console.debug("LoggedInUser not filled");
 					LoginWithGoogle();
 					return;
 				}
-				else
-					console.debug("LoggedInUser filled");
 			}
 
 			clsGlobal.LoggedInUser?.update();
