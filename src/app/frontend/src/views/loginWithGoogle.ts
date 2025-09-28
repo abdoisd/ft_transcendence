@@ -194,8 +194,8 @@ const usernameAvatarForm = `
 
 			<div class="mb-3">
 				<label class="text-secondary">Username</label>
-				<div class="input">
-					<input type="text" id="username" name="username" required>
+				<div class="input flex">
+					<input type="text" id="username" name="username" class="flex-1" required>
 				</div>
 				
 				<span id="username-error" style="color: red; display: none;"></span>
