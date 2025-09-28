@@ -428,7 +428,6 @@ export function init3DGame() {
 	paddleTwo.position = PAD_TWO_POS;
 
 	const ballMaterial = new StandardMaterial("ball", scene);
-	// ballMaterial.diffuseColor = Color3.FromHexString("#FFFF00");
 	const ballTexture = new DynamicTexture("stripes", 512, scene, false)
 	const ctx = ballTexture.getContext();
 	ctx.fillStyle = "red";
@@ -568,9 +567,6 @@ class Game {
 	updateBall(dt: number) {
 		this.ball.mesh.position.x += this.ball.velocity.x * dt;
 		this.ball.mesh.position.z += this.ball.velocity.z * dt;
-
-		this.ball.mesh.rotation.x += this.ball.velocity.z * dt / BALL_RADIUS_3D;
-		this.ball.mesh.rotation.z += this.ball.velocity.x * dt / BALL_RADIUS_3D;
 
 		this.collidesWithSides();
 		this.collidesWithPaddles(this.paddleOne, "back");
