@@ -306,7 +306,7 @@ export class ClientGame {
 		const scaleY = this.canvas.height / SERVER_HEIGHT;
 
 		// board
-		ctx.fillStyle = "#000000";
+		ctx.fillStyle = "#111827";
 		ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 		ctx.setLineDash([12 * scaleX, 12 * scaleY]);
 		ctx.strokeStyle = "#FFFFFF";
