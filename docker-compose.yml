@@ -1,109 +1,108 @@
 services:
+  elasticsearch:
+    build: ./src/elk/elasticsearch
+    environment:
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - discovery.type=single-node
+      - ELASTIC_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - app
+    restart: on-failure
 
-  # elasticsearch:
-  #   build: ./src/elk/elasticsearch
-  #   environment:
-  #     - ES_JAVA_OPTS=-Xms512m -Xmx512m
-  #     - discovery.type=single-node
-  #     - ELASTIC_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
-  #   volumes:
-  #     - es_data:/usr/share/elasticsearch/data
-  #   ports:
-  #     - 9200:9200
-  #   networks:
-  #     - app
-  #   restart: on-failure
+  setup:
+    build: ./src/elk/setup
+    depends_on:
+      - elasticsearch
+    environment:
+      - ELASTIC_SEARCH_USERNMAE=${ELASTIC_SEARCH_USERNMAE}
+      - ELASTIC_SEARCH_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+    networks:
+      - app
+    restart: on-failure
 
-  # setup:
-  #   build: ./src/elk/setup
-  #   depends_on:
-  #     - elasticsearch
-  #   environment:
-  #     - ELASTIC_SEARCH_USERNMAE=${ELASTIC_SEARCH_USERNMAE}
-  #     - ELASTIC_SEARCH_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
-  #     - KIBANA_PASSWORD=${KIBANA_PASSWORD}
-  #   networks:
-  #     - app
-  #   restart: on-failure
+  logstash:
+    build: ./src/elk/logstash
+    depends_on:
+      - elasticsearch
+    networks:
+      - app
+    environment:
+      - ELASTIC_SEARCH_USERNMAE=${ELASTIC_SEARCH_USERNMAE}
+      - ELASTIC_SEARCH_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
+    restart: on-failure
 
-  # logstash:
-  #   build: ./src/elk/logstash
-  #   depends_on:
-  #     - elasticsearch
-  #   networks:
-  #     - app
-  #   environment:
-  #     - ELASTIC_SEARCH_USERNMAE=${ELASTIC_SEARCH_USERNMAE}
-  #     - ELASTIC_SEARCH_PASSWORD=${ELASTIC_SEARCH_PASSWORD}
-  #   restart: on-failure
+  kibana:
+    build: ./src/elk/kibana
+    ports:
+      - 5601:5601
+    depends_on:
+      - elasticsearch
+    environment:
+      - KIBANA_USERNAME=${KIBANA_USERNAME}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+      - ES_ENCRYPTION_KEY=${ES_ENCRYPTION_KEY}
+    networks:
+      - app
+    restart: on-failure
 
-  # kibana:
-  #   build: ./src/elk/kibana
-  #   ports:
-  #     - 5601:5601
-  #   depends_on:
-  #     - elasticsearch
-  #   environment:
-  #     - KIBANA_USERNAME=${KIBANA_USERNAME}
-  #     - KIBANA_PASSWORD=${KIBANA_PASSWORD}
-  #     - ES_ENCRYPTION_KEY=${ES_ENCRYPTION_KEY}
-  #   networks:
-  #     - app
-  #   restart: on-failure
+  alertmanager:
+    build: ./src/monitoring/alertmanager
+    networks:
+      - app
+    restart: on-failure
+    depends_on:
+      - logstash
 
-  # alertmanager:
-  #   build: ./src/monitoring/alertmanager
-  #   networks:
-  #     - app
-  #   restart: on-failure
-  #   depends_on:
-  #     - logstash
+  prometheus:
+    build: ./src/monitoring/prometheus
+    ports:
+      - "9090:9090"
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus/data"
+      - "--storage.tsdb.retention.time=30d"
+    networks:
+      - app
+    restart: on-failure
+    depends_on:
+      - alertmanager
 
-  # prometheus:
-  #   build: ./src/monitoring/prometheus
-  #   ports:
-  #     - "9090:9090"
-  #   command:
-  #     - "--config.file=/etc/prometheus/prometheus.yml"
-  #     - "--storage.tsdb.path=/prometheus/data"
-  #     - "--storage.tsdb.retention.time=30d"
-  #   networks:
-  #     - app
-  #   restart: on-failure
-  #   depends_on:
-  #     - alertmanager
+  grafana:
+    build: ./src/monitoring/grafana
+    ports:
+      - "3111:3000"
+    networks:
+      - app
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+    restart: on-failure
+    depends_on:
+      - prometheus
 
-  # grafana:
-  #   build: ./src/monitoring/grafana
-  #   ports:
-  #     - "3111:3000"
-  #   networks:
-  #     - app
-  #   environment:
-  #     - GF_SECURITY_ADMIN_USER=${GRAFANA_USERNAME}
-  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
-  #   restart: on-failure
-  #   depends_on:
-  #     - prometheus
+  elasticsearch-exporter:
+    build: ./src/monitoring/es_exporter
+    command:
+      - --es.uri=http://${ELASTIC_SEARCH_USERNMAE}:${ELASTIC_SEARCH_PASSWORD}@elasticsearch:9200
+      - --es.ssl-skip-verify
+    networks:
+      - app
+    depends_on:
+      - elasticsearch
+    restart: on-failure
 
-  # elasticsearch-exporter:
-  #   build: ./src/monitoring/es_exporter
-  #   command:
-  #     - --es.uri=http://${ELASTIC_SEARCH_USERNMAE}:${ELASTIC_SEARCH_PASSWORD}@elasticsearch:9200
-  #     - --es.ssl-skip-verify
-  #   networks:
-  #     - app
-  #   depends_on:
-  #     - elasticsearch
-  #   restart: on-failure
-
-  # logstash-exporter:
-  #   build: ./src/monitoring/logstach_exporter
-  #   networks:
-  #     - app
-  #   depends_on:
-  #     - logstash
-  #   restart: on-failure
+  logstash-exporter:
+    build: ./src/monitoring/logstach_exporter
+    networks:
+      - app
+    depends_on:
+      - logstash
+    restart: on-failure
 
 
   vault-server:
@@ -150,7 +149,7 @@ services:
       - WEBSITE_URL=${WEBSITE_URL}
       - SERVER_URL=${SERVER_URL}
     depends_on:
-      # - logstash
+      - logstash
       - vault-server
       - frontend
     restart: on-failure
