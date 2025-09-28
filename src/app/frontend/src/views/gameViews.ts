@@ -295,11 +295,8 @@ export class ClientGame {
 		this.looping = true;
 	}
 
-	draw() {
+	draw(){ 
 		const { paddles, ball } = this.state;
-
-		if (!paddles || !ball || !this.leftId || !this.rightId || !paddles[this.leftId] || !paddles[this.rightId])
-			return;
 
 		if (!this.looping)
 			return;
