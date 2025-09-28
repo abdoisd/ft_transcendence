@@ -8,7 +8,7 @@ import { clsGame } from "./game.ts";
 import { pipeline } from "stream/promises";
 import { createTables } from "./chat.ts";
 
-export const TOURNAMENT_ID = 100;
+export const TOURNAMENT_ID = 1;
 export const TOURNAMENT_NAME = "Tournament";
 export const TOURNAMENT_AVATAR = "tournament-avatar.png";
 
