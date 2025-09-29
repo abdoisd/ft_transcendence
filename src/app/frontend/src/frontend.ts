@@ -124,11 +124,19 @@ function handleView(event?, path?: string | null) {
 				return;
 			}
 
-			if (routes[getMainPath(path)])
-				routes[path]();
-			else {
-				document.getElementById("body")!.innerHTML = `<div style="grid-area: main;" class="flex flex-center"><h1>Not Found</h1></div>`; //&
+			try {
+				if (routes[getMainPath(path)])
+					routes[path]();
+				else {
+					document.getElementById("body")!.innerHTML = `<div style="grid-area: main;" class="flex flex-center"><h1>Not Found</h1></div>`;
+				}
 			}
+			catch (err)
+			{
+				console.log(err);
+				document.getElementById("body")!.innerHTML = `<div style="grid-area: main;" class="flex flex-center"><h1>Index</h1></div>`;
+			}
+
 		});
 };
 
