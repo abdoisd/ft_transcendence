@@ -187,7 +187,7 @@ export class Game {
 		const players = [this.player1Id, this.player2Id];
 		for (const playerId of players) {
 			const paddle = this.paddles[playerId];
-			const keys = this.keyStates[playerId]; 
+			const keys = this.keyStates[playerId];
 			if (keys.up)
 				paddle.y -= speed * delta;
 			if (keys.down)

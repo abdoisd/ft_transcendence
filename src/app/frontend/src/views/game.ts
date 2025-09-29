@@ -13,6 +13,7 @@ import { gameOverViewStaticPart } from "./gameViews";
 import { opponentLeftGame } from "./gameViews";
 import { tournamentOverview } from "./gameViews";
 import { voidedTournament } from "./gameViews";
+import { inviteGameViewStaticPart } from "./gameViews";
 
 export function GameModesView() {
 	document.getElementById("main-views")!.innerHTML = gameModesViewStaticPart;
@@ -310,26 +311,25 @@ function tournamentGame() {
 	window.gameManager.setActiveGame("tournament", wsClientTournament, { keyDown, keyUp });
 }
 
-import { inviteGameViewStaticPart } from "./gameViews";
-import { chatIO } from "./chat";
-
-chatIO.on("check-game", () => {
-	if (window.gameManager.activeGame) {
-		chatIO.emit("ready", false);
-	} else {
-		chatIO.emit("ready", true);
+export function chatGame(chatIO) {
+	chatIO.on("check-game", () => {
+		if (window.gameManager.activeGame) {
+			chatIO.emit("ready", false);
+		} else {
+			chatIO.emit("ready", true);
+		}
+	});
+	
+	chatIO.on("start", () => {
+		document.getElementById("main-views")!.innerHTML = inviteGameViewStaticPart;
+		inviteGame();
+	});
+	
+	function acceptGame(msgId) {
+		chatIO.emit("check-invite", msgId);
 	}
-});
-
-chatIO.on("start", () => {
-	document.getElementById("main-views")!.innerHTML = inviteGameViewStaticPart;
-	inviteGame();
-});
-
-function acceptGame(msgId) {
-	chatIO.emit("check-invite", msgId);
+	window.acceptGame = acceptGame;
 }
-window.acceptGame = acceptGame;
 
 function inviteGame() {
 	const wsClientInvite = io(`${WS_URL}/invite`, {

@@ -1,6 +1,8 @@
 import { authGet, authPost } from "../utils/http_utils";
 import { io } from "socket.io-client";
 import { getQuery } from "../utils/utils";
+import { chatGame } from "./game";
+
 
 const BLOCKED_MSG = "You are blocked and cannot send messages to this person.";
 const UNKNOWN_ERROR_MSG = "Unknown error, please try again.";
@@ -39,6 +41,8 @@ export const reconnectIfRequired = () => {
             }).showToast();
         }
     });
+
+    chatGame(chatIO);
 }
 
 reconnectIfRequired();
