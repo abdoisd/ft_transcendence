@@ -17,9 +17,7 @@ export function NewUser() {
 	const params = new URLSearchParams(window.location.search);
 	
 	const jwt = params.get('jwt');
-	console.debug("setting jwt in localStorage: ", jwt);
 	localStorage.setItem("jwt", jwt);
-	console.debug("jwt in localStorage: ", localStorage.getItem("jwt"));
 
 	getOnlyFetch("/data/user/getById", {Id: params.get("Id")})
 	.then((response) => {
@@ -70,11 +68,9 @@ export async function existingUser() {
 
 	if (params.has('jwt')) {
 		const jwt = params.get('jwt');
-		console.debug("setting jwt in localStorage: ", jwt);
 		localStorage.setItem("jwt", jwt);
 	}
 
-	console.debug("Filling loggedInUser");
 	globalThis.clsGlobal.LoggedInUser = new UserDTO(
         Number(params.get('Id')),
         params.get('GoogleId') || '',
@@ -105,8 +101,6 @@ async function usernameAvatarFormHandleSubmit(event: Event)
 {
 	event.preventDefault();
 	
-	console.debug("usernameAvatarFormHandleSubmit()");
-
 	const usernameElement = document.getElementById("username") as HTMLInputElement;
 	const avatarElement = document.getElementById("avatar") as HTMLInputElement;
 
@@ -122,8 +116,6 @@ async function usernameAvatarFormHandleSubmit(event: Event)
 	}
 	else
 	{
-		console.debug("Username not taken");
-		
 		const formData = new FormData();
 
 		if (avatarElement.files && avatarElement.files.length > 0)
@@ -149,8 +141,6 @@ async function usernameAvatarFormHandleSubmit(event: Event)
     	.then(async response => {
 			if (response.ok)
 			{
-
-				console.debug("Filling loggedInUser");
 				const user: UserDTO = await UserDTO.getById(Number(Id));
 				globalThis.clsGlobal.LoggedInUser = user;
 
