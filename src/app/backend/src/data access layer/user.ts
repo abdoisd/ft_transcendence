@@ -7,6 +7,7 @@ import { guid } from "../global.ts";
 import { clsGame } from "./game.ts";
 import { pipeline } from "stream/promises";
 import { createTables } from "./chat.ts";
+import UserRepository from "../repositories/UserRepository.ts";
 
 export const TOURNAMENT_ID = 1;
 export const TOURNAMENT_NAME = "Tournament";
@@ -208,6 +209,9 @@ export function UserRoutes() {
 		try {
 			await request.jwtVerify();
 			const payload = request.user;
+
+			if (!(await UserRepository.getUser(payload.Id)))
+				return reply.status(401).send({ error: "Unauthorized" });
 
 			if (payload.IsRoot) {
 				console.log(yellow, 'Admin access granted');
