@@ -13,8 +13,8 @@ const addFriendViewStaticPart: string = `
 	<div class="card">
 	<form onsubmit="searchUserButton(event);" class="mh-5 mt-3"> <!-- passing the event -->
 		<label class="text-secondary">Find user by username</label>
-		<div class="input">
-			<input type="text" id="txtUsername" placeholder="Username" required>
+		<div class="input flex">
+			<input type="text" id="txtUsername" placeholder="Username" class="flex-1" required>
 		</div>
 		<button type="submit" class="btn btn-primary mt-6 w-full gap-small mb-3">
 		<svg xmlns="http://www.w3.org/2000/svg" width="24px" height="24px" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
