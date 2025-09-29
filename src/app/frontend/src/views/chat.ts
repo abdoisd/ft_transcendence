@@ -5,30 +5,43 @@ import { getQuery } from "../utils/utils";
 const BLOCKED_MSG = "You are blocked and cannot send messages to this person.";
 const UNKNOWN_ERROR_MSG = "Unknown error, please try again.";
 
-export const chatIO = io(`${WS_URL}/chat`, {
-    auth: {
-        token: localStorage.getItem("jwt")
-    }
-});
+export let chatIO: any | null = null;
+let token: string | null = null;
 
-chatIO.on("msg", function (msg) {
-    if (window.location.pathname == "/chat") {
-        if (currentChatId() == msg.sender_id && currentChatId() != clsGlobal.LoggedInUser?.Id)
-            appendMessage(msg, true, null);
-        updateConversations()
-    }
-    else {
-        Toastify({
-            text: message(msg),
-            gravity: "bottom",
-            position: "right",
-            avatar: `/data/user/getAvatarById?Id=${msg.sender.id}`,
-            style: {
-                background: "#20262E"
-            }
-        }).showToast();
-    }
-});
+
+export const reconnectIfRequired = () => {
+    if (token == localStorage.getItem("jwt"))
+        return ;
+
+    token = localStorage.getItem("jwt");
+
+    chatIO = io(`${WS_URL}/chat`, {
+        auth: {
+            token: token
+        }
+    })
+
+    chatIO.on("msg", function (msg) {
+        if (window.location.pathname == "/chat") {
+            if (currentChatId() == msg.sender_id && currentChatId() != clsGlobal.LoggedInUser?.Id)
+                appendMessage(msg, true, null);
+            updateConversations()
+        }
+        else {
+            Toastify({
+                text: message(msg),
+                gravity: "bottom",
+                position: "right",
+                avatar: `/data/user/getAvatarById?Id=${msg.sender.id}`,
+                style: {
+                    background: "#20262E"
+                }
+            }).showToast();
+        }
+    });
+}
+
+reconnectIfRequired();
 
 
 export async function Chat() {
@@ -127,10 +140,10 @@ const displayMessage = (msg: string | null) => {
         }, 3000);
     }
 }
-const setMessage = (msg:string) => {
+const setMessage = (msg: string) => {
     const element = document.getElementById("conversation");
     if (!element)
-        return ;
+        return;
     element.innerHTML = `<h5 class=\"text-center\">${msg}</h5>`;
 }
 
@@ -142,9 +155,9 @@ const updateChat = async () => {
 
     if (!id)
         return (element.innerHTML = "<h5 class=\"text-center\">Start a conversation.</h5>")
-    
-    let user : any;
-    
+
+    let user: any;
+
     try {
         user = await authGet(`/api/users/${id}`);
     } catch (error) {
@@ -152,7 +165,7 @@ const updateChat = async () => {
     };
 
     if (!user)
-        return ;
+        return;
 
     element.innerHTML = `
     <div class="header flex center">
@@ -236,13 +249,13 @@ const updateChat = async () => {
         if (!id)
             return;
         blockEl!.disabled = true;
-        
-        let result : any;
+
+        let result: any;
 
         try {
             result = await authPost(`/api/users/${id}/block`)
         } catch (error) {
-            displayMessage (error.error);
+            displayMessage(error.error);
         }
 
         if (result)

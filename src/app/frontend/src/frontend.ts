@@ -8,7 +8,7 @@ import { friendsView } from './views/friends.ts';
 import { Settings } from './views/settings.ts';
 import { GameModesView } from './views/game.ts';
 import { UserDTO } from './business layer/user.ts';
-import { Chat } from './views/chat.ts';
+import { Chat, reconnectIfRequired } from './views/chat.ts';
 import { GameManager } from './views/game.ts';
 import { addFriendView } from './views/add_friend.ts';
 import { listFriendsView } from './views/list_friends.ts';
@@ -125,6 +125,8 @@ function handleView(event?, path?: string | null) {
 			}
 
 			try {
+				reconnectIfRequired();
+				
 				if (routes[getMainPath(path)])
 					routes[path]();
 				else {
