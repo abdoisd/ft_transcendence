@@ -28,20 +28,14 @@ export function Enable2faRoutes()
 
 	server.get("/auth/2fa/enable", { preHandler: (server as any).byItsOwnUser }, async (request, reply) => 
 	{
-		console.debug(yellow, "/auth/2fa/enable");
-		
 		const userId = (request.query as any).Id;
 		const code = (request.query as any).code;
 
 		if (!userId || !code || userId.trim() == "" || code.trim() == "")
 			return reply.status(400).send();
 
-		console.debug(yellow, "code: ", code);
-
 		const user = await User.getById(userId);
-		const secret = user.TOTPSecretPending; // null, TOTPSecretPending not set, 2 updates
-
-		console.debug(yellow, "secret 2: ", secret);
+		const secret = user.TOTPSecretPending;
 
 		const verified = speakeasy.totp.verify({
 			secret: secret,
@@ -62,7 +56,7 @@ export function Enable2faRoutes()
 			reply.send( {jwt: jwt, user: user} );
 		}
 		else
-			reply.status(400).send("here");
+			reply.status(400).send();
 	});
 
 	server.get("/auth/2fa/verify", async (request, reply) => 
