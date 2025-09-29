@@ -350,6 +350,7 @@ const WHITE = "#FFFFFF";
 const CYAN = "#00FFFF";
 const OPAQUE_WHITE = "#37E07B";
 const RED = "#E63946";
+const YELLOW = "#FFFF00";
 
 const CAMERA_POINT = new Vector3(0, 14, 23.5);
 const FOCAL_POINT = new Vector3(0, 0, 0);
@@ -425,7 +426,7 @@ export function init3DGame() {
 	paddleTwo.position = PAD_TWO_POS;
 
 	const ballMaterial = new StandardMaterial("ball", scene);
-	ballMaterial.diffuseColor = "yellow";
+	ballMaterial.diffuseColor = Color3.FromHexString(YELLOW);
 	const ball = MeshBuilder.CreateSphere("ball", { diameter: BALL_DIAMETER, segments: 32 }, scene);
 	ball.material = ballMaterial;
 	ball.position = BALL_POS;

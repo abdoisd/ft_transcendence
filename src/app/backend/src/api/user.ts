@@ -1,3 +1,4 @@
+import { TOURNAMENT_ID } from "../data access layer/user.ts";
 import userRepository from "../repositories/UserRepository.ts";
 import { server } from "../server.ts";
 
@@ -45,6 +46,9 @@ export default function userApi(): void {
     server.post("/api/users/:id/block", { preHandler: server.mustHaveToken, schema: requiredIdSchema }, async (request, reply) => {
         const user = request.user;
         const { id } = request.params;
+
+        if (id == TOURNAMENT_ID)
+            return (reply.status(400).send({ error: "You can't block this user!" }));
 
         if (id == user.Id)
             return (reply.status(400).send({ error: "You can't block yourself" }));
