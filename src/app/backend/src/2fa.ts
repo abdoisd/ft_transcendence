@@ -15,34 +15,27 @@ export function Enable2faRoutes()
 		const userId = (request.query as any).Id;
 
 		var secret = speakeasy.generateSecret({});
+		console.debug(yellow, "secret: ", secret);
 
 		const user = await User.getById(userId);
 		user.TOTPSecretPending = secret.base32;
-		user.update();
+		await user.update();
 
-		console.debug(yellow, "secret: ", secret);
 		const qrCodeDataURL = await qrcode.toDataURL(secret.otpauth_url);
 		console.debug(yellow, "qrCodeDataURL: ", qrCodeDataURL);
 		reply.send({ qrCode: qrCodeDataURL });
-
 	});
 
 	server.get("/auth/2fa/enable", { preHandler: (server as any).byItsOwnUser }, async (request, reply) => 
 	{
-		console.debug(yellow, "/auth/2fa/enable");
-		
 		const userId = (request.query as any).Id;
 		const code = (request.query as any).code;
 
 		if (!userId || !code || userId.trim() == "" || code.trim() == "")
 			return reply.status(400).send();
 
-		console.debug(yellow, "code: ", code);
-
 		const user = await User.getById(userId);
 		const secret = user.TOTPSecretPending;
-		
-		console.debug(yellow, "secret 2: ", secret);
 
 		const verified = speakeasy.totp.verify({
 			secret: secret,

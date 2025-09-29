@@ -106,7 +106,7 @@ function handleView(event?, path?: string | null) {
 		path = window.location.pathname;
 
 	autoLogin()
-		.then(() => {
+		.then(async () => {
 
 			if (path != "/newUser" && path != "/existingUser") {
 				if (!clsGlobal.LoggedInUser) {
@@ -115,7 +115,7 @@ function handleView(event?, path?: string | null) {
 				}
 			}
 
-			clsGlobal.LoggedInUser?.update();
+			await clsGlobal.LoggedInUser?.update();
 
 			HomeView();
 			if (path == '/')

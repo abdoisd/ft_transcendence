@@ -13,7 +13,7 @@ export async function ProfileView() {
 
 		mainView.innerHTML = isMe ? meProfileViewStaticPart : profileViewStaticPart;
 
-		document.getElementById("Avatar")!.src = "/data/user/getAvatarById?Id=" + user.Id;
+		document.getElementById("Avatar")!.src = "/data/user/getAvatarById?Id=" + user.Id + "&time=" + new Date().getTime();
 		document.getElementById("Username")!.textContent = user.Username;
 		document.getElementById("Wins")!.textContent = user.Wins.toString();
 		document.getElementById("Losses")!.textContent = user.Losses.toString();
